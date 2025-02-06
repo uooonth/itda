@@ -1,9 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Nav from './components/nav';
 
 // page 요소
-import Home from './pages/home';
+import Home from './pages/home'; 
 import Profile from './pages/profile';
 import Calendar from './pages/calendar';
 
@@ -12,10 +12,12 @@ import "./App.css";
 
 function App() {
   const location = useLocation();
+  const isLoggedIn = true; 
+  const username = "어금지님"; 
 
   return (
     <div className="App">
-      {location.pathname !== '/' && <Nav />}
+      {location.pathname !== '/' && <Nav username={username} isLoggedIn={isLoggedIn} />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
@@ -25,12 +27,4 @@ function App() {
   );
 }
 
-function AppWrapper() {
-  return (
-    <Router>
-      <App />
-    </Router>
-  );
-}
-
-export default AppWrapper;
+export default App;

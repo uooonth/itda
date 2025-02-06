@@ -2,52 +2,155 @@
     font-weight: 300;
     font-family: "Pretendard-Light";
     src: url("./fonts/Pretendard-Light.otf") format("truetype");
-
 }
 @font-face {
     font-weight: 400;
     font-family: "Pretendard-Regular";
     src: url("./fonts/Pretendard-Regular.otf") format("truetype");
-
 }
 @font-face {
     font-weight: 500;
     font-family: "Pretendard-Medium";
     src: url("./fonts/Pretendard-Medium.otf") format("truetype");
-
 }
 @font-face {
     font-weight: 600;
     font-family: "Pretendard-SemiBold";
     src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
-
 }
 @font-face {
     font-weight: 700;
     font-family: "Pretendard-Bold";
     src: url("./fonts/Pretendard-Bold.otf") format("truetype");
-
 }
 @font-face {
     font-weight: 800;
     font-family: "Pretendard-ExtraBold";
     src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
-
 }
 
-    
 .Nav {
-    position:absolute;
-    height: 7vh;
+    position: absolute;
+    height: 10vh;
     width: 100vw;
-    border: black solid 1px;
-    color: black;
-    font-size: 0.9rem;
-    padding: 0 6.45vw;
+    padding: 0 12vw;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-sizing: border-box;
-    font-family: "Pretendard-Bold";
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 0.4vh 0.6vh rgba(0, 0, 0, 0.1); 
+    top: 0; 
+    left: 0; 
+}
+  
+.logo {
+    font-family: 'Pretendard-Black';
+    font-size: 3.2vh;
+    color: black;
+}
+  
+.nav-links {
+    display: flex;
+    gap: 14vw;
+}
+  
+.nav-link {
+    font-family: 'Pretendard-ExtraLight';
+    font-size: 2.4vh;
+    color: black;
+}
+  
+.nav-link.active {
+    font-family: 'Pretendard-Bold';
+}
+  
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 2vh;
+}
+  
+.username {
+    font-family: 'Pretendard-ExtraLight';
+    font-size: 2vh;
+    color: black;
+}
+  
+.icon {
+    cursor: pointer;
+    position: relative;
+}
+  
+.icon::after {
+    content: '';
+    position: absolute;
+    top: -0.5vh;
+    right: -0.5vh;
+    width: 1vh;
+    height: 1vh;
+    background-color: red;
+    border-radius: 50%;
+    display: none;
+}
+  
+.icon.notification::after {
+    display: block;
+}
+  
+.popup {
+    position: absolute;
+    background-color: white;
+    border-radius: 2vh;
+    box-shadow: 0 0.4vh 0.6vh rgba(0, 0, 0, 0.1);
+    padding: 2vh;
+    z-index: 1000;
+}
+  
+.profile-popup {
+    width: 42vw;
+    height: 37vh;
+}
+  
+.notification-popup {
+    width: 42vw;
+    height: 65vh;
+}
+  
+.close {
+    position: absolute;
+    top: 1vh;
+    right: 1vh;
+    cursor: pointer;
+}
+  
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 9.5vw;
+}
+  
+.signup {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 1.8vh;
+    color: black;
+    background-color: white;
+}
+  
+.login-button {
+    background-color: black;
+    color: white;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 1.8vh;
+    width: 16vw;
+    height: 6vh;
+    border-radius: 4.8vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1vh;
+    cursor: pointer;
+}
+  
+.login-icon {
+    font-size: 1.8vh;
 }
