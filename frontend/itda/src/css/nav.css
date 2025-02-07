@@ -29,51 +29,62 @@
     src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
 }
 
-.Nav {
+.navigation {
     position: absolute;
-    height: 10vh;
+    height: 5.25vw; 
     width: 100vw;
-    padding: 0 12vw;
+    padding: 0 3.125vw;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-sizing: border-box;
-    box-shadow: 0 0.4vh 0.6vh rgba(0, 0, 0, 0.1); 
+    border-bottom: 0.052vw solid rgba(0, 0, 0, 0.17);
     top: 0; 
     left: 0; 
 }
   
 .logo {
-    font-family: 'Pretendard-Black';
-    font-size: 3.2vh;
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 2rem;
+    width: 14.06vw;
     color: black;
 }
   
-.nav-links {
+.navLinks {
     display: flex;
-    gap: 14vw;
+    gap: 4.375vw;
+    margin: 0 auto;
 }
   
-.nav-link {
+.navLink {
     font-family: 'Pretendard-ExtraLight';
-    font-size: 2.4vh;
+    font-size: 1.5rem;
     color: black;
 }
   
-.nav-link.active {
+.navLink.active {
     font-family: 'Pretendard-Bold';
 }
-  
-.user-section {
+.popupUserName{
+    font-family: 'Pretendard-bold';
+    font-size: 1.5rem; 
+    color: black;
+    cursor: pointer;
+    text-align: center;
+}
+.userSection {
     display: flex;
-    align-items: center;
-    gap: 2vh;
+    align-items: right;
+    justify-content: right;
+    gap: 1.852vw;
+    width: 14.06vw;
 }
   
-.username {
+.userName {
     font-family: 'Pretendard-ExtraLight';
-    font-size: 2vh;
+    font-size: 1.25rem; 
     color: black;
+    text-align: center;
 }
   
 .icon {
@@ -84,10 +95,10 @@
 .icon::after {
     content: '';
     position: absolute;
-    top: -0.5vh;
-    right: -0.5vh;
-    width: 1vh;
-    height: 1vh;
+    top: -0.463vw;
+    right: -0.463vw;
+    width: 0.926vw; 
+    height: 0.926vw;
     background-color: red;
     border-radius: 50%;
     display: none;
@@ -100,57 +111,150 @@
 .popup {
     position: absolute;
     background-color: white;
-    border-radius: 2vh;
-    box-shadow: 0 0.4vh 0.6vh rgba(0, 0, 0, 0.1);
-    padding: 2vh;
+    border-radius: 1.852vw;
+    box-shadow: 0 0.37vw 0.556vw rgba(0, 0, 0, 0.1);
+    padding: 3.79vw 2.083vw 1.54vw 2.083vw;
     z-index: 1000;
+    top: 0.926vw;
+    min-height: 9.259vw;
 }
-  
-.profile-popup {
-    width: 42vw;
-    height: 37vh;
+
+.popup .section {
+    margin-bottom: 1.2vw; 
 }
-  
-.notification-popup {
-    width: 42vw;
-    height: 65vh;
+
+.popup .section:last-child {
+    margin-bottom: 0;
 }
-  
-.close {
-    position: absolute;
-    top: 1vh;
-    right: 1vh;
+
+.popup .section .content .email {
+    font-family: 'Pretendard-light';
+    font-size: 1.25rem; 
+    color: #a8a8a8;
+}
+.popup .section .popupUserName{
+    font-size: 1.75rem;
+    font-family: 'Pretendard-Bold';
+}
+.popup .section .title{
+    font-size: 1rem;
+    font-family: 'pretendard-SemiBold';
+    margin-bottom: 1.54vw;
+    margin-top:2.05vw
+}
+.popup .section .content .profileSettings {
+    font-family: 'Pretendard-Regular';
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+.popup .section .content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.5rem;
+    font-family: 'Pretendard-bold';
+    margin-bottom: 1.75vw;
+    cursor: pointer;
+}
+
+.popup .divider {
+    height: 0.093vw;
+    background-color: rgba(216, 216, 216, 0.4);
+    padding-left: 0!important;
+}
+.popup .logout {
+    font-family: 'Pretendard-SemiBold';
+    font-size:1rem ;
+    color: #6F6F6F;
+    margin-top: 1.54vw;
     cursor: pointer;
 }
   
-.auth-section {
-    display: flex;
-    align-items: center;
-    gap: 9.5vw;
+.profilePopup {
+    width: 21.875vw;
+    min-height: 9.259vw; 
 }
   
-.signup {
+.alarmPopup {
+    width: 21.875vw; 
+    min-height: 9.259vw; 
+    padding: 3.79vw 2.083vw 1.54vw 2.083vw; /* 스마일 팝업과 동일한 패딩 설정 */
+}
+
+.close {
+    position: absolute;
+    top: 2.084vw; 
+    right:2.084vw;
+    cursor: pointer;
+}
+
+.authSection {
+    display: flex;
+    align-items: center;
+    gap: 1.042vw;
+    width: 14.06vw;
+    justify-content: right;
+}
+  
+.signUp {
     font-family: 'Pretendard-SemiBold';
-    font-size: 1.8vh;
+    font-size: 1.125rem; 
     color: black;
     background-color: white;
 }
   
-.login-button {
+.loginButton {
     background-color: black;
     color: white;
     font-family: 'Pretendard-SemiBold';
-    font-size: 1.8vh;
-    width: 16vw;
-    height: 6vh;
-    border-radius: 4.8vh;
+    font-size: 1.125rem; 
+    width: 7.5vw; 
+    height: 3.125vw;
+    border-radius: 4.444vw;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1vh;
     cursor: pointer;
 }
   
-.login-icon {
-    font-size: 1.8vh;
+.loginIcon {
+    font-size: 1.667vw;
+}
+
+.alarmPopup .notification {
+    display: flex;
+    justify-content: space-between;
+}
+
+.alarmPopup .notification .icon {
+    width: 1.852vw; /* 20px / 1080px */
+    height: 1.852vw; /* 20px / 1080px */
+    margin-right: 0.833vw; /* 16px / 1920px */
+}
+
+.alarmPopup .notification .toptext {
+    display: flex;
+
+}
+.alarmPopup .notification .toptext .title{
+    font-size: 1rem;
+    color: #939393;
+    font-family: 'pretendard-Medium';
+}
+.alarmPopup .notification .time{
+    font-size:1rem;
+    color: #939393;
+    font-family: 'pretendard-Medium';
+}
+.alarmPopup .bottomtext {
+    font-size: 1.25rem;
+    font-family: 'pretendard-bold';
+    margin-left: 2.7vw;
+}
+
+
+.alarmPopup .divider {
+    height: 0.093vw; /* 1px / 1080px */
+    background-color: rgba(216, 216, 216, 0.4);
+    margin: 2.222vw 0; /* 24px / 1080px */
 }
