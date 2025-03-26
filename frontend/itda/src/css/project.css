@@ -113,7 +113,7 @@
 .content{
     padding-top: 9.21vw;
     padding-left: 5.28vw;
-    padding-right: 4.16vw;
+    padding-right:5.28vw;
     display:grid;
 }
 
@@ -223,12 +223,13 @@
     border-radius: 48px;
     background-color: white;
     align-items: center;
-}
-.object{
     display: grid;
     grid-template-columns: auto 1fr auto; 
     align-items: center; 
     margin-bottom: 3.025vh;
+}
+.porjectList .object{
+
 }
 .object .object_icon{
     margin-right:4.167vw;
@@ -322,120 +323,244 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto auto auto;
-    gap: 1rem;
-    padding: 1rem;
+    margin-top:3.562vh;
 }
 
 .timeLine {
     grid-column: 1 / 3;
-    grid-row: 3 / 4;
-    width: 72.813vw;
-    height: 28.72vh;
+    grid-row: 3 / 5;
 }
 
 .todoList {
     grid-column: 1 / 2;
-    grid-row: 4 / 5;
-    width: 48.542vw;
-    height: 10.855vh;
+    grid-row: 5 / 7;
 }
 
 .liveChat {
     grid-column: 2 / 3;
-    grid-row: 4 / 6;
-    width: 21.458vw;
-    height: 39.846vh;
+    grid-row: 5 / 11;
+
 }
 
 .feedback {
     grid-column: 1 / 3;
-    grid-row: 5 / 6;
+    grid-row: 7 / 11;
     width: 48.542vw;
-    height: 22.433vh;
+    height: 31vh;
 }
 .box1{
-    border: 1px solid black;
     background-color: white;
+    border-radius: 24px;
+    overflow-y: scroll;
+    overflow-x: hidden
 }
 
-.projectContent .contentTitle{
 
-}
 .projectContent .gonji {
     grid-column: 1 / 2;
     grid-row: 1 / 2;
-    display:flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto; 
     width: 48.542vw;
-    height: 3.754vh;
+    height:5.188vh;
+    font-size: 2rem;
+    margin-bottom: 1.812vh;
+    align-items: center;
 }
+.projectContent .gonji .gonjiIcon{
+    padding-left: 2.604vw;
+    padding-right:1.328vw
+}
+.projectContent .gonji .gonjiText{
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 1.5rem;
+    color:#1a1a1a;
+}
+.projectContent .gonji .gonjiEdit{
+    padding-right: 2.604vw;
 
+}
 .projectContent .calendar {
     grid-column: 2 / 3;
     grid-row: 1 / 3;
     width: 21.51vw;
-    height: 9.181vh;
+    height: 15vh;
+    margin-left: 1.76vw;
+
 }
 
 .projectContent .calendar .calendarTop{
+    margin-top:1.875vh;
+    margin-left:1.667vw;
+    margin-right:1.667vw;
+    margin-bottom: 1.5vh;
     display: flex;
+    justify-content: space-between;
 }
 .projectContent .calendar .calendarMid{
+    margin-left:1.667vw;
+    margin-right:1.667vw;
     display: flex;
+    justify-content: space-between;
+}
+.projectContent .calendar .calendarMid .day{
+    width: 2vw;
+    margin-bottom: 2.313vh;
+    font-family: 'pretendard-SemiBold';
+    font-size: 0.8rem;
+    color: #7F7F7F;
+    text-align: center;
+
+}
+.projectContent .calendar .calendarTop .temp{
+    display: flex;
+    gap:1.302vw;
+}
+.projectContent .calendar .calendarTop .date{
+    font-family: 'pretendard-ExtraBold';
+    font-size: 1.25rem;
 }
 .projectContent .calendar .calendarBot{
+    margin-left:1.667vw;
+    margin-right:1.667vw;
     display: flex;
+    justify-content: space-between;
+
+}
+.activeCal{
+    color: #FF7676 !important;
+    font-family: 'pretendard-Bold' !important;
+    font-size: 1rem !important;
+}
+.calendarTodayDot{
+    color: #FF7676;
+    font-size: 0.7rem
+}
+.projectContent .calendar .calendarBot .day{
+    width: 2vw;
+    font-family: 'pretendard-SemiBold';
+    font-size: 0.8rem;
+    color: #7F7F7F;
+    text-align: center;
 }
 .projectContent .todoStatus {
     grid-column: 1 / 2;
     grid-row: 2 / 3;
     width: 48.542vw;
-    height: 4.116vh;
     display : flex;
+    background-color: #F5F5F5 !important;
+    justify-content: space-between;
+    height: 8vh;
+    margin-bottom: 1.125vh;
 }
 
 .projectContent .todoStatus .object{
-
+    width: 11.354vw;
+    background-color: white;
+    border-radius: 1.25rem;
+    align-content: center;
+    height:8vh;
+    display : block;
 }
 .projectContent .todoStatus .object .objectCount{
-
+    margin-bottom: 1vh;
+    padding-top: 1.5vh;
+    padding-left:1.5vw;
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 1.5rem;
 }
 .projectContent .todoStatus .object .objectTitle{
+    padding-left: 0.833vw;
+    padding-bottom: 1.5vh;
+    padding-left:1.5vw;
 
+    font-family: 'pretendard-Light';
+    font-size: 0.875rem;
 }
 .projectContent .timeLine{
 
 }
 .projectContent .timeLine .title{
+    margin-bottom: 1.125vh;
+    font-family: 'Pretendard-extraBold';
+    font-size:1.25rem;
+    color:black;
+
 
 }
-.projectContent .timeLine .content{
+.projectContent .timeLine .contentt{
+    
+    height: 39.688vh;
+    width:71.823vw;
+    margin-bottom: 1.125vh;
 
-}
+}   
 
-.projectContent .timeLine .content .index{
+.projectContent .timeLine .contentt .index{
     display:flex;
-}
-.projectContent .timeLine .content .index .title{
+    height: 70px;
+    text-align: center;
+    align-content: center;
+    border-bottom: rgb(0, 0, 0,0.3) solid 1px;
+    width: fit-content;
+    overflow: hidden;
 
 }
-.projectContent .timeLine .content .object{
+.projectContent .timeLine .contentt .name{
+    width: 20.521vw;
+    
+    align-content: center;
 
 }
-.projectContent .timeLine .content .object .name{
+.projectContent .timeLine .contentt .index .top{
+    width: 14.063vw;
+    align-content: center;
+
 
 }
-.projectContent .timeLine .content .object .todoLine{
+.projectContent .timeLine .contentt .object{
+    display: flex;
+    border-bottom: 1px #0000000f solid;
+}
+.projectContent .timeLine .contentt .object .name{
+    width: 20.521vw;
+    text-align: center;
+    border-right: 1px #0000000f solid;
+    margin-right: 0.8rem;
 
 }
-.projectContent .timeLine .content .object .todoLine .todo{
+.projectContent .timeLine .contentt .object .todoLine{
+    height: fit-content;
+    min-height: 7.352vw;}
+.projectContent .timeLine .contentt .object .todoLine .todo{
+    height: 36px;
+    min-width: fit-content;
+    padding-left: 5vw;
+    padding-right: 5vw;
+    background-color: #d50404;
+    font-family: 'Pretendard-ExtraBold';
+    color:white;
+    font-style: underline;
+    margin-top: 0.7vw;
+    margin-bottom: 0.7vw;
+    align-content: center;
+
 
 }
-.projectContent .todoList{
-
+.projectContent .todoList .top{
+    margin-bottom: 1.125vh;
+    font-family: 'Pretendard-extraBold';
+    font-size:1.25rem;
+    color:black;
 }
 
 .projectContent .todoList .top{
     
+}
+.porjectContent .todoList .content{
+    height: 15vh;
+    width: 48.542vw;
+    background-color: white;
 }
 .projectContent .todoList .top .content .object .title{
     
@@ -453,19 +578,30 @@
     
 }
 .projectContent .liveChat{
+    width: 21.51vw;
+    height: 39.846vh;
+    margin-left: 1.76vw;
 
 }
 .projectContent .liveChat .title{
-    
+    margin-bottom: 1.125vh;
+    font-family: 'Pretendard-extraBold';
+    font-size:1.25rem;
+    color:black;
+    display : flex;
 }
 .projectContent .liveChat .content{
-    
+    height:  55.063vh;
 }
 .projectContent .feedback{
 
 }
 .projectContent .feedback .top{
-
+    margin-bottom: 1.125vh;
+    font-family: 'Pretendard-extraBold';
+    font-size:1.25rem;
+    color:black;
+    display : flex;
 }
 .projectContent .feedback .top .title{
 
@@ -474,6 +610,7 @@
 
 }
 .projectContent .feedback .content{
+    height: 31vh;
 
 }
 .projectContent .feedback .content .object{

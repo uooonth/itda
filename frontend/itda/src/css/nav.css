@@ -182,7 +182,7 @@
 .alarmPopup {
     width: 21.875vw; 
     min-height: 9.259vw; 
-    padding: 3.79vw 2.083vw 1.54vw 2.083vw; /* 스마일 팝업과 동일한 패딩 설정 */
+    padding: 3.79vw 2.083vw 1.54vw 2.083vw;
 }
 
 .close {

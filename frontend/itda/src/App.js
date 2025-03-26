@@ -12,7 +12,7 @@ import "./App.css";
 
 function App() {
   const location = useLocation();
-  const isLoggedIn = false; 
+  const isLoggedIn = true; 
   const username = "어금지"; 
 
   return (
