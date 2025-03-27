@@ -36,7 +36,7 @@ function Navigation({ username, isLoggedIn }) {
     <div className="navigation">
       <div className="logo">itda</div>
       <div className="navLinks">
-        <NavLink to="/" className={`navLink ${location.pathname === '/' ? 'active' : ''}`}>Home</NavLink>
+        <NavLink to="/home" className={`navLink ${location.pathname === '/home' ? 'active' : ''}`}>Home</NavLink>
         <NavLink to="/project" className={`navLink ${location.pathname === '/project' ? 'active' : ''}`}>Project</NavLink>
         <NavLink to="/profile" className={`navLink ${location.pathname === '/profile' ? 'active' : ''}`}>Profile</NavLink>
       </div>
@@ -137,10 +137,12 @@ function Navigation({ username, isLoggedIn }) {
       ) : (
         <div className="authSection">
           <span className="signUp">회원가입</span>
-          <button className="loginButton">
-            로그인
-            <img src={loginIcon} alt="login" className="icon" />
+          <NavLink to="/login" className="navLink">
+            <button className="loginButton">
+              로그인
+              <img src={loginIcon} alt="login" className="icon" />
             </button>
+          </NavLink>
         </div>
       )}
     </div>
