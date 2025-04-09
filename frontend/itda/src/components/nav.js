@@ -22,7 +22,6 @@ function Navigation({ username, isLoggedIn }) {
   const toggleProfilePopup = () => setShowProfilePopup(!showProfilePopup);
   const toggleAlarmPopup = () => setShowAlarmPopup(!showAlarmPopup);
 
-   
     //이모지
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🥰' });
@@ -136,7 +135,9 @@ function Navigation({ username, isLoggedIn }) {
         </div>
       ) : (
         <div className="authSection">
-          <span className="signUp">회원가입</span>
+          <NavLink to="/signupAgreement" className="signUp">
+              회원가입
+          </NavLink>
           <NavLink to="/login" className="navLink">
             <button className="loginButton">
               로그인

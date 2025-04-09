@@ -7,6 +7,8 @@ import Home from './pages/home';
 import Profile from './pages/profile';
 import Project from './pages/project';
 import Login from './pages/login';
+import SignupAgreement from './pages/signup/signupAgreement';
+import SignupForm from './pages/signup/signupForm';
 
 // component 요소
 import "./App.css";
@@ -16,8 +18,7 @@ function App() {
   const username = "어금지"; 
   const location = useLocation();
 
-  // Login 페이지에서는 Nav 숨김
-  const hideNav = location.pathname === "/login";
+  const hideNav = location.pathname === "/login" | location.pathname === "/signupAgreement" | location.pathname === "/signupForm";
 
   return (
     <div className="App">
@@ -28,6 +29,8 @@ function App() {
         <Route path="/project" element={<Project />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signupAgreement" element={<SignupAgreement />} />
+        <Route path="/signupForm" element={<SignupForm />} />
       </Routes>
     </div>
   );
