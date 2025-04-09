@@ -54,7 +54,7 @@
     left: 50%;
     top: 38%;
     width: 13vw;
-    height: 5vh;
+    height: 6.5vh;
     transform: translateX(-50%);
     padding: 8px 15px;
     background-color: white;
@@ -63,6 +63,7 @@
     font-size: medium;
     font-family: 'Pretendard-Bold';
     border-radius: 5px;
+    margin-top: 10px;
 }
 .bottom-content {
     display: flex;

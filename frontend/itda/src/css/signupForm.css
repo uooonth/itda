@@ -1,0 +1,248 @@
+@font-face {
+    font-weight: 300;
+    font-family: "Pretendard-Light";
+    src: url("./fonts/Pretendard-Light.otf") format("truetype");
+}
+@font-face {
+    font-weight: 400;
+    font-family: "Pretendard-Regular";
+    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
+}
+@font-face {
+    font-weight: 500;
+    font-family: "Pretendard-Medium";
+    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
+}
+@font-face {
+    font-weight: 600;
+    font-family: "Pretendard-SemiBold";
+    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 700;
+    font-family: "Pretendard-Bold";
+    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 800;
+    font-family: "Pretendard-ExtraBold";
+    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
+}
+
+.signupForm-content {
+    margin-top: 20vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.signup-title {
+    font-family: 'Pretendard-ExtraBold';
+}
+
+.signup-step {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #ccc; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle img {
+    width: 20px;
+    height: 20px;
+}
+
+.step p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #ccc;
+}
+.form-step-line {
+    width: 50px;
+    height: 1px;
+    background-color: #ccc;
+    margin-top: 30px;
+}
+.signupAgreement-content h3 {
+    font-family: 'Pretendard-Light';
+    color: #ccc;
+    text-align: left;
+    margin-left: 25%;
+    font-size: medium;
+}
+.circle.now-circle {
+    background-color: black ;
+}
+
+.circle.now-circle + p {
+    color: black ;
+}
+
+.form-group {
+    width: 50%;
+    align-items: center;
+    justify-content:space-around;
+    gap: 10px;
+}
+
+.form-group p {
+    width: 80px;
+    text-align: left; /* 왼쪽 정렬 */
+    font-family: "Pretendard-Medium";
+    margin: 0; /* 기본 마진 제거 */
+}
+  
+.form-group input {
+    width: 100%; /* 입력 필드가 오른쪽으로 */
+    max-width: 350px; /* 입력 필드의 최대 너비 제한 */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 17px;
+    text-align: right; /* 입력 텍스트를 오른쪽 정렬 */
+    height: 15px;
+}
+
+.signup-form input:focus {
+    border-color: black;
+    outline: none;
+}
+
+.password-requirements {
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+.requirement {
+    color: #999;
+}
+
+.requirement.valid {
+    color: green;
+}
+
+.requirement.invalid {
+    color: red;
+}
+
+.button-group {
+    margin-top: 20px;
+}
+
+.next-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.next-button {
+    background-color: black;
+    color: white;
+}
+
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 수평 중앙 정렬 */
+    /* gap: 15px; */
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.form-group p {
+    display: flex;
+    flex-direction: column;
+    width: 90px;
+    text-align: left; 
+    font-family: "Pretendard-Medium";
+}
+  
+.form-group input {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: left;
+    height: 35px;
+}
+
+.form-line {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 10px 0;
+    width: 50%;
+    margin-top: 30px;
+}
+.condition {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.condition-group {
+    display: flex;
+    justify-content: right; /* 오른쪽 정렬 */
+    gap: 10px; /* 항목 간 간격 */
+    margin-left: 250px;
+}
+
+.form-cancel-button,
+.form-next-button {
+    width: 300px;
+    height: 60px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 30px;
+}
+
+.form-cancel-button {
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+.form-next-button {
+    background-color: black;
+    color: white;
+}
+
+.form-next-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.form-button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.error-message {
+    display: block;
+    color: red;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    text-align: left;
+}
