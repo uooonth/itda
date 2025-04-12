@@ -1,0 +1,143 @@
+@font-face {
+    font-weight: 300;
+    font-family: "Pretendard-Light";
+    src: url("./fonts/Pretendard-Light.otf") format("truetype");
+}
+
+@font-face {
+    font-weight: 400;
+    font-family: "Pretendard-Regular";
+    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
+}
+
+@font-face {
+    font-weight: 500;
+    font-family: "Pretendard-Medium";
+    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
+}
+
+@font-face {
+    font-weight: 600;
+    font-family: "Pretendard-SemiBold";
+    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
+}
+
+@font-face {
+    font-weight: 700;
+    font-family: "Pretendard-Bold";
+    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
+}
+
+@font-face {
+    font-weight: 800;
+    font-family: "Pretendard-ExtraBold";
+    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
+}
+
+.signupComplete-content {
+    margin-top: 20vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.signup-title {
+    font-family: 'Pretendard-ExtraBold';
+}
+
+.signup-step {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle img {
+    width: 20px;
+    height: 20px;
+}
+
+.step p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.form-step-line {
+    width: 50px;
+    height: 1px;
+    background-color: #ccc;
+    margin-top: 30px;
+}
+
+.circle.now-circle {
+    background-color: black;
+}
+
+.circle.now-circle + p {
+    color: black;
+}
+
+/* .button-group {
+    margin-top: 20px;
+}
+
+.next-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.next-button {
+    background-color: black;
+    color: white;
+}
+
+.form-cancel-button,
+.form-next-button {
+    width: 300px;
+    height: 60px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 30px;
+}
+
+.form-cancel-button {
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+.form-next-button {
+    background-color: black;
+    color: white;
+}
+
+.form-next-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.form-button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+} */
