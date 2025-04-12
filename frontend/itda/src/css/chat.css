@@ -1,0 +1,225 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.chatPage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.chatList {
+    width: 40%;
+    height: 100%;
+    padding: 16vh 1.5vw 0vh 1.5vw;
+    border-right: 1px solid #c7c7c7;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatList .title{
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 1.5rem;
+}
+
+.chatSearchContainer {
+    padding: 5vh 1vw;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+}
+
+.searchIcon {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    left:2.5vw;
+    top:7.2vh;
+}
+
+.chatSearchInput {
+    width: 100%;
+    padding: 2.5vh 1vw 2.5vh 4vw;
+    border-radius: 20px;
+    border: none;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+
+.chatRoomList {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatRoomItem {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.chatRoomItem:hover {
+    background-color: #f5deb3; /* bisque보다 진한 hover 색 */
+}
+
+.chatRoomName {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.chatRoomLastMessage {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.chatRoomTime {
+    font-size: 0.75rem;
+    color: #999;
+    text-align: right;
+}
+
+.chatContent {
+    width: 60%;
+    height: 100%;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatMessages {
+    flex: 1;
+    padding: 16vh 6vw 0vh 6vw;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+}
+
+.chatMessage {
+    display: flex;
+    align-items: flex-start;
+    gap: 1vw;
+}
+
+.chatMessage.me {
+    justify-content: flex-end;
+}
+
+/* 메시지 보낸 사람 (나) - 이름 우측 정렬 */
+.chatMessage.me .chatName {
+    text-align: right;
+    display: block;
+    margin-right: 10px;
+}
+
+/* 메시지 받는 사람 (상대방) - 이름 좌측 정렬 */
+.chatMessage.other .chatName {
+    text-align: left;
+    display: block;
+    margin-left: 10px;
+}
+
+
+.profileImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.chatTextContainer {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+}
+
+.chatName {
+    font-size: 12px;
+    color: gray;
+    margin-bottom: 2px;
+}
+
+.chatBubble {
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    max-width: 100%;
+}
+
+.chatBubble.me {
+    background-color: #3e3e3e;
+    color: #fff;;
+    align-self: flex-end;
+    border-radius: 10px 10px 0 10px;
+}
+
+.chatBubble.other {
+    background-color: #ccc;
+    align-self: flex-start;
+    border-radius: 10px 10px 10px 0;
+}
+
+.chatTime {
+    font-size: 10px;
+    color: gray;
+    margin-top: 2px;
+    align-self: flex-end;
+}
+
+
+/* 입력창 컨테이너 */
+.chatInput {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 30px; 
+    border: none;
+    background-color: #f0f0f0;
+    border-top: 1px solid #eee;
+    width: 80%; 
+    height: 10%;
+    margin: 0 auto;  /* 가운데 정렬 */
+    margin-bottom: 5vh;
+}
+
+/* 입력 필드 */
+.chatInput input {
+    flex: 1;
+    padding: 6px 12px;  /* 내부 패딩 축소 */
+    border: none;
+    font-size: 1rem;
+    outline: none;
+    background-color: #eee;
+}
+
+/* 전송 버튼 */
+.chatInput button {
+    width: 3.5vw;
+    height: 3.5vh;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* 전송 아이콘 */
+.chatInput button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* 연필 아이콘 */
+.chatInput .pencilIcon {
+    width: 2vw;  /* 기존보다 작게 */
+    height: 2vh;
+    margin-left: 0.5vw; /* 간격도 조금 조정 */
+    object-fit: contain;
+}
+
