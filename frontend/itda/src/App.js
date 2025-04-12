@@ -16,7 +16,9 @@ import SignupComplete from './pages/signup/signupComplete';
 import "./App.css";
 
 function App() {
-  const isLoggedIn = false; 
+  const location = useLocation();
+  const isLoggedIn = true; 
+
   const username = "어금지"; 
   const location = useLocation();
 

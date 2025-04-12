@@ -30,151 +30,154 @@
 }
 
 
-
 /* ======================================== */
 /* ============= 메인 포맷 ================= */
 /* ======================================== */
-.project{
+.project {
     display: flex;
-    position:absolute;
-    min-height:100vh;
+    position: absolute;
+    min-height: 100vh;
     width: 100%;
-
     overflow: hidden;
 }
 
-.leftNavBar{  
-    width : 16.14vw;
+.leftNavBar {  
+    width: 15.11vw;         /* 16.14vw * 0.75 */
     height: 100vh;
     background-color: white;
     position: relative;
     overflow: hidden; 
 }
-.tabs{
-    margin-top:5.25vw;
-    padding-top: 3.89vw;
-    padding-left: 3.125vw;
-    display:grid;
-    gap:0.571vw;
 
+.tabs {
+    margin-top: 3.94vw;      /* 5.25vw * 0.75 */
+    padding-top: 2.92vw;     /* 3.89vw * 0.75 */
+    padding-left: 2.34vw;    /* 3.125vw * 0.75 */
+    display: grid;
+    text-align: center;
+    gap: 0.43vw;            /* 0.571vw * 0.75 */
 }
-.tab{
+
+.tab {
     display: flex;
-    gap:2.08vw;
-    cursor: pointer;
-    padding-top:0.8vw;
-    padding-bottom:0.8vw;
+    align-items: center;
 
+    gap: 1.56vw;            /* 2.08vw * 0.75 */
+    cursor: pointer;
+    padding-top: 0.6vw;       /* 0.8vw * 0.75 */
+    padding-bottom: 0.6vw;    /* 0.8vw * 0.75 */
 }
 
-.tab .title{
+.tab .title {
     font-family: 'Pretendard-Medium';
-    font-size: 1.25rem;
+    font-size: 0.94rem;       /* 1.25rem * 0.75 */
     color: #B1B1B1;
     align-content: center;
-    height:1.8vw
+    height: 1.35vw;          /* 1.8vw * 0.75 */
 }
+
 .active_tab .title {
     color: #FF7676 !important;
     font-family: 'Pretendard-bold';
-    font-size: 1.5rem;
-
-
+    font-size: 1.125rem;      /* 1.5rem * 0.75 */
 }
+
 .tab .icon {
-    width: 1.59vw;
-    height: 1.8vw;
-    fill: #B1B1B1; /* 기본 색상 */
+    width: 1.19vw;           /* 1.59vw * 0.75 */
+    height: 3vw;          /* 1.8vw * 0.75 */
+    fill: #B1B1B1;
+    scale: 1.2;
 }
 
-
-.active_tab .icon  {
+.active_tab .icon {
     fill: #FF7676 !important;
     stroke: purple !important;
-
 }
 
 .active-bar {
     position: absolute;
-    left: 0; /* 바를 왼쪽에 위치시킴 */
-    width:0.3vw;
-    height:4vw;
+    left: 0;
+    width: 0.3vw;          /* 0.3vw * 0.75 */
+    height: 4vw;             /* 4vw * 0.75 */
     background-color: #FF9696;
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 10px 10px 0;  /* 10px * 0.75 */
     transition: top 0.3s ease;
 }
-.rightContent{   
+
+.rightContent {   
     background-color: #F5F5F5;
-    opacity: 69%;
+    opacity: 0.69;
     width: 100vw;
-    height: 100vh;     overflow-y: auto; 
+    height: 100vh;
+    overflow-y: auto;
 }
 
-.content{
-    padding-top: 9.21vw;
-    padding-left: 5.28vw;
-    padding-right: 4.16vw;
-    display:grid;
+.content {
+    padding-top: 6.21vw;     
+    padding-left: 3.96vw;
+    padding-right: 3.96vw;    /* 5.28vw * 0.75 */
+    display: grid;
 }
-
 
 /* =============================================== */
 /* ============= homeContent.css ================= */
 /* =============================================== */
 
-.content .contentTitle{
+.content .contentTitle {
     font-family: 'Pretendard-ExtraBold';
-    font-size: 2.25rem;
+    font-size: 1.69rem;       /* 2.25rem * 0.75 */
 }
+
 .searchBox {
     display: flex;
     align-items: center;
     cursor: pointer;
-    border-radius: 20px;
-    width: 71.91vw;
-    height: 4.375vh;
-    margin-top:3.025vh;
-    margin-bottom:1.27vh ;
-
+    border-radius: 15px;      /* 20px * 0.75 */
+    width: 100%;           /* 71.91vw * 0.75 */
+    height:5vh;           /* 4.375vh * 0.75 */
+    margin-top: 1.525vh;       /* 3.025vh * 0.75 */
+    margin-bottom:1.7vh;   
 }
-
 .searchBox .input {
     display: flex;
     align-items: center;
-    border-radius: 20px;
-    height: 5.25vh;
-    width: 71.91vw;
+    border-radius: 15px;
+    height: 5vh;           /* 5.25vh * 0.75 */
     background-color: white;
+    width: 100%;
 }
-.searchBox .input input::placeholder{
-    color:#C2C2C2;
-    font-family: 'Pretendard-Light';
-    font-size: 1rem;
 
+.searchBox .input input::placeholder {
+    color: #C2C2C2;
+    font-family: 'Pretendard-Light';
+    font-size: 0.75rem;       /* 1rem * 0.75 */
 }
+
 .searchBox .input .icon {
-    margin-left:1.563vw;
-    margin-right:1.302vw;
-    height: 26px;
+    margin-left: 1.17vw;      /* 1.563vw * 0.75 */
+    margin-right: 0.98vw;      /* 1.302vw * 0.75 */
+    height: 19.5px;           /* 26px * 0.75 */
+    scale: 0.7;
+
 }
 
 .searchBox .input input {
     border: none;
-    width: 71.91vw;
-    border-radius: 20px;
-
-    height: 5.25vh;
+    width: 71.98vw;
+    border-radius: 15px;
+    height: 3.94vh;
     text-justify: center;
     outline: none;
     flex-grow: 1;
-    color:black;
+    color: black;
     font-family: 'Pretendard-Medium';
-    font-size: 1.25rem;
+    font-size: 0.94rem;       /* 1.25rem * 0.75 */
 }
+
 .searchHistroy {
     display: flex;
-    gap: 0.625vw;
-    margin-bottom: 1.27vh;
+    gap: 0.47vw;            /* 0.625vw * 0.75 */
+    margin-bottom: 0.95vh;    /* 1.27vh * 0.75 */
     align-items: center;
 }
 
@@ -182,60 +185,59 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 3.872vh; 
-    padding-left: 1.563vw;
-    padding-right: 1.563vw; 
-    border-radius: 48px;
-    box-shadow: 0 1px 5.5px 2px rgba(0, 0, 0, 0.1);
+    height: 2.90vh;          
+    padding-left: 1.17vw;     
+    height: 4vh;
+    padding-right: 1.17vw;
+    border-radius: 36px;      /* 48px * 0.75 */
+    box-shadow: 0 0.75px 4.13px 1.5px rgba(0, 0, 0, 0.1);
     background-color: white;
     font-family: 'Pretendard-Medium';
-    font-size: 1rem;
+    font-size: 0.75rem;       /* 1rem * 0.75 */
     color: #7F7F7F;
-    margin-bottom: 3.025vh;
+    margin-bottom: 2.27vh;    /* 3.025vh * 0.75 */
 }
 
 .searchHistroy .object .xBtn {
     font-family: 'Pretendard-Bold';
-    font-size: 1rem;
+    font-size: 0.75rem;       /* 1rem * 0.75 */
     color: #1D1D1D;
     cursor: pointer;
-    margin-left: 1rem; 
+    margin-left: 0.75rem;     /* 1rem * 0.75 */
 }
-
 
 .searchHistroy .btn {
     font-family: 'Pretendard-Medium';
-    font-size: 1rem;
+    font-size: 0.75rem;
     text-decoration: underline;
     color: #C2C2C2;
     cursor: pointer;
 }
 
-
-.projectList .title{
+.projectList .title {
     font-family: 'Pretendard-Bold';
-    font-size: 1.5rem;
-    margin-bottom: 1.27vh;
+    font-size: 1.125rem;      /* 1.5rem * 0.75 */
+    margin-bottom: 0.95vh;    /* 1.27vh * 0.75 */
 }
-.projectList .object{
-    width: 72.813vw;
-    height: 25.833vh;
-    border-radius: 48px;
+
+.projectList .object {
+    height: 25vh;         
+    border-radius: 36px;
     background-color: white;
     align-items: center;
-}
-.object{
     display: grid;
-    grid-template-columns: auto 1fr auto; 
-    align-items: center; 
-    margin-bottom: 3.025vh;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    margin-bottom:3.025vh;    
 }
-.object .object_icon{
-    margin-right:4.167vw;
-    height: 8.906vw;
-    width : 8.906vw;
-    margin-left: 4.427vw;
-    border-radius: 48px;
+
+
+.object .object_icon {
+    margin-right: 3.13vw;     /* 4.167vw * 0.75 */
+    height: 6.68vw;          /* 8.906vw * 0.75 */
+    width: 6.68vw;           
+    margin-left: 3.32vw;      /* 4.427vw * 0.75 */
+    border-radius: 36px;
     background-color: #F3F3F3;
 }
 
@@ -243,251 +245,663 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 8.906vw;
-    margin-right: 4.427vw;
+    height: 8.9vw;          /* 8.906vw * 0.75 */
+    margin-right: 4.42vw;     /* 4.427vw * 0.75 */
 }
 
 .object .object_content .title {
     font-family: 'Pretendard-Bold';
-    font-size: 2rem;
-    margin-bottom: 1vh;
+    font-size: 1.5rem;        /* 2rem * 0.75 */
+    margin-bottom: 1vh;    /* 1vh * 0.75 */
 }
 
 .object .object_content .explain {
     font-family: 'Pretendard-Light';
-    font-size: 1rem;
-    margin-top: 1vh;
+    font-size: 0.85rem;       /* 1rem * 0.75 */
+    margin-top: 0.75vh;       /* 1vh * 0.75 */
 }
 
 .object .object_content .status {
     display: flex;
-    gap: 15px; 
-    height: 3.241vh;    
+    gap: 15px;           
+    height: 3.43vh;          /* 3.241vh * 0.75 */
     margin-top: auto;
 }
 
 .object .object_content .status .publisher {
     background-color: black;
     color: white;
-    padding: 0 15px;
-    border-radius: 10px;
+    padding: 0 15px;       /* 15px * 0.75 */
+    border-radius: 7.5px;      /* 10px * 0.75 */
     font-family: 'Pretendard-semiBold';
-    font-size: 0.813rem;
+    font-size: 0.71rem;       /* 약 0.813rem * 0.75 */
     display: flex;
     align-items: center;
 }
 
 .object .object_content .status .role {
-    background-color: #F3F3F3;
+    background-color: #f0f0f0;
     color: black;
-    padding: 0 15px;
-    border-radius: 10px;
+    padding: 0 20px;
+    border-radius: 7.5px;
     display: flex;
     align-items: center;
     font-family: 'Pretendard-semiBold';
-    font-size: 1rem;
+    font-size: 0.75rem;       /* 1rem * 0.75 */
 }
 
 .object .rightSide {
-    margin-left: auto;
-    margin-right: 4.427vw;
+    margin-left: 4.4vw;
+    margin-right: 4.4vw;     /* 4.427vw * 0.75 */
     display: grid;
     grid-template-rows: auto 1fr auto;
-    height: 8.906vw;
-    justify-self: end; /* 요소를 오른쪽으로 정렬 */
+    height:8.9vw;          /* 8.906vw * 0.75 */
+    justify-self: end;
 }
-.object .rightSide .pin{
-    margin-bottom: 1.815vh;
-    margin-left: auto;
 
+.object .rightSide .pin {
+    margin-bottom: 1.86vh;    /* 1.815vh * 0.75 */
+    margin-left: auto;
+    scale:0.7;
+    cursor: pointer;
 }
-.object .rightSide .deadLine{
+
+.object .rightSide .deadLine {
+    margin-left: auto;
+    font-family: 'pretendard-medium';
+    font-size: 1rem;       /* 1.25rem * 0.75 */
+    color:#7F7F7F;
+}
+
+.object .rightSide .lastaccess {
     margin-left: auto;
     font-family: 'pretendard-Light';
-    font-size: 1.25rem;
-
-}
-.object .rightSide .lastaccess{
-    margin-left: auto;
-    font-family: 'pretendard-Light';
-    font-size:1rem;
+    font-size: 0.75rem;       /* 1rem * 0.75 */
 }
 
 /* ================================================== */
 /* ============= projectContent.css ================= */
 /* ================================================== */
 
-
 .projectContent {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto auto;
-    gap: 1rem;
-    padding: 1rem;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto;
+    margin-top: 2.67vh;       /* 3.562vh * 0.75 */
 }
 
 .timeLine {
     grid-column: 1 / 3;
     grid-row: 3 / 4;
-    width: 72.813vw;
-    height: 28.72vh;
 }
 
 .todoList {
-    grid-column: 1 / 2;
-    grid-row: 4 / 5;
-    width: 48.542vw;
-    height: 10.855vh;
+    grid-column: 1 / 3;
+    grid-row:4/5;
 }
 
 .liveChat {
     grid-column: 2 / 3;
-    grid-row: 4 / 6;
-    width: 21.458vw;
-    height: 39.846vh;
+    grid-row: 5 / 6;
+    width: 100%;          /* 21.51vw * 0.75 */
+    height: 29.89vh;         /* 39.846vh * 0.75 */
+    margin-left: 1.32vw;      /* 1.76vw * 0.75 */
 }
 
 .feedback {
-    grid-column: 1 / 3;
-    grid-row: 5 / 6;
-    width: 48.542vw;
-    height: 22.433vh;
+    grid-column: 1 / 2;
+    grid-row: 5/11;
+    margin-right: 50vw;
+    width:100%;          /* 48.542vw * 0.75 */
+    height: 23.25vh;         /* 31vh * 0.75 */
 }
-.box1{
-    border: 1px solid black;
+
+.box1 {
     background-color: white;
+    border-radius: 18px;      /* 24px * 0.75 */
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
-.projectContent .contentTitle{
-
-}
 .projectContent .gonji {
     grid-column: 1 / 2;
     grid-row: 1 / 2;
-    display:flex;
-    width: 48.542vw;
-    height: 3.754vh;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    height: 5.89vh;          /* 5.188vh * 0.75 */
+    font-size: 1.5rem;        /* 2rem * 0.75 */
+    margin-bottom: 1.36vh;    /* 1.812vh * 0.75 */
+    align-items: center;
+}
+
+.projectContent .gonji .gonjiIcon {
+    padding-left: 1.95vw;     /* 2.604vw * 0.75 */
+    padding-right: 1.00vw;     /* 1.328vw * 0.75 */
+}
+
+.projectContent .gonji .gonjiText {
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 1.125rem;      /* 1.5rem * 0.75 */
+    color: #1a1a1a;
+}
+
+.projectContent .gonji .gonjiEdit {
+    padding-right: 1.95vw;    /* 2.604vw * 0.75 */
 }
 
 .projectContent .calendar {
     grid-column: 2 / 3;
     grid-row: 1 / 3;
-    width: 21.51vw;
-    height: 9.181vh;
+    height: 15.25vh;         /* 15vh * 0.75 */
+    margin-left: 1.32vw;      /* 1.76vw * 0.75 */
 }
 
-.projectContent .calendar .calendarTop{
+.projectContent .calendar .calendarTop {
+    margin-top: 2.41vh;       /* 1.875vh * 0.75 */
+    margin-left: 1.8vw;      /* 1.667vw * 0.75 */
+    margin-right: 1.8vw;
+    margin-bottom: 1.13vh;    /* 1.5vh * 0.75 */
     display: flex;
+    justify-content: space-between;
 }
-.projectContent .calendar .calendarMid{
+
+.projectContent .calendar .calendarMid {
+    margin-left: 1.8vw;      /* 1.667vw * 0.75 */
+    margin-right: 1.8vw;
     display: flex;
+    justify-content: space-between;
 }
-.projectContent .calendar .calendarBot{
+
+.projectContent .calendar .calendarMid .day {
+    margin-bottom: 2vh;    /* 2.313vh * 0.75 */
+    font-family: 'pretendard-SemiBold';
+    font-size: 0.7rem;        /* 0.8rem * 0.75 */
+    color: #7F7F7F;
+    text-align: center;
+}
+
+.projectContent .calendar .calendarTop .temp {
     display: flex;
+    gap: 1.5vw;            /* 1.302vw * 0.75 */
 }
+
+.projectContent .calendar .calendarTop .date {
+    font-family: 'pretendard-ExtraBold';
+    font-size: 1rem;       /* 1.25rem * 0.75 */
+}
+
+.projectContent .calendar .calendarBot {
+    margin-left: 1.8vw;      /* 1.667vw * 0.75 */
+    margin-right: 1.8vw;
+    display: flex;
+    justify-content: space-between;
+}
+
+.activeCal {
+    color: #FF7676 !important;
+    font-family: 'pretendard-Bold' !important;
+    font-size: 0.7em !important;  /* 1rem * 0.75 */
+}
+
+.calendarTodayDot {
+    margin-top:0.2vw;
+    color: #FF7676;
+    font-size: 0.53rem;       /* 0.7rem * 0.75 */
+}
+
+.projectContent .calendar .calendarBot .day {
+    width: 1.5vw;            /* 2vw * 0.75 */
+    font-family: 'pretendard-SemiBold';
+    font-size: 0.6rem;        /* 0.8rem * 0.75 */
+    color: #7F7F7F;
+    text-align: center;
+}
+
 .projectContent .todoStatus {
     grid-column: 1 / 2;
     grid-row: 2 / 3;
-    width: 48.542vw;
-    height: 4.116vh;
-    display : flex;
+    display: flex;
+    background-color: #F5F5F5 !important;
+    justify-content: space-between;
+    height: 8vh;             /* 8vh * 0.75 */
 }
 
-.projectContent .todoStatus .object{
-
-}
-.projectContent .todoStatus .object .objectCount{
-
-}
-.projectContent .todoStatus .object .objectTitle{
-
-}
-.projectContent .timeLine{
-
-}
-.projectContent .timeLine .title{
-
-}
-.projectContent .timeLine .content{
-
+.projectContent .todoStatus .object {
+    width: 12.52vw;           /* 11.354vw * 0.75 */
+    background-color: white;
+    border-radius: 0.94rem;   /* 1.25rem * 0.75 */
+    align-content: center;
+    height: 8vh;             /* 8vh * 0.75 */
+    display: block;
 }
 
-.projectContent .timeLine .content .index{
-    display:flex;
-}
-.projectContent .timeLine .content .index .title{
-
-}
-.projectContent .timeLine .content .object{
-
-}
-.projectContent .timeLine .content .object .name{
-
-}
-.projectContent .timeLine .content .object .todoLine{
-
-}
-.projectContent .timeLine .content .object .todoLine .todo{
-
-}
-.projectContent .todoList{
-
+.projectContent .todoStatus .object .objectCount {
+    margin-bottom: 0.75vh;    /* 1vh * 0.75 */
+    padding-top: 1.13vh;      /* 1.5vh * 0.75 */
+    padding-left: 1.13vw;     /* 1.5vw * 0.75 */
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 1.325rem;      /* 1.5rem * 0.75 */
 }
 
-.projectContent .todoList .top{
-    
+.projectContent .todoStatus .object .objectTitle {
+    padding-left: 1.13vw;     /* 1.5vw * 0.75 */
+    padding-bottom: 1.13vh;   /* 1.5vh * 0.75 */
+    font-family: 'pretendard-Light';
+    font-size: 0.66rem;       /* 0.875rem * 0.75, 반올림 */
 }
-.projectContent .todoList .top .content .object .title{
-    
-}
-.projectContent .todoList .top{
-    display : flex;
-}
-.projectContent .todoList .content .object{
-    display : flex;
-}
-.projectContent .todoList .content .object .date{
-    
-}
-.projectContent .todoList .content .object .checkBox{
-    
-}
-.projectContent .liveChat{
 
+.projectContent .timeLine .title {
+    margin-bottom: 1.13vh;    /* 1.125vh * 0.75 */
+    font-family: 'Pretendard-extraBold';
+    font-size: 0.94rem;       /* 1.25rem * 0.75 */
+    color: black;
 }
-.projectContent .liveChat .title{
-    
-}
-.projectContent .liveChat .content{
-    
-}
-.projectContent .feedback{
 
+.projectContent .timeLine .contentt {
+    height: 29.77vh;         /* 39.688vh * 0.75 */
+    margin-bottom: 0.84vh;    /* 1.125vh * 0.75 */
 }
-.projectContent .feedback .top{
 
+.projectContent .todoList .top {
+    font-family: 'Pretendard-extraBold';
+    font-size: 0.94rem;       /* 1.25rem * 0.75 */
+    color: black;
+    padding-bottom: 1.13vh;   /* 1.5vh * 0.75 */
+    padding-top: 1.13vh;      /* 1.5vh * 0.75 */
 }
-.projectContent .feedback .top .title{
 
+.porjectContent .todoList .content {
+    height: 11.25vh;         /* 15vh * 0.75 */
+    width: 36.41vw;          /* 48.542vw * 0.75 */
+    background-color: white;
 }
-.projectContent .feedback .top .more{
 
+.projectContent .todoList .top {
+    display: flex;
 }
-.projectContent .feedback .content{
 
+.projectContent .todoList .content .object {
+    display: flex;
 }
-.projectContent .feedback .content .object{
 
+.projectContent .liveChat {
+    width: 16.13vw;          /* 21.51vw * 0.75 */
+    height: 29.89vh;         /* 39.846vh * 0.75 */
+    margin-left: 1.32vw;      /* 1.76vw * 0.75 */
 }
-.projectContent .feedback .content .object .date{
 
+.projectContent .liveChat .title {
+    margin-bottom: 1.13vh;    /* 1.125vh * 0.75 */
+    margin-top: 1.13vh;    /* 1.125vh * 0.75 */
+    font-family: 'Pretendard-extraBold';
+    font-size: 0.94rem;       /* 1.25rem * 0.75 */
+    color: black;
+    display: flex;
 }
-.projectContent .feedback .content .object .icon{
 
+.projectContent .liveChat .content {
+    height: 41.30vh;         /* 55.063vh * 0.75 */
+    width: 100%;
 }
-.projectContent .feedback .content .object .name{
 
+.projectContent .feedback .top {
+    margin-bottom: 1.13vh;    /* 1.125vh * 0.75 */
+    margin-top:1.13vh;
+    font-family: 'Pretendard-extraBold';
+    font-size: 0.94rem;       /* 1.25rem * 0.75 */
+    color: black;
+    display: flex;
+    justify-items: space-between;
 }
-.more{
+
+.projectContent .feedback .content-feedback {
+    height: 23.25vh;         /* 31vh * 0.75 */
+    width: 100%;
+}
+
+.more {
     cursor: pointer;
 }
+
+.vis-timeline-container {
+    height: 472.5px;         /* 630px * 0.75 */
+    border-radius: 3.75px;    /* 5px * 0.75 */
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.vis-timeline {
+    border: none !important;
+    font-family: 'pretendard-Light';
+    background: #ffffff;
+    border-radius: 15px;       /* 20px * 0.75 */
+}
+
+/* 시간축 전체 */
+.vis-time-axis {
+    height: 45px !important;   /* 60px * 0.75 */
+    font-family: 'pretendard-bold' !important;
+}
+
+/* Major 레벨 숨기기 */
+.vis-major {
+    display: none !important;
+}
+
+/* 년도 (major label) 스타일 */
+.vis-major {
+    border: none !important;
+    font-size: 0.9rem !important;  /* 1.2rem * 0.75 */
+    padding: 7.5px !important;       /* 10px * 0.75 */
+    text-align: center !important;
+}
+
+/* 날짜 (minor label) 스타일 */
+.vis-minor {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-size: 0.83rem !important;   /* 1.1rem * 0.75 */
+    font-family: 'pretendard-semiBold' !important;
+    border-right: 0.375px solid #00000020 !important;  /* 0.5px * 0.75 */
+    height: 45px !important;         /* 60px * 0.75 */
+}
+
+/* 그룹(사이드바) 스타일 */
+.vis-labelset .vis-label {
+    width: 150px !important;         /* 200px * 0.75 */
+    text-align: center !important;
+    font-family: 'pretendard-bold' !important;
+    font-size: 0.9rem !important;      /* 1.2rem * 0.75 */
+}
+
+/* 아이템 스타일 */
+.vis-item {
+    height: 37.5px !important;        /* 50px * 0.75 */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.vis-item .vis-item-overflow {
+    display: flex;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    align-items: center;
+    padding: 0;
+    width: 100%;
+}
+
+.vis-time-axis .vis-grid.vis-minor {
+    border-right: none !important;
+}
+
+.vis-time-axis .vis-text {
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.vis-item.item-common {
+    font-weight: bold;
+    font-size: small;
+    border-radius: 8px;
+    color: white;
+}
+
+/* 오늘 날짜 셀 스타일 */
+.vis-time-axis .vis-today {
+    background-color: #1b1b1b !important;
+    color: white !important;
+    font-family: 'pretendard-bold' !important;
+}
+
+/* 1. 선명한 코랄 */
+.vis-item.color-coral {
+    background-color: #f76767;
+    border-color: #e15252;
+}
+
+/* 2. 따뜻한 오렌지 */
+.vis-item.color-orange {
+    background-color: #ff922b;
+    border-color: #e67700;
+}
+
+/* 3. 선명한 머스터드 */
+.vis-item.color-mustard {
+    background-color: #f59f00;
+    border-color: #e67700;
+}
+
+/* 4. 상큼 민트그린 */
+.vis-item.color-mint {
+    background-color: #38d9a9;
+    border-color: #20c997;
+}
+
+/* 5. 시원한 스카이블루 */
+.vis-item.color-sky {
+    background-color: #339af0;
+    border-color: #228be6;
+}
+
+/* 6. 인디고 블루 */
+.vis-item.color-indigo {
+    background-color: #5c7cfa;
+    border-color: #4c6ef5;
+}
+
+/* 7. 보라빛 라벤더 */
+.vis-item.color-lavender {
+    background-color: #b197fc;
+    border-color: #9775fa;
+}
+
+/* 8. 차분한 블루그레이 */
+.vis-item.color-steel {
+    background-color: #748ffc;
+    border-color: #5c7cfa;
+}
+
+#showAllGroup {
+    cursor: pointer;
+    position: relative;
+    transform: translate(11.25px, 46.5px);  /* (15px, 62px) * 0.75 */
+    z-index: 100000;
+}
+
+.vis-group-content {
+    max-height: 400px;
+    min-height: 100px;
+    overflow-y: auto;
+  }
+
+
+
+
+/* ================================================== */    
+/* ============= todoListContent.css =============== */
+/* ================================================== */
+
+.todo-board {
+    display: flex;
+    gap: 20px;
+    justify-items: space-around;
+}
+
+.todo-column {
+    flex: 1;
+    padding: 25px;
+    border-radius: 10px;
+    min-height: 400px;
+    max-height: 614px;
+    background-color: white;
+    overflow-y: auto;
+    transition: background-color 0.2s ease;
+}
+
+.todo-column.inProgress {
+    border-bottom: 14px solid #1F9A00;
+}
+
+.todo-column.inProgress h2 {
+    color: #1F9A00;
+}
+
+.todo-column.completed {
+    border-bottom:14px solid #FF1313; 
+}
+
+.todo-column.completed h2 {
+    color: #ff1313;
+}
+
+.todo-column.feedbackPending {
+    border-bottom: 14px solid black; /* 파란색 */
+}
+
+.todo-column.feedbackPending h2 {
+    color: black;
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom:20px;
+    border-bottom: 1px solid rgb(186, 186, 186);
+}
+
+.column-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-family: 'pretendard-ExtraBold';
+}
+
+.column-header span {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.todo-item {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    width: 100%;
+    transition: all 0.3s ease-out;
+
+}
+
+.todo-content {
+    font-size: 1rem;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'pretendard-Medium';
+    align-items: center;
+
+}
+.drag-handle {
+    cursor: move;
+    font-size: 1.5rem;
+    margin-right: 10px;
+    color: #666;
+    user-select: none;
+}
+
+
+.due-date {
+    font-size: 0.7rem;
+    color: #999;
+    font-family: 'pretendard-medium';
+    margin-left: 10px;
+}
+
+.todo-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.todo-meta span {
+    font-size: 0.7rem;
+    color: #666;
+}
+
+.icons {
+    display: flex;
+    gap: 10px;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+.checkBox{
+    transform: translateY(3px);
+    width: 13px;
+    height: 13px;
+    border:1.4px solid #222222;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+
+.chat-container {
+    width: 400px;
+    height: 500px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    margin: 20px 0;
+  }
+  
+  .chat-header {
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .chat-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  
+  .chat-message {
+    margin-bottom: 10px;
+  }
+  
+  .username {
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  .timestamp {
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  .chat-input {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+  }
+  
+  .message-input {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  button {
+    padding: 5px 10px;
+  }
