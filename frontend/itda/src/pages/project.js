@@ -67,10 +67,10 @@ function Project({ username, isLoggedIn }) {
                 </div>
             </div>
             <div className="rightContent">
-                 {show_Home && <HomeContent />} {/* HomeContent 파일*/}
-                 {show_project && <ProjectContent />} {/* ProjectContent 파일*/}
-                 {show_chat && <ChatContent />} {/* ChatContent 파일*/}
-                 {show_calendar && <CalendarContent />} {/* CalendarContent 파일*/}
+                 {show_Home && <HomeContent />} {/* => HomeContent 파일*/}
+                 {show_project && <ProjectContent />} {/* => ProjectContent 파일*/}
+                 {show_chat && <ChatContent />} {/*=>ChatContent 파일*/}
+                 {show_calendar && <CalendarContent />} {/* => CalendarContent 파일*/}
             </div>
         </div>
     );

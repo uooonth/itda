@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
     "daypilot-pro-react": "https://npm.daypilot.org/daypilot-pro-react/trial/2024.1.5890.tar.gz",
@@ -14,9 +17,12 @@
     "react-calendar-timeline": "^0.30.0-beta.3",
     "react-dom": "^19.0.0",
     "react-i": "^0.2.1",
+    "react-kanban": "^0.0.0-test",
     "react-router-dom": "^6.29.0",
     "react-scripts": "5.0.1",
+    "react-trello": "^2.2.11",
     "sass": "^1.86.0",
+    "vis-timeline": "^7.7.3",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

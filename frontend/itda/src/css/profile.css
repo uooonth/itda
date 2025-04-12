@@ -1,0 +1,403 @@
+@font-face {
+    font-weight: 300;
+    font-family: "Pretendard-Light";
+    src: url("./fonts/Pretendard-Light.otf") format("truetype");
+}
+@font-face {
+    font-weight: 400;
+    font-family: "Pretendard-Regular";
+    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
+}
+@font-face {
+    font-weight: 500;
+    font-family: "Pretendard-Medium";
+    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
+}
+@font-face {
+    font-weight: 600;
+    font-family: "Pretendard-SemiBold";
+    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 700;
+    font-family: "Pretendard-Bold";
+    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 800;
+    font-family: "Pretendard-ExtraBold";
+    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
+}
+
+/* ======================================== */
+/* ============= 메인 포맷 ================= */
+/* ======================================== */
+.profile{
+    position:absolute;
+    min-height:100vh;
+    width: 87.5vw;
+    padding-top:7.21vw;
+    padding-left: 5.28vw;
+    padding-right:5.28vw;
+    overflow: hidden;
+}
+
+.profile .header{
+    font-family: 'pretendard-Bold';
+    font-size: 1.69rem;
+}
+.profile .tab {
+    all: unset;
+    display: flex;
+    margin-top:4vh;
+    position: relative; 
+    border-bottom: 3px solid #E6E6E6; 
+}
+
+.profile .tab .tab-item {
+    font-family: 'Pretendard-semiBold';
+    font-size: 1rem;
+    color: #6B705C;
+    cursor: pointer;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom: 0.5vw; 
+    position: relative; 
+}
+
+.profile .tab .tab-item.active_tab_profile::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    border-radius: 20px;
+    bottom: -3.5px;
+    width: 100%;
+    height: 4px;
+    background-color: #6B705C; 
+}
+
+
+
+
+
+.contentss {
+    margin-top:5vh
+  }
+  
+  .profile_top {
+    display: flex;
+    margin-bottom: 60px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 40px;
+
+  }
+  
+  .profile_top .img {
+    width: 200px;
+    height: 200px;
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    margin-right: 40px;
+  }
+  
+  .profile_top .info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+  }
+  
+  .profile_top .info .name {
+    font-family: 'pretendard-Bold';
+    font-size:2rem;
+    margin-bottom: 5px;
+  }
+  
+  .profile_top .info .role{
+    color:#6C6C6C;
+    font-size: 1.2rem;
+    margin-bottom: 1vh;
+    font-family: 'pretendard-Regular';
+  }
+  .profile_top .info .email,
+  .profile_top .info .grad {
+    font-size: 0.8rem;
+    font-family: 'pretendard-Regular';
+
+  }
+  .project-container{
+    display: -webkit-inline-box;
+    overflow-x: auto;
+    margin-bottom: 150px;
+  }
+  /* 스크롤바 스타일링 (선택) */
+.project-container::-webkit-scrollbar {
+  width: auto;
+  height: 5px;
+}
+
+.project-container::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 4px;
+}
+
+.project-container::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+  .profile_explain {
+    margin-bottom: 150px;
+  }
+  
+  .profile_explain .content {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-family: 'pretendard-Regular';
+    color:#6C6C6C;
+    max-width:80vw;
+    padding: 0;
+  }
+  
+  .profile_explain .tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .profile_explain .tags .tag {
+    width: 8vw;
+    height: 4vh;
+    background-color: #f1f1f1;
+    border-radius: 40px;
+    font-family: 'pretendard-Regular';
+    font-size:1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+  }
+  
+  .profile_explain .tags .plus {
+    width: 6vw;
+    height: 4vh;
+    background-color: #000;
+    color: #fff;
+    border-radius: 40px;
+    font-family: 'pretendard-Regular';
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  
+  
+  .semiTitle .title {
+    font-size: 1.35rem;
+    font-family: 'pretendard-Bold';
+    margin-bottom: 30px;
+    position: relative;
+  }
+  
+  .semiTitle .title:after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #e4e4e4;
+  }
+  
+  .profile_project .project_,
+  .profile_upload .project_ {
+    margin-top: 10px;
+  }
+  .profile_project .project_ {
+    width: calc(50%);
+    box-sizing: border-box;
+    vertical-align: top;
+    margin-right: 50px;
+    margin-bottom: 110px;
+    align-items: end;
+  }
+  
+  .profile_project {
+    flex-wrap: wrap;
+  }
+  
+  .project_ .info {
+    margin-right: 40px;
+    margin-bottom: 10px;
+
+  }
+  
+  .project_ .info .date {
+    display: inline-block;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: #909090;
+    font-family: 'pretendard-Regular';
+  }
+  
+  .project_ .info .line {
+    margin: 0 8px;
+  }
+  
+  .project_ .info .cooper {
+    font-size: 0.8rem;
+    font-family: 'pretendard-semiBold';
+  }
+  
+  .project_ .project_name {
+    flex: 1;
+  }
+  
+  .project_ .project_name .name {
+    font-size: 1.25rem;
+    font-family: 'pretendard-extraBold';
+    margin-bottom:1vh;
+  }
+  
+  .project_ .project_name .role,
+  .project_ .project_name .explain {
+    font-size: 0.8rem;
+    color: #666;
+    font-family: 'pretendard-semiBold';
+  }
+  
+  .profile_stack .project_ {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 150px;
+    margin-top: 30px;
+  }
+  
+  .profile_stack .stack {
+    width: calc(33.33% - 100px);
+    height: 126px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background-color: rgba(255, 255, 255, 0.01);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    justify-content: space-around;
+    box-sizing: border-box;
+  }
+  
+  .profile_stack .stack .stack_img {
+    width: 60px;
+    height: 60px;
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    margin-right: 20px;
+  }
+  
+  .profile_stack .stack .stack_name {
+    font-size: 1.75rem;
+    font-family: 'pretendard-semiBold';
+
+  }
+  .project_ .project_name .picture {
+    width: 55%;
+    border-radius: 8px;
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+    
+
+
+
+/* ========================================= */
+/* =============    검색   ================== */
+/* ========================================= */
+  
+  html{
+    background-color: #f5f5f545;
+  }
+  .searchBox2{
+    border:1px solid #E6E6E6;
+  }
+ .friendList{
+  margin-bottom: 150px;
+ }
+  .object{
+    display: flex;
+    border-bottom: 1px solid #E6E6E6;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+  }
+  .friendList .object .Friend_content{
+    display: flex;
+    align-items: center;
+    padding: 20px 0;
+  }
+
+  .friendList .title{
+    font-family: 'pretendard-Bold';
+    font-size: 1.35rem;
+    padding-top:1vh;
+    padding-bottom: 1vh;
+  }
+
+
+
+  .friendList .object .Friend_content .profile_img{
+    width: 100px;
+    height: 100px;
+    background-color: #E6E6E6;
+    border-radius: 50%;
+    margin-right: 68px;
+    margin-left: 50px;
+
+  }
+  .friendList .object .Friend_content .info{
+    gap:500px;
+  }
+
+
+  .friendList .object .Friend_content .info .name{
+    font-family: 'pretendard-Bold';
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+  }
+
+  .friendList .object .Friend_content .info .role{
+    font-family: 'Pretendard-Medium';
+    font-size: 0.85rem;
+    color: #6C6C6C;
+  }
+
+  .friendList .object .rightSides .button-addFriend{
+    font-family: 'Pretendard-Medium';
+    width: 160px;
+    height: 45px;
+    font-size: 0.85rem;
+    color: #ffffff;
+    border:none;
+    background-color: #000000;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+
+
+
+
+
+
