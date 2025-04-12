@@ -41,8 +41,8 @@ function Navigation({ username, isLoggedIn }) {
       </div>
       {isLoggedIn ? (
         <div className="userSection">
-          <span className="userName">{username}님</span>
-          <img src={smileIcon} alt="Smile" className="icon" onClick={toggleProfilePopup} />
+          <div className="userName">{username}님</div>
+          <img src={smileIcon} alt="Smile" className="icon"  onClick={toggleProfilePopup} />
           <img src={bellIcon} alt="Bell" className="icon" onClick={toggleAlarmPopup} />
           {showProfilePopup && (
             <div className="popup profilePopup">
@@ -55,9 +55,9 @@ function Navigation({ username, isLoggedIn }) {
                     {showEmojiPicker && <Picker onEmojiClick={handleEmojiSelect} />}
                     </div>
               <div className="section">
-                <div className="content">
+                <div className="content-nav">
                   <span className="email">email@example.com</span>
-                  <span className="profileSettings">프로필 설정</span>
+                  <span className="profileSettings">설정</span>
                 </div>
               </div>
               <div className="divider"></div>
@@ -85,7 +85,7 @@ function Navigation({ username, isLoggedIn }) {
                 </div>
                   <div className="time">방금 전</div></div>
               <div className='bottomtext'>
-              <div className="content">‘침착맨 유튜브 편집팀‘ 프로젝트에 누군가 
+              <div className="content-alam">‘침착맨 유튜브 편집팀‘ 프로젝트에 누군가 
               참여했습니다.</div>
               </div>
               <div className="divider"></div>
@@ -96,7 +96,7 @@ function Navigation({ username, isLoggedIn }) {
                 </div>
                 <div className="time">방금 전</div></div>
                 <div className='bottomtext'>
-                <div className="content">찜 목록에 있는 ‘ 침투부 썸네일 편집팀’의
+                <div className="content-alam">찜 목록에 있는 ‘ 침투부 썸네일 편집팀’의
                 모집 마감 기한이 하루 남았습니다!</div>
                 </div>
               <div className="divider"></div>
@@ -107,7 +107,7 @@ function Navigation({ username, isLoggedIn }) {
               </div>
               <div className="time">방금 전</div></div>
               <div className='bottomtext'>
-              <div className="content">‘침착맨 유튜브 편집팀‘에 서지혜씨가 파일을 올렸습니다.</div>
+              <div className="content-alam">‘침착맨 유튜브 편집팀‘에 서지혜씨가 파일을 올렸습니다.</div>
               </div>
               <div className="divider"></div>
               <div className="notification">
@@ -117,7 +117,7 @@ function Navigation({ username, isLoggedIn }) {
                 </div>
                 <div className="time">방금 전</div></div>
                 <div className='bottomtext'>
-                <div className="content">‘침착맨 유튜브 편집팀‘ 에 새로운 채팅이 있습니다.</div>
+                <div className="content-alam">‘침착맨 유튜브 편집팀‘ 에 새로운 채팅이 있습니다.</div>
                 </div>
               <div className="divider"></div>
               <div className="notification">
@@ -127,7 +127,7 @@ function Navigation({ username, isLoggedIn }) {
                 </div>
                 <div className="time">방금 전</div></div>
                 <div className='bottomtext'>
-                  <div className="content">‘침착맨 유튜브 편집팀‘ 의 ‘썸넬제작하기‘ 
+                  <div className="content-alam">‘침착맨 유튜브 편집팀‘ 의 ‘썸넬제작하기‘ 
                   마감기한이 10일 남았습니다.</div>
               </div>
               </div>

@@ -1,8 +1,0 @@
-fastapi 
-uvicorn
-sqlalchemy
-alembic
-
-
-
-# npm install emoji-picker-react
