@@ -1,0 +1,493 @@
+@font-face {
+    font-weight: 300;
+    font-family: "Pretendard-Light";
+    src: url("./fonts/Pretendard-Light.otf") format("truetype");
+}
+@font-face {
+    font-weight: 400;
+    font-family: "Pretendard-Regular";
+    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
+}
+@font-face {
+    font-weight: 500;
+    font-family: "Pretendard-Medium";
+    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
+}
+@font-face {
+    font-weight: 600;
+    font-family: "Pretendard-SemiBold";
+    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 700;
+    font-family: "Pretendard-Bold";
+    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 800;
+    font-family: "Pretendard-ExtraBold";
+    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
+}
+
+
+
+/* ======================================== */
+/* ============= 메인 포맷 ================= */
+/* ======================================== */
+.project{
+    display: flex;
+    position:absolute;
+    min-height:100vh;
+    width: 100%;
+
+    overflow: hidden;
+}
+
+.leftNavBar{  
+    width : 16.14vw;
+    height: 100vh;
+    background-color: white;
+    position: relative;
+    overflow: hidden; 
+}
+.tabs{
+    margin-top:5.25vw;
+    padding-top: 3.89vw;
+    padding-left: 3.125vw;
+    display:grid;
+    gap:0.571vw;
+
+}
+.tab{
+    display: flex;
+    gap:2.08vw;
+    cursor: pointer;
+    padding-top:0.8vw;
+    padding-bottom:0.8vw;
+
+}
+
+.tab .title{
+    font-family: 'Pretendard-Medium';
+    font-size: 1.25rem;
+    color: #B1B1B1;
+    align-content: center;
+    height:1.8vw
+}
+.active_tab .title {
+    color: #FF7676 !important;
+    font-family: 'Pretendard-bold';
+    font-size: 1.5rem;
+
+
+}
+.tab .icon {
+    width: 1.59vw;
+    height: 1.8vw;
+    fill: #B1B1B1; /* 기본 색상 */
+}
+
+
+.active_tab .icon  {
+    fill: #FF7676 !important;
+    stroke: purple !important;
+
+}
+
+.active-bar {
+    position: absolute;
+    left: 0; /* 바를 왼쪽에 위치시킴 */
+    width:0.3vw;
+    height:4vw;
+    background-color: #FF9696;
+    border-radius: 0 10px 10px 0;
+    transition: top 0.3s ease;
+}
+.rightContent{   
+    background-color: #F5F5F5;
+    opacity: 69%;
+    width: 100vw;
+    height: 100vh;     overflow-y: auto; 
+}
+
+.content{
+    padding-top: 9.21vw;
+    padding-left: 5.28vw;
+    padding-right: 4.16vw;
+    display:grid;
+}
+
+
+/* =============================================== */
+/* ============= homeContent.css ================= */
+/* =============================================== */
+
+.content .contentTitle{
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 2.25rem;
+}
+.searchBox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 20px;
+    width: 71.91vw;
+    height: 4.375vh;
+    margin-top:3.025vh;
+    margin-bottom:1.27vh ;
+
+}
+
+.searchBox .input {
+    display: flex;
+    align-items: center;
+    border-radius: 20px;
+    height: 5.25vh;
+    width: 71.91vw;
+    background-color: white;
+}
+.searchBox .input input::placeholder{
+    color:#C2C2C2;
+    font-family: 'Pretendard-Light';
+    font-size: 1rem;
+
+}
+.searchBox .input .icon {
+    margin-left:1.563vw;
+    margin-right:1.302vw;
+    height: 26px;
+}
+
+.searchBox .input input {
+    border: none;
+    width: 71.91vw;
+    border-radius: 20px;
+
+    height: 5.25vh;
+    text-justify: center;
+    outline: none;
+    flex-grow: 1;
+    color:black;
+    font-family: 'Pretendard-Medium';
+    font-size: 1.25rem;
+}
+.searchHistroy {
+    display: flex;
+    gap: 0.625vw;
+    margin-bottom: 1.27vh;
+    align-items: center;
+}
+
+.searchHistroy .object {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.872vh; 
+    padding-left: 1.563vw;
+    padding-right: 1.563vw; 
+    border-radius: 48px;
+    box-shadow: 0 1px 5.5px 2px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    font-family: 'Pretendard-Medium';
+    font-size: 1rem;
+    color: #7F7F7F;
+    margin-bottom: 3.025vh;
+}
+
+.searchHistroy .object .xBtn {
+    font-family: 'Pretendard-Bold';
+    font-size: 1rem;
+    color: #1D1D1D;
+    cursor: pointer;
+    margin-left: 1rem; 
+}
+
+
+.searchHistroy .btn {
+    font-family: 'Pretendard-Medium';
+    font-size: 1rem;
+    text-decoration: underline;
+    color: #C2C2C2;
+    cursor: pointer;
+}
+
+
+.projectList .title{
+    font-family: 'Pretendard-Bold';
+    font-size: 1.5rem;
+    margin-bottom: 1.27vh;
+}
+.projectList .object{
+    width: 72.813vw;
+    height: 25.833vh;
+    border-radius: 48px;
+    background-color: white;
+    align-items: center;
+}
+.object{
+    display: grid;
+    grid-template-columns: auto 1fr auto; 
+    align-items: center; 
+    margin-bottom: 3.025vh;
+}
+.object .object_icon{
+    margin-right:4.167vw;
+    height: 8.906vw;
+    width : 8.906vw;
+    margin-left: 4.427vw;
+    border-radius: 48px;
+    background-color: #F3F3F3;
+}
+
+.object .object_content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 8.906vw;
+    margin-right: 4.427vw;
+}
+
+.object .object_content .title {
+    font-family: 'Pretendard-Bold';
+    font-size: 2rem;
+    margin-bottom: 1vh;
+}
+
+.object .object_content .explain {
+    font-family: 'Pretendard-Light';
+    font-size: 1rem;
+    margin-top: 1vh;
+}
+
+.object .object_content .status {
+    display: flex;
+    gap: 15px; 
+    height: 3.241vh;    
+    margin-top: auto;
+}
+
+.object .object_content .status .publisher {
+    background-color: black;
+    color: white;
+    padding: 0 15px;
+    border-radius: 10px;
+    font-family: 'Pretendard-semiBold';
+    font-size: 0.813rem;
+    display: flex;
+    align-items: center;
+}
+
+.object .object_content .status .role {
+    background-color: #F3F3F3;
+    color: black;
+    padding: 0 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    font-family: 'Pretendard-semiBold';
+    font-size: 1rem;
+}
+
+.object .rightSide {
+    margin-left: auto;
+    margin-right: 4.427vw;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 8.906vw;
+    justify-self: end; /* 요소를 오른쪽으로 정렬 */
+}
+.object .rightSide .pin{
+    margin-bottom: 1.815vh;
+    margin-left: auto;
+
+}
+.object .rightSide .deadLine{
+    margin-left: auto;
+    font-family: 'pretendard-Light';
+    font-size: 1.25rem;
+
+}
+.object .rightSide .lastaccess{
+    margin-left: auto;
+    font-family: 'pretendard-Light';
+    font-size:1rem;
+}
+
+/* ================================================== */
+/* ============= projectContent.css ================= */
+/* ================================================== */
+
+
+.projectContent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.timeLine {
+    grid-column: 1 / 3;
+    grid-row: 3 / 4;
+    width: 72.813vw;
+    height: 28.72vh;
+}
+
+.todoList {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+    width: 48.542vw;
+    height: 10.855vh;
+}
+
+.liveChat {
+    grid-column: 2 / 3;
+    grid-row: 4 / 6;
+    width: 21.458vw;
+    height: 39.846vh;
+}
+
+.feedback {
+    grid-column: 1 / 3;
+    grid-row: 5 / 6;
+    width: 48.542vw;
+    height: 22.433vh;
+}
+.box1{
+    border: 1px solid black;
+    background-color: white;
+}
+
+.projectContent .contentTitle{
+
+}
+.projectContent .gonji {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    display:flex;
+    width: 48.542vw;
+    height: 3.754vh;
+}
+
+.projectContent .calendar {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    width: 21.51vw;
+    height: 9.181vh;
+}
+
+.projectContent .calendar .calendarTop{
+    display: flex;
+}
+.projectContent .calendar .calendarMid{
+    display: flex;
+}
+.projectContent .calendar .calendarBot{
+    display: flex;
+}
+.projectContent .todoStatus {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+    width: 48.542vw;
+    height: 4.116vh;
+    display : flex;
+}
+
+.projectContent .todoStatus .object{
+
+}
+.projectContent .todoStatus .object .objectCount{
+
+}
+.projectContent .todoStatus .object .objectTitle{
+
+}
+.projectContent .timeLine{
+
+}
+.projectContent .timeLine .title{
+
+}
+.projectContent .timeLine .content{
+
+}
+
+.projectContent .timeLine .content .index{
+    display:flex;
+}
+.projectContent .timeLine .content .index .title{
+
+}
+.projectContent .timeLine .content .object{
+
+}
+.projectContent .timeLine .content .object .name{
+
+}
+.projectContent .timeLine .content .object .todoLine{
+
+}
+.projectContent .timeLine .content .object .todoLine .todo{
+
+}
+.projectContent .todoList{
+
+}
+
+.projectContent .todoList .top{
+    
+}
+.projectContent .todoList .top .content .object .title{
+    
+}
+.projectContent .todoList .top{
+    display : flex;
+}
+.projectContent .todoList .content .object{
+    display : flex;
+}
+.projectContent .todoList .content .object .date{
+    
+}
+.projectContent .todoList .content .object .checkBox{
+    
+}
+.projectContent .liveChat{
+
+}
+.projectContent .liveChat .title{
+    
+}
+.projectContent .liveChat .content{
+    
+}
+.projectContent .feedback{
+
+}
+.projectContent .feedback .top{
+
+}
+.projectContent .feedback .top .title{
+
+}
+.projectContent .feedback .top .more{
+
+}
+.projectContent .feedback .content{
+
+}
+.projectContent .feedback .content .object{
+
+}
+.projectContent .feedback .content .object .date{
+
+}
+.projectContent .feedback .content .object .icon{
+
+}
+.projectContent .feedback .content .object .name{
+
+}
+.more{
+    cursor: pointer;
+}
