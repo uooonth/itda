@@ -31,7 +31,7 @@
 
 .navigation {
     position: absolute;
-    height: 5.25vw; 
+    height: 3.25vw; 
     width: 100vw;
     padding: 0 3.125vw;
     display: flex;
@@ -44,10 +44,10 @@
     background-color: white;
     left: 0; 
 }
-  
+
 .logo {
     font-family: 'Pretendard-ExtraBold';
-    font-size: 2rem;
+    font-size: 1.45rem;
     width: 14.06vw;
     color: black;
 }
@@ -61,7 +61,7 @@
   
 .navLink {
     font-family: 'Pretendard-ExtraLight';
-    font-size: 1.5rem;
+    font-size: 1.05rem;
     color: black;
     text-decoration: none;
 }
@@ -71,22 +71,22 @@
 }
 .popupUserName{
     font-family: 'Pretendard-bold';
-    font-size: 1.5rem; 
+    font-size: 1.05rem; 
     color: black;
     cursor: pointer;
     text-align: center;
 }
 .userSection {
     display: flex;
-    align-items: right;
+    align-items: center;
     justify-content: right;
-    gap: 1.852vw;
+    gap: 0.852vw;
     width: 14.06vw;
 }
   
 .userName {
     font-family: 'Pretendard-ExtraLight';
-    font-size: 1.25rem; 
+    font-size: 0.95rem; 
     color: black;
     text-align: center;
 }
@@ -94,6 +94,7 @@
 .icon {
     cursor: pointer;
     position: relative;
+    scale:0.8;
 }
   
 .icon::after {
@@ -131,13 +132,13 @@
     margin-bottom: 0;
 }
 
-.popup .section .content .email {
-    font-family: 'Pretendard-light';
-    font-size: 1.25rem; 
+.popup .section .content-nav .email {
+    font-family: 'Pretendard-Light';
+    font-size: 0.95rem; 
     color: #a8a8a8;
 }
 .popup .section .popupUserName{
-    font-size: 1.75rem;
+    font-size: 1.35rem;
     font-family: 'Pretendard-Bold';
 }
 .popup .section .title{
@@ -146,12 +147,14 @@
     margin-bottom: 1.54vw;
     margin-top:2.05vw
 }
-.popup .section .content .profileSettings {
+.popup .section .content-nav .profileSettings {
     font-family: 'Pretendard-Regular';
-    font-size: 1.25rem;
+    font-size: 0.85rem;
+    color: #a2a2a2;
+    text-decoration: underline;
     cursor: pointer;
 }
-.popup .section .content{
+.popup .section .content-nav{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -160,7 +163,12 @@
     margin-bottom: 1.75vw;
     cursor: pointer;
 }
-
+.popup .section .content{
+    all:unset;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Pretendard-Regular';
+}
 .popup .divider {
     height: 0.093vw;
     background-color: rgba(216, 216, 216, 0.4);
@@ -168,7 +176,7 @@
 }
 .popup .logout {
     font-family: 'Pretendard-SemiBold';
-    font-size:1rem ;
+    font-size:0.91rem ;
     color: #6F6F6F;
     margin-top: 1.54vw;
     cursor: pointer;
@@ -231,8 +239,7 @@
 }
 
 .alarmPopup .notification .icon {
-    width: 1.852vw; /* 20px / 1080px */
-    height: 1.852vw; /* 20px / 1080px */
+    scale: 1;
     margin-right: 0.833vw; /* 16px / 1920px */
 }
 
@@ -241,19 +248,19 @@
 
 }
 .alarmPopup .notification .toptext .title{
-    font-size: 1rem;
+    font-size: 0.79rem;
     color: #939393;
     font-family: 'pretendard-Medium';
 }
 .alarmPopup .notification .time{
-    font-size:1rem;
+    font-size:0.79rem;
     color: #939393;
     font-family: 'pretendard-Medium';
 }
 .alarmPopup .bottomtext {
-    font-size: 1.25rem;
-    font-family: 'pretendard-bold';
-    margin-left: 2.7vw;
+    font-size: 0.9rem;
+    font-family: 'pretendard-semibold';
+    margin-left: 2.3vw;
 }
 
 

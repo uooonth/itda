@@ -1,0 +1,12 @@
+fastapi 
+uvicorn
+sqlalchemy
+alembic
+psycopg2-binary 
+redis 
+websockets 
+python-dotenv
+
+# npm install emoji-picker-react
+# npm install vis-timeline
+# npm install @lourenci/react-kanban --legacy-peer-deps

@@ -1,12 +1,10 @@
 import React,{useState,useEffect} from 'react';
 import search from '../../icons/search.svg';
-import pinBefore from '../../icons/pinBefore.svg';
-
 
 const STORAGE_KEY = 'itda_search_history';
 
-const HomeContent = () => {
-    const [searchHistory, setSearchHistory] = useState(() => {
+const SearchCom = () => {
+   const [searchHistory, setSearchHistory] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
         try {
             return saved ? JSON.parse(saved) : [];
@@ -50,18 +48,32 @@ const HomeContent = () => {
     };
 
 
-    return (
-        <div className="content">
-            <div className="contentTitle">진행 프로젝트</div>
 
-            <div className="searchBox">
+
+
+
+
+
+
+    return (
+        <div className="contentss">
+           <div className='profile_top'>
+               <div className='img'>사진</div>
+               <div className='info'>
+                  <div className='name'>돌멩이리듐</div>
+                  <div className='role'>Web-Designer</div>
+                  <div className='email'>💌okcoco03@naver.com</div>
+                  <div className='grad'>🚩경상국립대학교 컴퓨터공학과 재학중</div>
+              </div>
+           </div>
+            <div className="searchBox searchBox2">
                 <div className="input">
                     <div className="icon">
                         <img src={search} alt="search" />
                     </div>
                     <input
                         type="text"
-                        placeholder="검색할 프로젝트의 제목 혹은 게시자를 입력하세요."
+                        placeholder="검색할 친구의 아이디를 입력해 주세요."
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -69,7 +81,6 @@ const HomeContent = () => {
                     />
                 </div>
             </div>
-
             <div className="searchHistroy">
                 {searchHistory.map((item, idx) => (
                     <div className="object" key={idx}>
@@ -81,29 +92,32 @@ const HomeContent = () => {
                     <div className="btn" onClick={handleDeleteAll}>모두삭제</div>
                 )}
             </div>
+ 
 
-            <div className="projectList">
-                <div className="title">nn개의 프로젝트가 있어요.</div>
+
+
+            <div className="friendList">
+
+                <div className="title">친구 목록</div>
                 {[1, 2, 3, 4].map((_, i) => (
                     <div className="object" key={i}>
-                        <div className="object_icon">icon자리</div>
-                        <div className="object_content">
-                            <div className="title">침착맨 유튜브 편집팀</div>
-                            <div className="explain">침착맨유튜브를 전문적으로 시청합시다</div>
-                            <div className="status">
-                                <div className="publisher">● 게시자 침착맨</div>
-                                <div className="role">전문시청팀</div>
+                        <div className="Friend_content">
+                            <div className="profile_img">img</div>
+                            <div className="info">
+                                <div className="name">침착맨</div>
+                                <div className="role">Web-Disigner</div>
                             </div>
                         </div>
-                        <div className="rightSide">
-                            <img src={pinBefore} className="pin" alt="pin" />
-                            <div className="deadLine">2025.01.25 마감</div>
-                            <div className="lastaccess">3일전 접속</div>
+                        <div className="rightSides">
+                            <button className="button-addFriend">프로필 보기</button>
                         </div>
                     </div>
                 ))}
             </div>
+
+
         </div>
     );
 };
-export default HomeContent;
+
+export default SearchCom;
