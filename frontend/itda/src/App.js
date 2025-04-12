@@ -9,6 +9,8 @@ import Project from './pages/project';
 import Login from './pages/login';
 import SignupAgreement from './pages/signup/signupAgreement';
 import SignupForm from './pages/signup/signupForm';
+import SignupVerification from './pages/signup/signupVerification';
+import SignupComplete from './pages/signup/signupComplete';
 
 // component 요소
 import "./App.css";
@@ -18,7 +20,7 @@ function App() {
   const username = "어금지"; 
   const location = useLocation();
 
-  const hideNav = location.pathname === "/login" | location.pathname === "/signupAgreement" | location.pathname === "/signupForm";
+  const hideNav = location.pathname === "/login" | location.pathname === "/signupAgreement" | location.pathname === "/signupForm" | location.pathname === "/signupVerification" | location.pathname === "/signupComplete";
 
   return (
     <div className="App">
@@ -31,6 +33,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signupAgreement" element={<SignupAgreement />} />
         <Route path="/signupForm" element={<SignupForm />} />
+        <Route path="/signupVerification" element={<SignupVerification />} />
+        <Route path="/signupComplete" element={<SignupComplete />} />
       </Routes>
     </div>
   );

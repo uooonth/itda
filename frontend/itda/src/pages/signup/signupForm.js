@@ -18,7 +18,6 @@ export default function SignupForm() {
     const [passwordMatchError, setPasswordMatchError] = useState(false);
     const [emailFormatError, setEmailFormatError] = useState(false);
 
-    // 에러 상태
     const [idError, setIdError] = useState("");
     const [nicknameError, setNicknameError] = useState("");
 
@@ -34,7 +33,6 @@ export default function SignupForm() {
         setForm({ ...form, [name]: value });
 
         if (name === "id") {
-            // 예시 중복 확인: 실제로는 API로 확인
             setIdError(value === "testid" ? "중복된 아이디입니다" : "");
         }
 
@@ -120,44 +118,65 @@ export default function SignupForm() {
                 <hr className="form-line" />
 
                 <div className="signup-form">
+                    {/* 아이디 */}
                     <div className="form-group">
                         <p>아이디</p>
-                        {idError && <p className="error-message">{idError}</p>}
-                        <input
-                            type="text"
-                            name="id"
-                            placeholder="아이디를 입력해 주세요"
-                            value={form.id}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="input-container">
+                            <div className="error-space">
+                                <p className="error-message">{idError}</p>
+                            </div>
+                            <div className="input-row">
+                                <input
+                                    type="text"
+                                    name="id"
+                                    placeholder="아이디를 입력해 주세요"
+                                    value={form.id}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+
+                        </div>
                     </div>
 
+                    {/* 닉네임 */}
                     <div className="form-group">
                         <p>닉네임</p>
-                        {nicknameError && <p className="error-message">{nicknameError}</p>}
-                        <input
-                            type="text"
-                            name="nickname"
-                            placeholder="닉네임을 입력해 주세요"
-                            value={form.nickname}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="input-container">
+                            <div className="error-space">
+                                <p className="error-message">{nicknameError}</p>
+                            </div>
+                            <div className="input-row">
+                                <input
+                                    type="text"
+                                    name="nickname"
+                                    placeholder="닉네임을 입력해 주세요"
+                                    value={form.nickname}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        </div>
                     </div>
 
+                    {/* 비밀번호 */}
                     <div className="form-group">
                         <p>비밀번호</p>
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="비밀번호를 입력해 주세요"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="input-container">
+                            <div className="input-row">
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="비밀번호를 입력해 주세요"
+                                value={form.password}
+                                onChange={handleChange}
+                                required
+                            />
+                            </div>
+                        </div>
                     </div>
 
+                    {/* 조건 메시지 */}
                     <div className="condition-group">
                         <p
                             className="condition"
@@ -185,30 +204,50 @@ export default function SignupForm() {
                         </p>
                     </div>
 
+                    {/* 비밀번호 확인 */}
                     <div className="form-group">
                         <p>비밀번호 확인</p>
-                        {passwordMatchError && <p className="error-message">비밀번호가 일치하지 않습니다</p>}
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            placeholder="비밀번호를 다시 입력해주세요"
-                            value={form.confirmPassword}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="input-container">
+                            <div className="error-space">
+                                <p className="error-message">
+                                    {passwordMatchError ? "비밀번호가 일치하지 않습니다" : ""}
+                                </p>
+                            </div>
+                            <div className="input-row">
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    placeholder="비밀번호를 다시 입력해주세요"
+                                    value={form.confirmPassword}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+
+                        </div>
                     </div>
 
+                    {/* 이메일 */}
                     <div className="form-group">
                         <p>이메일</p>
-                        {emailFormatError && <p className="error-message">이메일 형식이 올바르지 않습니다</p>}
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="이메일을 입력해주세요"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="input-container">
+                            <div className="error-space">
+                                <p className="error-message">
+                                    {emailFormatError ? "이메일 형식이 올바르지 않습니다" : ""}
+                                </p>
+                            </div>
+                            <div className="input-row">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="이메일을 입력해주세요"
+                                    value={form.email}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
@@ -217,7 +256,7 @@ export default function SignupForm() {
 
             <div className="form-button-group">
                 <button className="form-cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                <button className="form-next-button" disabled={!isFormValid}>다음</button>
+                <button className="form-next-button" disabled={!isFormValid} onClick={() => navigate("/signupVerification")}>다음</button>
             </div>
 
             {showCancelModal && (
