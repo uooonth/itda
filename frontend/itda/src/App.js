@@ -17,10 +17,10 @@ import "./App.css";
 
 function App() {
   const location = useLocation();
-  const isLoggedIn = true; 
+  const isLoggedIn = false; 
 
   const username = "어금지"; 
-  const location = useLocation();
+
 
   const hideNav = location.pathname === "/login" | location.pathname === "/signupAgreement" | location.pathname === "/signupForm" | location.pathname === "/signupVerification" | location.pathname === "/signupComplete";
 

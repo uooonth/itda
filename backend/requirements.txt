@@ -3,9 +3,17 @@ uvicorn
 sqlalchemy
 alembic
 psycopg2-binary 
-redis 
 websockets 
+asyncpg
+ormar==0.12.1
+psycopg2-binary
+pydantic<=1.10.5
+databases
+Tortoise 
 python-dotenv
+email-validator
+watchfiles
+watchgod==0.7
 
 # npm install emoji-picker-react
 # npm install vis-timeline

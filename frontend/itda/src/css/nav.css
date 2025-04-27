@@ -210,7 +210,7 @@
   
 .signUp {
     font-family: 'Pretendard-SemiBold';
-    font-size: 1.125rem; 
+    font-size: 0.9rem; 
     color: black;
     background-color: white;
     text-decoration: none;
@@ -220,9 +220,9 @@
     background-color: black;
     color: white;
     font-family: 'Pretendard-SemiBold';
-    font-size: 1.125rem; 
-    width: 7.5vw; 
-    height: 3.125vw;
+    font-size: 0.9rem; 
+    width: 5.5vw; 
+    height: 2vw;
     border-radius: 4.444vw;
     display: flex;
     align-items: center;
@@ -266,7 +266,7 @@
 
 
 .alarmPopup .divider {
-    height: 0.093vw; /* 1px / 1080px */
+    height: 0.093vw; 
     background-color: rgba(216, 216, 216, 0.4);
-    margin: 2.222vw 0; /* 24px / 1080px */
+    margin: 2.222vw 0;
 }
