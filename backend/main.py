@@ -5,8 +5,10 @@ from backend.schemas import UserCreate
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path
+from fastapi.middleware.cors import CORSMiddleware
 
 
+# ───────────── Docker 생명주기 설정 ───────────── #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect()
@@ -14,6 +16,20 @@ async def lifespan(app: FastAPI):
     await database.disconnect()
 
 app = FastAPI(lifespan=lifespan)
+# ───────────── 3000포트에서 이쪽 주소를 쓸 수 있게 해주는 CORS설정 ───────────── #
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React 개발 서버 주소
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ───────────── Front 연결 test ───────────── #
+
+@app.get("/users/1")
+def get_first_user():
+    return {"username": "서지혜"}
 
 # ───────────── 유저 API ───────────── #
 # 언니에게. .... 비번저장할때 해시저장 플리쥬...
