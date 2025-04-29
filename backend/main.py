@@ -6,7 +6,8 @@ from fastapi import HTTPException
 from typing import List
 from fastapi import Path
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi import HTTPException
+from backend.db import User
 # ───────────── Docker 생명주기 설정 ───────────── #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -65,17 +66,30 @@ async def get_projects():
     projects = await ProjectInfo.objects.select_related("project").all()
     return projects
 
+from fastapi import HTTPException
 
 @app.post("/projects", response_model=ProjectOut)
 async def create_project(project: ProjectCreate):
+    # proposer 검증
+    proposer_user = await User.objects.get_or_none(id=project.proposer)
+    if proposer_user is None:
+        raise HTTPException(status_code=400, detail="제안자(proposer) 유저가 존재하지 않습니다.")
+    
+    # worker 검증
+    worker_user = await User.objects.get_or_none(id=project.worker)
+    if worker_user is None:
+        raise HTTPException(status_code=400, detail="작업자(worker) 유저가 존재하지 않습니다.")
+    
+    # ProjectOutline 생성
     outline = await ProjectOutline.objects.create(
         id=project.project,
         name=project.name,
-        classification="default"  # 혹은 프론트에서 분류도 같이 넘기면 여기도 수정
+        classification="default"
     )
 
+    # ProjectInfo 생성
     new_project = await ProjectInfo.objects.create(
-        project=outline,  # ForeignKey 객체
+        project=outline,
         explain=project.explain,
         sign_deadline=project.sign_deadline,
         salary_type=project.salary_type.value,
@@ -86,5 +100,4 @@ async def create_project(project: ProjectCreate):
         thumbnail=project.thumbnail
     )
 
-    # project까지 select_related 해서 join 조회
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
