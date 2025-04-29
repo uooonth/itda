@@ -52,8 +52,8 @@ class ProjectInfo(ormar.Model):
         metadata = metadata
         database = database
 
-    id: int = ormar.Integer(primary_key=True)  # 🔧 일반 PK 추가
-    project: ProjectOutline = ormar.ForeignKey(ProjectOutline)  # 🔧 외래키는 별도
+    id: int = ormar.Integer(primary_key=True) 
+    project: ProjectOutline = ormar.ForeignKey(ProjectOutline)  
     explain: str = ormar.Text(nullable=False)
     sign_deadline: date = ormar.Date(nullable=False)
     salary_type: SalaryType = ormar.String(max_length=20, nullable=False)
