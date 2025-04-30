@@ -24,6 +24,9 @@ async def lifespan(app: FastAPI):
     await database.disconnect()
 
 app = FastAPI(lifespan=lifespan)
+
+
+
 # ───────────── 3000포트에서 이쪽 주소를 쓸 수 있게 해주는 CORS설정 ───────────── #
 app.add_middleware(
     CORSMiddleware,
@@ -33,13 +36,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ───────────── Front 연결 test ───────────── #
 
-@app.get("/users/1")
-def get_first_user():
-    return {"username": "서지혜"}
-
-## ───────────── 회원가입 API ───────────── #
+# ───────────── 회원가입 API ───────────── #
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
@@ -49,7 +47,7 @@ async def signup(user: UserCreate):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="이미 가입된 이메일입니다."
+            detail="이미 가입된 이메일"
         )
  
     hashed_password = get_password_hash(user.pw_hash)
@@ -65,20 +63,16 @@ async def signup(user: UserCreate):
 
 
 ## ───────────── token API ───────────── #
-
 SECRET_KEY = "jongseolpw12345612345678901234567890"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
 UTC = timezone.utc  
-
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.now(tz=UTC) + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")  
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
@@ -109,7 +103,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-
 @app.post("/login", response_model=Token)
 async def login(user_credentials: UserLogin):
     print(user_credentials)
@@ -135,7 +128,6 @@ async def login(user_credentials: UserLogin):
     return {"access_token": access_token, "token_type": "bearer"}
 
 # ───────────── 로그인확인용(not프론트연결) API ───────────── #
-
 from typing import Annotated
 @app.get("/me", response_model=UserResponse)
 async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
@@ -146,7 +138,6 @@ async def get_users():
     return users
 
 # ───────────── 플젝 API ───────────── #
-
 @app.get("/projects", response_model=List[ProjectOut])
 async def get_projects():
     projects = await ProjectInfo.objects.select_related("project").all()
@@ -187,3 +178,4 @@ async def create_project(project: ProjectCreate):
     )
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
+
