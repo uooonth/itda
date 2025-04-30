@@ -26,7 +26,6 @@ function App() {
     setIsLoggedIn(!!token);
 
     if (token) {
-      // 로그인된 경우 유저 이름 가져오기
       fetch("http://127.0.0.1:8008/me", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -37,11 +36,10 @@ function App() {
           return res.json();
         })
         .then((data) => {
-          setUsername(data.username);  
+          setUsername(data.id);  
         })
         .catch((err) => {
-          console.error("유저 정보 요청 실패:", err);
-          setIsLoggedIn(false);  // 토큰은 있는데 인증 실패했을 경우
+          setIsLoggedIn(false);  
         });
     }
   }, []);
@@ -51,7 +49,7 @@ function App() {
 
   return (
     <div className="App">
-      {!hideNav && <Nav username={username} isLoggedIn={isLoggedIn} />}
+      {!hideNav && <Nav isLoggedIn={isLoggedIn}  username={username} />}
       <Routes>
         <Route path="/" element={<Navigate replace to="/home" />} />
         <Route path="/home" element={<Home />} />
