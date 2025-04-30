@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import '../css/nav.css';
 import { NavLink, useLocation } from 'react-router-dom'; 
 import smileIcon from '../icons/smile.svg';
@@ -13,7 +13,15 @@ import starIcon from '../icons/star.svg';
 import uploadIcon from '../icons/upload.svg';
 import timerIcon from '../icons/timer.svg';
 import Picker from 'emoji-picker-react';
-function Navigation({ username, isLoggedIn }) {
+function Navigation({ isLoggedIn ,username}) {
+
+
+
+    /*-------------------------------------------------------------*/
+    /*-----------------------     로긴     ---------------------*/
+    /*-------------------------------------------------------------*/
+  console.log("isLoggedIn", isLoggedIn);
+  console.log("username", username);
   const location = useLocation();
     //팝업 끄고 켜기 상태
   const [showProfilePopup, setShowProfilePopup] = useState(false);
@@ -21,16 +29,33 @@ function Navigation({ username, isLoggedIn }) {
     //팝업 끄고 켜기  함수
   const toggleProfilePopup = () => setShowProfilePopup(!showProfilePopup);
   const toggleAlarmPopup = () => setShowAlarmPopup(!showAlarmPopup);
-
     //이모지
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🥰' });
-    
-    function handleEmojiSelect(emojiObject) {
-        setSelectedEmoji(emojiObject);
-        setShowEmojiPicker(false); // 이모지 선택 후 선택 창 닫기
-    }
-    
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🥰' });
+  
+  function handleEmojiSelect(emojiObject) {
+      setSelectedEmoji(emojiObject);
+      setShowEmojiPicker(false); // 이모지 선택 후 선택 창 닫기
+  }
+
+
+
+
+    /*-------------------------------------------------------------*/
+    /*-----------------------     로구아웃     ---------------------*/
+    /*-------------------------------------------------------------*/
+
+    const handleLogout = () => {
+      localStorage.removeItem("access_token");  
+      window.location.href = "/";      
+  };
+
+
+
+
+
+
+  
   return (
     <div className="navigation">
       <div className="logo">itda</div>
@@ -69,8 +94,8 @@ function Navigation({ username, isLoggedIn }) {
                   </div>
               </div>
               <div className="divider"></div>
-              <div className="logout">로그아웃</div>
-            </div>
+              <div className="logout" onClick={handleLogout}>로그아웃</div>
+              </div>
           )}
          {showAlarmPopup && (
             <div className="popup alarmPopup">

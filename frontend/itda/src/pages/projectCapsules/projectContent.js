@@ -502,39 +502,7 @@ const ProjectContent = () => {
 //===================================================================== //
 // ------------------------     live chat       ------------------------// 
 //===================================================================== //
-// 채팅 관련 상태 및 ref
-const [messages, setMessages] = useState([]);
-const [input, setInput] = useState('');
-const ws = useRef(null);
-const messagesEndRef = useRef(null);
 
-// WebSocket 연결 설정
-useEffect(() => {
-  ws.current = new WebSocket('ws://localhost:8000/ws');
-  ws.current.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    setMessages((prev) => [...prev, message]);
-  };
-
-  ws.current.onclose = () => {
-    console.log('WebSocket disconnected');
-  };
-
-  return () => {
-    ws.current.close();
-  };
-}, []);
-
-// 메시지 스크롤
-useEffect(() => {
-  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-}, [messages]);
-const sendMessage = () => {
-    if (input.trim() === '') return;
-    const messageData = { message: input };
-    ws.current.send(JSON.stringify(messageData));
-    setInput('');
-  };
 
     return (
         <div className="content">
@@ -630,27 +598,6 @@ const sendMessage = () => {
                 <div className="liveChat">
                     <div className="title">실시간 채팅</div>
                     <div className="content box1">
-
-                    <div className="chat-messages">
-                {messages.map((msg, index) => (
-                  <div key={index} className="chat-message">
-                    <span className="username">{msg.username}</span>: {msg.message}
-                    <span className="timestamp"> ({new Date(msg.timestamp).toLocaleTimeString()})</span>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-              <div className="chat-input">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Type a message..."
-                  className="message-input"
-                />
-                <button onClick={sendMessage}>Send</button>
-              </div>
                     </div>
 
                 </div>
