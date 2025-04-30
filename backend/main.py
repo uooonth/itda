@@ -1,13 +1,21 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,status,Depends
 from backend.db import database, User,ProjectInfo, ProjectOutline
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,ProjectOutlineOut
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 from backend.db import User
+from passlib.context import CryptContext
+from datetime import datetime, timedelta, timezone
+from jose import JWTError, jwt
+from typing import Optional
+from fastapi.security import OAuth2PasswordBearer
+
+
+
 # ───────────── Docker 생명주기 설정 ───────────── #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,33 +39,111 @@ app.add_middleware(
 def get_first_user():
     return {"username": "서지혜"}
 
-# ───────────── 유저 API ───────────── #
-# 언니에게... 비번저장할때 해시저장 플리쥬...
-#create 
-@app.post("/users", response_model=UserCreate)
-async def create_user(user: UserCreate):
-    existing = await User.objects.get_or_none(id=user.id)
-    if existing:
-        raise HTTPException(status_code=400, detail="이미 존재하는 사용자입니다.")
-    
-    new_user = await User.objects.create(**user.dict())
-    return new_user
-print("🟢 main.py")
+## ───────────── 회원가입 API ───────────── #
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
 
-#read
-@app.get("/users", response_model=List[UserCreate])
+@app.post("/signup", response_model=UserCreate)
+async def signup(user: UserCreate):
+    existing_user = await User.objects.get_or_none(email=user.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="이미 가입된 이메일입니다."
+        )
+ 
+    hashed_password = get_password_hash(user.pw_hash)
+
+    new_user = await User.objects.create(
+        id=user.id,          
+        name=user.name,     
+        pw_hash=hashed_password,
+        email=user.email
+    )
+    
+    return new_user
+
+
+## ───────────── token API ───────────── #
+
+SECRET_KEY = "jongseolpw12345612345678901234567890"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+UTC = timezone.utc  
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.now(tz=UTC) + (expires_delta or timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")  
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="증명틀렸습니다.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = await User.objects.get_or_none(id=user_id)
+    if user is None:
+        raise credentials_exception
+
+    return user
+
+
+## ───────────── login API ───────────── #
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+@app.post("/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    print(user_credentials)
+
+    user = await User.objects.get_or_none(id=user_credentials.id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="id실수"
+        )
+
+    if not verify_password(user_credentials.password, user.pw_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="실수 pw"
+        )
+
+    # 토큰 생성
+    access_token = create_access_token(
+        data={"sub": user.id},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# ───────────── 로그인확인용(not프론트연결) API ───────────── #
+
+from typing import Annotated
+@app.get("/me", response_model=UserResponse)
+async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+    return current_user
+@app.get("/getUsers", response_model=List[User])
 async def get_users():
     users = await User.objects.all()
     return users
-#delete
-@app.delete("/users/{user_id}")
-async def delete_user(user_id: str = Path(..., description="삭제할 사용자의 ID")):
-    user = await User.objects.get_or_none(id=user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
-    
-    await user.delete()
-    return {"message": f"사용자 '{user_id}'가 삭제되었습니다."}
 
 # ───────────── 플젝 API ───────────── #
 
@@ -73,12 +159,12 @@ async def create_project(project: ProjectCreate):
     # proposer 검증
     proposer_user = await User.objects.get_or_none(id=project.proposer)
     if proposer_user is None:
-        raise HTTPException(status_code=400, detail="제안자(proposer) 유저가 존재하지 않습니다.")
+        raise HTTPException(status_code=400, detail="프로포잘오류")
     
     # worker 검증
     worker_user = await User.objects.get_or_none(id=project.worker)
     if worker_user is None:
-        raise HTTPException(status_code=400, detail="작업자(worker) 유저가 존재하지 않습니다.")
+        raise HTTPException(status_code=400, detail="워커오류")
     
     # ProjectOutline 생성
     outline = await ProjectOutline.objects.create(
