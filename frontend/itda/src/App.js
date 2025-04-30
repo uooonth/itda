@@ -36,7 +36,7 @@ function App() {
           return res.json();
         })
         .then((data) => {
-          setUsername(data.username);  
+          setUsername(data.id);  
         })
         .catch((err) => {
           setIsLoggedIn(false);  

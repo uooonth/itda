@@ -20,6 +20,8 @@ export default function Login({ setIsLoggedIn, setUsername }) {
                 }),
             });
 
+            if (!response.ok) throw new Error("로그인 실패");
+
             const data = await response.json();
             localStorage.setItem("access_token", data.access_token);
 
