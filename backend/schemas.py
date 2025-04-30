@@ -3,12 +3,7 @@ from datetime import date
 from enum import Enum
 from typing import Optional
 
-class UserCreate(BaseModel):
-    id: str
-    name: str
-    pw_hash: str  #나중에 해시값으로 바꾸는 거 만들기
-    email: EmailStr
-    
+
     
 class SalaryType(str, Enum):
     MONTHLY = "월급"
@@ -60,3 +55,28 @@ class ProjectOut(BaseModel):
 
     class Config:
         orm_mode = True
+        
+        
+        
+class UserCreate(BaseModel):
+    id: str
+    name: str
+    pw_hash: str 
+    email: EmailStr
+
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+
+    class Config:
+        orm_mode = True
+
+class UserLogin(BaseModel):
+    id: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
