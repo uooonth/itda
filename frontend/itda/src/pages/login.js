@@ -19,8 +19,10 @@ export default function Login({ setIsLoggedIn, setUsername }) {
                     password: password,
                 }),
             });
+
             const data = await response.json();
             localStorage.setItem("access_token", data.access_token);
+
             const userRes = await fetch("http://localhost:8008/me", {
                 headers: {
                     Authorization: `Bearer ${data.access_token}`,
@@ -28,14 +30,17 @@ export default function Login({ setIsLoggedIn, setUsername }) {
             });
             if (userRes.ok) {
                 const userData = await userRes.json();
-                setUsername(userData.name); 
+                setUsername(userData.id); 
             }
+
             setIsLoggedIn(true);
             navigate("/");
         } catch (error) {
             alert("로그인 실패");
         }
     };
+
+
     return (
         <div className="login-container">
             <div className="navigation">
