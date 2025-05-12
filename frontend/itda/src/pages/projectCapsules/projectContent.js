@@ -1,4 +1,5 @@
 import React,{useState,useEffect,useMemo,useRef} from 'react';
+import { useParams } from 'react-router-dom';
 import Picker from 'emoji-picker-react';
 import Edit from '../../icons/edit.svg';
 import leftBtn from '../../icons/left.svg';
@@ -27,9 +28,108 @@ import DeleteIcon from '../../icons/trash.svg'; // 삭제 아이콘 경로
 
 const ProjectContent = () => {
 
+
+    //===================================================================== //
+    // ------------------------  프로젝트정보 불러오기  -----------------------//
+    //===================================================================== // 
+    const { id } = useParams(); 
+    const [projectData, setProjectData] = useState(null);
+    useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        const fetchProject= async () =>  {
+            try{
+                const response = await fetch(`http://127.0.0.1:8008/project/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                
+                if (!response.ok) {
+                    console.log("플젝불러오기단계실패")
+                }
+                const data = await response.json();
+                setProjectData(data);
+            }catch (error) {
+                console.error(error.message);
+            }
+        };
+        fetchProject();
+    }, [id]);
+
+
+
+
+
+
+    //===================================================================== //
+    // ------------------------  공지 불러오기(redis)  -----------------------//
+    //===================================================================== // 
+
+    const [notice, setNotice] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isEditing, setIsEditing] = useState(true);
+    const [tempContent, setTempContent] = useState(''); 
+
+
+    useEffect(() => {
+        const fetchNotice = async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch(`http://127.0.0.1:8008/project/${id}/notice`);
+                if (!response.ok) {
+                    throw new Error("공지사항이 없습니다.");
+                }
+                const data = await response.json();
+                setNotice(data.content);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchNotice();
+    }, [id]);
+    const handleEditClick = () => {
+        setTempContent(notice);  
+        setIsEditing(true);
+    };
+    const handleInputChange = (e) => {
+        setTempContent(e.target.value);
+    };
+
+
+    const handleSaveClick = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8008/project/${id}/notice`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ content: tempContent }),
+            });
+
+            if (!response.ok) {
+                throw new Error("공지사항 수정에 실패했습니다.");
+            }
+
+            setNotice(tempContent);
+            setIsEditing(false);   
+            alert("공지사항이 수정되었습니다.");
+        } catch (error) {
+            console.error(error.message);
+            alert("공지사항 수정 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleCancelClick = () => {
+        setIsEditing(true);
+    };
+
     //팝업 상태
     const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
-    //팝업 함수 열고 닫기
+    //팝업 열고 닫기
     const handleMoreClick = () => {
         setShowFeedbackPopup(true);
     };
@@ -513,9 +613,35 @@ const ProjectContent = () => {
                       {selectedEmoji.emoji}
                     </div>
                     {showEmojiPicker && <Picker onEmojiClick={handleEmojiSelect} />}
+                    {isLoading ? (
+                        <div className="gonjiText">불러오는 중...</div>
+                    ) : error ? (
+                        <div className="gonjiText" style={{ color: 'red' }}>{error}</div>
+                    ) : isEditing ? (
+                        <div className="editMode">
+                            <input 
+                                className="editInput"
+                                value={tempContent}
+                                onChange={handleInputChange}
+                            />
+                            <button className="saveBtn" onClick={handleSaveClick}>저장</button>
+                            <button className="cancelBtn" onClick={handleCancelClick}>취소</button>
+                        </div>
+                    ) : (
+                        <div className="gonjiText">
+                            {notice}
+                        </div>
+                    )}
 
-                    <div className="gonjiText">허허 다들 화이팅 합시다잉</div>
-                    <div className="gonjiEdit"><img src={Edit} alt="edit"/></div>
+                    {/* 🔹 에딧 버튼은 항상 표시 */}
+                    <div className="gonjiEdit">
+                        <img 
+                            src={Edit} 
+                            alt="edit" 
+                            onClick={handleEditClick} 
+                            style={{ cursor: 'pointer', opacity: 0.8 }}
+                        />
+                    </div>
                 </div>
                 <div className="calendar box1">
                     <div className="calendarTop">
