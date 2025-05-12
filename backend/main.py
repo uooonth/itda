@@ -1,5 +1,5 @@
 from fastapi import FastAPI,status,Depends
-from backend.db import database, User,ProjectInfo, ProjectOutline
+from backend.db import database, User,ProjectInfo, ProjectOutline,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo
 from contextlib import asynccontextmanager
 from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse
 from fastapi import HTTPException
@@ -7,14 +7,13 @@ from typing import List
 from fastapi import Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
-from backend.db import User
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
-
-
+from backend.redisClass import Notice
+import redis
 
 # ───────────── Docker 생명주기 설정 ───────────── #
 @asynccontextmanager
@@ -25,6 +24,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# ───────────── redis 설정 ───────────── #
+r = redis.Redis(host='itda_redis', port=6379, db=0, decode_responses=True)
 
 
 # ───────────── 3000포트에서 이쪽 주소를 쓸 수 있게 해주는 CORS설정 ───────────── #
@@ -138,7 +139,7 @@ async def get_users():
     return users
 
 # ───────────── 플젝 API ───────────── #
-@app.get("/projects", response_model=List[ProjectOut])
+@app.get("/getProjects", response_model=List[ProjectOut])
 async def get_projects():
     projects = await ProjectInfo.objects.select_related("project").all()
     return projects
@@ -179,3 +180,34 @@ async def create_project(project: ProjectCreate):
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
 
+# ───────────── 플젝 탭 API ───────────── #
+@app.get("/project/{project_id}", response_model=ProjectOut)
+async def get_project_detail(project_id: str = Path(...)):
+    project_info = await ProjectInfo.objects.select_related(
+        "project"
+    ).get_or_none(project=project_id)
+
+    if not project_info:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다.")
+    
+    return project_info
+
+
+# ───────────── 플젝-공지-redis ───────────── #
+
+# 공지사항 생성 API
+@app.post("/project/{project_id}/notice")
+async def create_notice(project_id: str, notice: Notice):
+    redis_key = f"project:공지:{project_id}"
+    r.set(redis_key, notice.content)
+    return {"{project_id}에 공지사항이 설정"}
+
+# 공지사항 가져오기 API
+@app.get("/project/{project_id}/notice")
+async def get_notice(project_id: str):
+    redis_key = f"project:공지:{project_id}"
+    notice = r.get(redis_key)
+    if notice:
+        return {"project_id": project_id, "content": notice}
+    else:
+        raise HTTPException(status_code=404, detail="공지사항이 없습니다.")

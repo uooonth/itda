@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import '../css/project.css';
+import { useLocation } from 'react-router-dom';
 
 
-/* 메뉴별 컴포넌트 임포트 */
+/* 메뉴별 컴포넌트  */
 import HomeContent from './projectCapsules/homeContent';
 import ProjectContent from './projectCapsules/projectContent';
 import ChatContent from './projectCapsules/chatContent';
 import CalendarContent from './projectCapsules/calendarContent';
 
-/* 아이콘,이미지 임포트 */
+/* 아이콘,이미지 */
 import calendar from '../icons/calendar.svg';
 import home from '../icons/home.svg';
 import project from '../icons/project.svg';
 import chat from '../icons/chat_project.svg';
 
 
-function Project({ username, isLoggedIn }) {
+function Project({ isLoggedIn,username }) {
+    console.log("Project", username);
+    const location = useLocation();
     //페이지 토글 상태
     const [show_Home, setShowHome] = useState(true);
     const [show_project, setShowProject] = useState(false);
@@ -30,6 +33,14 @@ function Project({ username, isLoggedIn }) {
             setBarPosition(tabElement.offsetTop);
         }
     }, [activeTab]);
+
+
+    //뒤에 id 붙어도 project으로 인식
+    useEffect(() => {
+        if (location.pathname.startsWith('/project/')) {
+            toggleTab('project');
+        }
+    }, [location.pathname]);
 
     //페이지 토글 함수
     const toggleTab = (tab) => {
@@ -67,7 +78,7 @@ function Project({ username, isLoggedIn }) {
                 </div>
             </div>
             <div className="rightContent">
-                 {show_Home && <HomeContent />} {/* => HomeContent 파일*/}
+                 {show_Home && <HomeContent username={username} />} {/* => HomeContent 파일*/}
                  {show_project && <ProjectContent />} {/* => ProjectContent 파일*/}
                  {show_chat && <ChatContent />} {/*=>ChatContent 파일*/}
                  {show_calendar && <CalendarContent />} {/* => CalendarContent 파일*/}
