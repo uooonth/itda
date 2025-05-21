@@ -6,9 +6,9 @@ export default function SignupAgreement() {
     const navigate = useNavigate();
     const [agreements, setAgreements] = useState({
         all: false,
-        terms: false, // 회원 서비스 이용약관 (필수)
-        privacy: false, // 개인정보 수집 및 이용 동의 (필수)
-        marketing: false, // 마케팅 수신 동의 (선택)
+        terms: false, 
+        privacy: false,
+        marketing: false, 
     });
     const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -72,32 +72,33 @@ export default function SignupAgreement() {
                 <h3>* 필수 약관에 동의하셔야 회원가입이 가능합니다.</h3>
                 
                 <div className="agreement">
-                    <hr className="line"/>
+                    <div className="agreement-line" />
                     <label>
                         <input type="checkbox" checked={agreements.all} onChange={handleAllCheck} />
                         전체 약관 동의
                     </label>
-                    <hr className="line"/>
+                    <div className="agreement-line" />
                     <label>
                         <input type="checkbox" checked={agreements.terms} onChange={() => handleSingleCheck("terms")} />
                         회원 서비스 이용약관 (필수)
                     </label>
-                    <hr className="line"/>
+                    <div className="agreement-line" />
                     <label>
                         <input type="checkbox" checked={agreements.privacy} onChange={() => handleSingleCheck("privacy")} />
                         개인정보 수집 및 이용 동의 (필수)
                     </label>
-                    <hr className="line"/>
+                    <div className="agreement-line" />
                     <label>
-                        <input type="checkbox" checked={agreements.marketing} onChange={() => handleSingleCheck("marketing")} />
+                        <input type="checkbox" name="agree_marketing" checked={agreements.marketing} onChange={() => handleSingleCheck("marketing")} />
                         마케팅 수신 동의 (선택)
                     </label>
-                    <hr className="line"/>
+                    <div className="agreement-line" />
                 </div>
 
                 <div className="button-group">
                     <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                    <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}>다음</button>
+                    <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm", { state: { marketing: agreements.marketing } })}
+                    >다음</button>
                 </div>
 
                 {showCancelModal && (

@@ -11,6 +11,9 @@ import SignupAgreement from './pages/signup/signupAgreement';
 import SignupForm from './pages/signup/signupForm';
 import SignupVerification from './pages/signup/signupVerification';
 import SignupComplete from './pages/signup/signupComplete';
+import ProjectDetail from './pages/projectDetail';
+import ProjectForm from './pages/projectCreate/projectForm';
+import ProjectInvite from './pages/projectCreate/projectInvite';
 
 // component 요소
 import "./App.css";
@@ -60,6 +63,9 @@ function App() {
         <Route path="/signupForm" element={<SignupForm />} />
         <Route path="/signupVerification" element={<SignupVerification />} />
         <Route path="/signupComplete" element={<SignupComplete />} />
+        <Route path="/projectDetail" element={<ProjectDetail />} />
+        <Route path="/projectForm" element={<ProjectForm />} />
+        <Route path="/projectInvite" element={<ProjectInvite />} />
       </Routes>
     </div>
   );

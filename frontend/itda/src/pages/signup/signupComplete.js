@@ -40,9 +40,11 @@ export default function SignupComplete() {
                         <p>가입 완료</p>
                     </div>
                 </div>
-                <p>가입이 완료되었습니다.</p>
-                <button className="signup-main-button" onClick={() => navigate("/")}>메인화면</button>
-                <button className="signup-login-button" onClick={() => navigate("/login")}>로그인</button>
+                <p className="complete-announcement">가입이 완료되었습니다.</p>
+                <div className="complete-button-group ">
+                    <button className="signup-main-button" onClick={() => navigate("/")}>메인화면</button>
+                    <button className="signup-login-button" onClick={() => navigate("/login")}>로그인</button>
+                </div>
             </div>
         </div>
     );
