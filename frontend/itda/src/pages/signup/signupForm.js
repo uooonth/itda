@@ -1,8 +1,14 @@
+// SignupForm.jsx
 import { useState, useMemo } from "react";
 import "../../css/signupForm.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
+
 
 export default function SignupForm() {
+    const location = useLocation();
+    const marketingConsent = location.state?.marketing ?? false;
+
     const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [form, setForm] = useState({
@@ -13,18 +19,13 @@ export default function SignupForm() {
         email: ""
     });
 
-    const [passwordValid, setPasswordValid] = useState(false);
     const [passwordLengthValid, setPasswordLengthValid] = useState(false);
+    const [passwordMixValid, setPasswordMixValid] = useState(false);
     const [passwordMatchError, setPasswordMatchError] = useState(false);
     const [emailFormatError, setEmailFormatError] = useState(false);
 
     const [idError, setIdError] = useState("");
     const [nicknameError, setNicknameError] = useState("");
-
-    const [passwordMessage] = useState({
-        length: "최소 10글자 이상 설정해주세요",
-        mix: "영문/숫자가 포함되어야합니다"
-    });
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -33,7 +34,7 @@ export default function SignupForm() {
         setForm({ ...form, [name]: value });
 
         if (name === "id") {
-            setIdError(value === "testid" ? "중복된 아이디입니다" : "");
+            setIdError(value === "testid" ? "중복된 ID 입니다" : "");
         }
 
         if (name === "nickname") {
@@ -59,7 +60,7 @@ export default function SignupForm() {
         const hasMix = /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
 
         setPasswordLengthValid(hasMinLength);
-        setPasswordValid(hasMinLength && hasMix);
+        setPasswordMixValid(hasMix);
     };
 
     const isFormValid = useMemo(() => {
@@ -69,13 +70,14 @@ export default function SignupForm() {
             form.password.trim() !== "" &&
             form.confirmPassword.trim() !== "" &&
             form.email.trim() !== "" &&
-            passwordValid &&
+            passwordLengthValid &&
+            passwordMixValid &&
             form.password === form.confirmPassword &&
             emailRegex.test(form.email) &&
             !idError &&
             !nicknameError
         );
-    }, [form, passwordValid, idError, nicknameError]);
+    }, [form, passwordLengthValid, passwordMixValid, idError, nicknameError]);
 
     return (
         <div className="signupForm-container">
@@ -117,146 +119,145 @@ export default function SignupForm() {
 
                 <hr className="form-line" />
 
-                <div className="signup-form">
-                    {/* 아이디 */}
-                    <div className="form-group">
-                        <p>아이디</p>
-                        <div className="input-container">
-                            <div className="error-space">
-                                <p className="error-message">{idError}</p>
-                            </div>
-                            <div className="input-row">
-                                <input
-                                    type="text"
-                                    name="id"
-                                    placeholder="아이디를 입력해 주세요"
-                                    value={form.id}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-                    </div>
-
-                    {/* 닉네임 */}
-                    <div className="form-group">
-                        <p>닉네임</p>
-                        <div className="input-container">
-                            <div className="error-space">
-                                <p className="error-message">{nicknameError}</p>
-                            </div>
-                            <div className="input-row">
-                                <input
-                                    type="text"
-                                    name="nickname"
-                                    placeholder="닉네임을 입력해 주세요"
-                                    value={form.nickname}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 비밀번호 */}
-                    <div className="form-group">
-                        <p>비밀번호</p>
-                        <div className="input-container">
-                            <div className="input-row">
+                <form className="signup-form" onSubmit={e => e.preventDefault()}>
+                    <div className="form-row">
+                        <label
+                            htmlFor="id"
+                            className={`form-label ${idError ? "invalid" : ""}`}
+                        >
+                            아이디
+                        </label>
+                        <div className="input-area">
+                            <p className="error-message">{idError}</p>
                             <input
+                                id="id"
+                                type="text"
+                                name="id"
+                                placeholder="아이디를 입력해 주세요"
+                                value={form.id}
+                                onChange={handleChange}
+                                className={idError ? "invalid" : ""}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <label
+                            htmlFor="nickname"
+                            className={`form-label ${nicknameError ? "invalid" : ""}`}
+                        >
+                            닉네임
+                        </label>
+                        <div className="input-area">
+                            <p className="error-message">{nicknameError}</p>
+                            <input
+                                id="nickname"
+                                type="text"
+                                name="nickname"
+                                placeholder="닉네임을 입력해 주세요"
+                                value={form.nickname}
+                                onChange={handleChange}
+                                className={nicknameError ? "invalid" : ""}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <label
+                            htmlFor="password"
+                            className={`form-label ${
+                                form.password && (!passwordLengthValid || !passwordMixValid) ? "invalid" : ""
+                            }`}
+                        >
+                            비밀번호
+                        </label>
+                        <div className="input-area no-error">
+                        <p className="error-message"></p>
+                            <input
+                                id="password"
                                 type="password"
                                 name="password"
                                 placeholder="비밀번호를 입력해 주세요"
                                 value={form.password}
                                 onChange={handleChange}
+                                className={
+                                    form.password && (!passwordLengthValid || !passwordMixValid) ? "invalid" : ""
+                                }
                                 required
                             />
-                            </div>
                         </div>
                     </div>
 
-                    {/* 조건 메시지 */}
-                    <div className="condition-group">
-                        <p
-                            className="condition"
-                            style={{
-                                color: form.password === ""
-                                    ? "gray"
-                                    : passwordValid
-                                        ? "green"
-                                        : "red"
-                            }}
-                        >
-                            {passwordMessage.mix}
+                    <div className="password-conditions">
+                        <p className={`condition ${passwordMixValid ? "valid" : "invalid"}`}>
+                            영문/숫자가 포함되어야합니다
                         </p>
-                        <p
-                            className="condition"
-                            style={{
-                                color: form.password === ""
-                                    ? "gray"
-                                    : passwordLengthValid
-                                        ? "green"
-                                        : "red"
-                            }}
-                        >
-                            {passwordMessage.length}
+                        <p className={`condition ${passwordLengthValid ? "valid" : "invalid"}`}>
+                            최소 10글자 이상 설정해주세요
                         </p>
                     </div>
 
-                    {/* 비밀번호 확인 */}
-                    <div className="form-group">
-                        <p>비밀번호 확인</p>
-                        <div className="input-container">
-                            <div className="error-space">
-                                <p className="error-message">
-                                    {passwordMatchError ? "비밀번호가 일치하지 않습니다" : ""}
-                                </p>
-                            </div>
-                            <div className="input-row">
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    placeholder="비밀번호를 다시 입력해주세요"
-                                    value={form.confirmPassword}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
+                    <div className="form-row">
+                        <label
+                            htmlFor="confirmPassword"
+                            className={`form-label ${passwordMatchError ? "invalid" : ""}`}
+                        >
+                            비밀번호 확인
+                        </label>
+                        <div className="input-area">
+                            <input
+                                id="confirmPassword"
+                                type="password"
+                                name="confirmPassword"
+                                placeholder="비밀번호를 다시 입력해주세요"
+                                value={form.confirmPassword}
+                                onChange={handleChange}
+                                className={passwordMatchError ? "invalid" : ""}
+                                required
+                            />
+                            <p className="error-message" style={{ marginTop: "4px" }}>
+                                {passwordMatchError ? "비밀번호가 일치하지 않습니다" : ""}
+                            </p>
                         </div>
                     </div>
 
-                    {/* 이메일 */}
-                    <div className="form-group">
-                        <p>이메일</p>
-                        <div className="input-container">
-                            <div className="error-space">
-                                <p className="error-message">
-                                    {emailFormatError ? "이메일 형식이 올바르지 않습니다" : ""}
-                                </p>
-                            </div>
-                            <div className="input-row">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="이메일을 입력해주세요"
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
+                    <div className="form-row">
+                        <label
+                            htmlFor="email"
+                            className={`form-label ${emailFormatError ? "invalid" : ""}`}
+                        >
+                            이메일
+                        </label>
+                        <div className="input-area">
+                            <p className="error-message">{emailFormatError ? "이메일 형식이 올바르지 않습니다" : ""}</p>
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                placeholder="이메일을 입력해주세요"
+                                value={form.email}
+                                onChange={handleChange}
+                                className={emailFormatError ? "invalid" : ""}
+                                required
+                            />
                         </div>
                     </div>
-                </div>
+                </form>
 
                 <hr className="form-line" />
             </div>
 
             <div className="form-button-group">
                 <button className="form-cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                <button className="form-next-button" disabled={!isFormValid} onClick={() => navigate("/signupVerification")}>다음</button>
+                <button
+                    className="form-next-button"
+                    disabled={!isFormValid}
+                    onClick={() => navigate("/signupVerification")}
+                >
+                    다음
+                </button>
             </div>
 
             {showCancelModal && (

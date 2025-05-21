@@ -60,7 +60,7 @@
     background-color: white;
     color: #333;
     border: 2px solid #ffffff;
-    font-size: medium;
+    font-size: 1rem;
     font-family: 'Pretendard-Bold';
     border-radius: 5px;
     margin-top: 10px;
@@ -123,7 +123,6 @@
     color: white;
 }
 
-
 .right-panel {
     width: 75%;
     padding: 10px;
@@ -132,6 +131,7 @@
 .title {
     text-align: left;
     font-family: 'Pretendard-Medium';
+    margin-bottom: 10px;
 }
 
 .project-grid {
