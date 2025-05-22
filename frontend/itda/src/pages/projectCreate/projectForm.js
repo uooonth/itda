@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import "../../css/projectForm.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function ProjectForm() {
     const navigate = useNavigate();
@@ -21,7 +22,25 @@ export default function ProjectForm() {
         email: ""
     });
 
+    const [currentUserId, setCurrentUserId] = useState("");
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            const token = localStorage.getItem("token");
+            try {
+                const res = await axios.get("http://localhost:8008/me", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setCurrentUserId(res.data.id);
+            } catch (error) {
+                console.error("유저 정보 가져오기 실패", error);
+            }
+        };
+
+        fetchCurrentUser();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,7 +64,6 @@ export default function ProjectForm() {
         });
     };
 
-    // 모든 필수 필드가 입력되었는지 확인
     const isFormValid = useMemo(() => {
         return (
             form.projectName.trim() !== "" &&
@@ -63,9 +81,41 @@ export default function ProjectForm() {
         );
     }, [form]);
 
+    const generatedProjectId = useMemo(() => crypto.randomUUID(), []);
+    const thumbnailUrl = "https://your-default-thumbnail.url";
+
+    const handleSubmit = async () => {
+        const token = localStorage.getItem("token");
+        try {
+            const payload = {
+                proposer: currentUserId,
+                project: generatedProjectId,
+                name: form.projectName,
+                explain: form.description,
+                sign_deadline: form.deadline,
+                salary_type: form.payType,
+                education: form.education === "기타" ? form.customEducation : form.education,
+                email: form.email,
+                thumbnail: thumbnailUrl
+            };
+
+            await axios.post("http://localhost:8008/projects", payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            navigate("/projectInvite");
+        } catch (error) {
+            console.error("프로젝트 생성 실패", error);
+            alert("프로젝트 생성 중 오류가 발생했습니다.");
+        }
+    };
+
     return (
         <div className="projectForm-container">
-            <h2 className="projectForm-title">회원가입</h2>
+            <h2 className="projectForm-title">프로젝트 생성</h2>
 
             <div className="projectForm-step">
                 <div className="step">
@@ -95,23 +145,13 @@ export default function ProjectForm() {
             <div className="project-form">
                 <div className="projectForm-row">
                     <label>프로젝트 이름<span className="required">*</span></label>
-                    <input 
-                        name="projectName" 
-                        placeholder="제목을 입력해주세요"
-                        value={form.projectName} 
-                        onChange={handleChange} required />
+                    <input name="projectName" placeholder="제목을 입력해주세요" value={form.projectName} onChange={handleChange} />
                 </div>
 
                 <div className="projectForm-row">
                     <label>역할 설정<span className="required">*</span></label>
                     <div className="tag-input">
-                        <input
-                            type="text"
-                            name="roleInput"
-                            value={form.roleInput}
-                            onChange={handleChange}
-                            placeholder="추가할 역할을 입력해주세요"
-                        />
+                        <input type="text" name="roleInput" value={form.roleInput} onChange={handleChange} placeholder="추가할 역할을 입력해주세요" />
                         <button type="button" onClick={addRole}>+</button>
                         <div className="tag-list">
                             {form.roles.map((role, idx) => (
@@ -125,17 +165,17 @@ export default function ProjectForm() {
 
                 <div className="projectForm-row">
                     <label>프로젝트 소개<span className="required">*</span></label>
-                    <textarea name="description" value={form.description} onChange={handleChange} placeholder="프로젝트 소개를 입력해 주세요. 가능한 자세히 입력하시면 좋습니다"/>
+                    <textarea name="description" value={form.description} onChange={handleChange} placeholder="프로젝트 소개를 입력해 주세요." />
                 </div>
 
                 <div className="projectForm-row">
                     <label>모집 마감 기한<span className="required">*</span></label>
-                    <input type="date" name="deadline" value={form.deadline} onChange={handleChange} required />
+                    <input type="date" name="deadline" value={form.deadline} onChange={handleChange} />
                 </div>
 
                 <div className="projectForm-row">
                     <label>급여 형태<span className="required">*</span></label>
-                    <select name="payType" value={form.payType} onChange={handleChange} required>
+                    <select name="payType" value={form.payType} onChange={handleChange}>
                         <option value="">선택</option>
                         <option value="시급">시급</option>
                         <option value="주급">주급</option>
@@ -149,31 +189,12 @@ export default function ProjectForm() {
                     <div className="radio-group">
                         {['학력무관', '초졸이상', '중졸이상', '고졸이상', '대졸이상'].map(level => (
                             <label key={level}>
-                                <input
-                                    type="radio"
-                                    name="education"
-                                    value={level}
-                                    checked={form.education === level}
-                                    onChange={handleChange}
-                                /> {level}
+                                <input type="radio" name="education" value={level} checked={form.education === level} onChange={handleChange} /> {level}
                             </label>
                         ))}
                         <label>
-                            <input
-                                type="radio"
-                                name="education"
-                                value="기타"
-                                checked={form.education === '기타'}
-                                onChange={handleChange}
-                            /> 기타
-                            <input
-                                type="text"
-                                name="customEducation"
-                                value={form.customEducation}
-                                onChange={handleChange}
-                                placeholder="직접 입력"
-                            />
-
+                            <input type="radio" name="education" value="기타" checked={form.education === '기타'} onChange={handleChange} /> 기타
+                            <input type="text" name="customEducation" value={form.customEducation} onChange={handleChange} placeholder="직접 입력" />
                         </label>
                     </div>
                 </div>
@@ -183,37 +204,19 @@ export default function ProjectForm() {
                     <div className="radio-group">
                         {['신입', '경력무관'].map(exp => (
                             <label key={exp}>
-                                <input
-                                    type="radio"
-                                    name="experience"
-                                    value={exp}
-                                    checked={form.experience === exp}
-                                    onChange={handleChange}
-                                /> {exp}
+                                <input type="radio" name="experience" value={exp} checked={form.experience === exp} onChange={handleChange} /> {exp}
                             </label>
                         ))}
                         <label>
-                            <input
-                                type="radio"
-                                name="experience"
-                                value="기타"
-                                checked={form.experience === '기타'}
-                                onChange={handleChange}
-                            /> 기타
-                            <input
-                                type="text"
-                                name="customExperience"
-                                value={form.customExperience}
-                                onChange={handleChange}
-                                placeholder="직접 입력"
-                            />
+                            <input type="radio" name="experience" value="기타" checked={form.experience === '기타'} onChange={handleChange} /> 기타
+                            <input type="text" name="customExperience" value={form.customExperience} onChange={handleChange} placeholder="직접 입력" />
                         </label>
                     </div>
                 </div>
 
                 <div className="projectForm-row">
                     <label>프로젝트 분류<span className="required">*</span></label>
-                    <select name="category" value={form.category} onChange={handleChange} required>
+                    <select name="category" value={form.category} onChange={handleChange}>
                         <option value="">선택</option>
                         <option value="영상편집">영상편집</option>
                         <option value="디자인">디자인</option>
@@ -224,14 +227,7 @@ export default function ProjectForm() {
 
                 <div className="projectForm-row">
                     <label>대표 이메일<span className="required">*</span></label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="example@domain.com"
-                    />
+                    <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="example@domain.com" />
                 </div>
             </div>
 
@@ -239,13 +235,7 @@ export default function ProjectForm() {
 
             <div className="form-button-group">
                 <button className="form-cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                <button
-                    className="form-next-button"
-                    disabled={!isFormValid}
-                    onClick={() => navigate("/projectInvite")}
-                >
-                    다음
-                </button>
+                <button className="form-next-button" disabled={!isFormValid} onClick={handleSubmit}>다음</button>
             </div>
 
             {showCancelModal && (
@@ -260,4 +250,4 @@ export default function ProjectForm() {
             )}
         </div>
     );
-} 
+}

@@ -1,10 +1,21 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../css/home.css';
 
 export default function Home() {
+    const navigate = useNavigate();
+    const isLoggedIn = !!localStorage.getItem('access_token');
     const [selectedTab, setSelectedTab] = useState("인기");
 
-    // 프로젝트 데이터 예제
+    const handleCreateClick = () => {
+        if (!isLoggedIn) {
+            alert("로그인이 필요한 서비스입니다.");
+            navigate("/login");
+        } else {
+            navigate("/projectForm");
+        }
+    };
+
     const popularProjects = [
         { id: 1, title: "침착맨 유튜브 편집팀", image: "/images/projectImage.png", name: "침착맨", personnel: 10, remaining: 21 },
         { id: 2, title: "침착맨 유튜브 편집팀", image: "/images/projectImage.png", name: "침착맨", personnel: 10, remaining: 21 },
@@ -32,7 +43,6 @@ export default function Home() {
 
     const displayedProjects = getDisplayedProjects();
 
-
     return (
         <div className="home-content">
             <div className="project-create">
@@ -43,7 +53,9 @@ export default function Home() {
                             <h2>Collaborate without limits.</h2>
                             <h2>Share, innovate, and grow together.</h2>
                         </div>
-                        <button className="create-button">프로젝트 생성하기 ▶</button>
+                        <button className="create-button" onClick={handleCreateClick}>
+                            프로젝트 생성하기 ▶
+                        </button>
                     </div>
 
                     <div className="bottom-content">
@@ -106,6 +118,7 @@ export default function Home() {
                                 <img src="/images/hash.png" alt="기타 아이콘" className="tab-icon" />
                             </button>
                         </div>
+
                         <div className="right-panel">
                             <h2 className="title">모집 중 프로젝트</h2>
                             <div className="project-grid">
