@@ -97,7 +97,7 @@ export default function SignupAgreement() {
 
                 <div className="button-group">
                     <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                    <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm", { state: { marketing: agreements.marketing } })}
+                    <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}
                     >다음</button>
                 </div>
 

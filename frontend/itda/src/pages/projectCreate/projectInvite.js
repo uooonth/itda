@@ -2,7 +2,7 @@ import "../../css/projectInvite.css";
 
 export default function ProjectInvite() {
     <div className="Invite-container">
-        <h2 className="projectInvite-title">회원가입</h2>
+        <h2 className="projectInvite-title">프로젝트 생성</h2>
 
         <div className="projectInvite-step">
             <div className="step">

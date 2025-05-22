@@ -2,7 +2,6 @@ from fastapi import FastAPI,status,Depends
 from backend.db import database, User,ProjectInfo, ProjectOutline
 from contextlib import asynccontextmanager
 from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse
-from fastapi import HTTPException
 from typing import List
 from fastapi import Path
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +12,8 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
+from fastapi import Query
+from .email_routes import router as email_router
 
 
 
@@ -61,6 +62,16 @@ async def signup(user: UserCreate):
     
     return new_user
 
+@app.get("/check-id")
+async def check_id(id: str = Query(..., min_length=3, max_length=20)):
+    existing_user = await User.objects.get_or_none(id=id)
+    return {"is_duplicate": existing_user is not None}
+
+@app.get("/check-nickname")
+async def check_nickname(nickname: str = Query(..., min_length=2, max_length=20)):
+    existing_user = await User.objects.get_or_none(name=nickname)
+    return {"is_duplicate": existing_user is not None}
+
 
 ## ───────────── token API ───────────── #
 SECRET_KEY = "jongseolpw12345612345678901234567890"
@@ -96,6 +107,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 
     return user
 
+app.include_router(email_router, prefix="/email")
 
 ## ───────────── login API ───────────── #
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -146,25 +158,23 @@ async def get_projects():
 from fastapi import HTTPException
 
 @app.post("/projects", response_model=ProjectOut)
-async def create_project(project: ProjectCreate):
-    # proposer 검증
-    proposer_user = await User.objects.get_or_none(id=project.proposer)
-    if proposer_user is None:
-        raise HTTPException(status_code=400, detail="프로포잘오류")
-    
-    # worker 검증
+async def create_project(
+    project: ProjectCreate,
+    current_user: User = Depends(get_current_user)
+):
+    # proposer는 current_user.id 로 강제 지정
+    proposer_id = current_user.id
+
     worker_user = await User.objects.get_or_none(id=project.worker)
     if worker_user is None:
         raise HTTPException(status_code=400, detail="워커오류")
-    
-    # ProjectOutline 생성
+
     outline = await ProjectOutline.objects.create(
         id=project.project,
         name=project.name,
         classification="default"
     )
 
-    # ProjectInfo 생성
     new_project = await ProjectInfo.objects.create(
         project=outline,
         explain=project.explain,
@@ -172,10 +182,11 @@ async def create_project(project: ProjectCreate):
         salary_type=project.salary_type.value,
         education=project.education.value,
         email=project.email,
-        proposer=project.proposer,
+        proposer=proposer_id, 
         worker=project.worker,
         thumbnail=project.thumbnail
     )
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
+
 
