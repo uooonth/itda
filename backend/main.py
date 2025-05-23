@@ -1,12 +1,12 @@
-from fastapi import FastAPI,status,Depends
+from fastapi import FastAPI,status,Depends, APIRouter
 from backend.db import database, User,ProjectInfo, ProjectOutline
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
 from typing import List
 from fastapi import Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
-from backend.db import User
+from backend.db import User, ProjectInfo
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
@@ -14,6 +14,7 @@ from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Query
 from .email_routes import router as email_router
+from ormar.exceptions import NoMatch
 
 
 
@@ -158,23 +159,29 @@ async def get_projects():
 from fastapi import HTTPException
 
 @app.post("/projects", response_model=ProjectOut)
-async def create_project(
-    project: ProjectCreate,
-    current_user: User = Depends(get_current_user)
-):
-    # proposer는 current_user.id 로 강제 지정
-    proposer_id = current_user.id
+async def create_project(project: ProjectCreate):
+    # proposer 리스트 검증
+    for proposer_id in project.proposer:
+        user = await User.objects.get_or_none(id=proposer_id)
+        if user is None:
+            raise HTTPException(status_code=400, detail=f"프로포저 '{proposer_id}'가 존재하지 않습니다.")
 
-    worker_user = await User.objects.get_or_none(id=project.worker)
-    if worker_user is None:
-        raise HTTPException(status_code=400, detail="워커오류")
+    # worker 리스트 검증
+    for worker_id in project.worker:
+        user = await User.objects.get_or_none(id=worker_id)
+        if user is None:
+            raise HTTPException(status_code=400, detail=f"워커 '{worker_id}'가 존재하지 않습니다.")
 
-    outline = await ProjectOutline.objects.create(
-        id=project.project,
-        name=project.name,
-        classification="default"
-    )
+    # ProjectOutline 존재 여부 확인 혹은 새로 생성
+    outline = await ProjectOutline.objects.get_or_none(id=project.id)
+    if outline is None:
+        outline = await ProjectOutline.objects.create(
+            id=project.id,
+            name=project.name,
+            classification=project.classification
+        )
 
+    # ProjectInfo 생성
     new_project = await ProjectInfo.objects.create(
         project=outline,
         explain=project.explain,
@@ -182,11 +189,39 @@ async def create_project(
         salary_type=project.salary_type.value,
         education=project.education.value,
         email=project.email,
-        proposer=proposer_id, 
+        proposer=project.proposer,
         worker=project.worker,
-        thumbnail=project.thumbnail
+        roles=project.roles,
+        thumbnail=project.thumbnail,
+        recruit_number=project.recruit_number,
+        career=project.career,
+        contract_until=project.contract_until
     )
+
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
 
+router = APIRouter()
 
+@router.get("/projects/{project_id}", response_model=ProjectOut)
+async def get_project_detail(project_id: int):
+    try:
+        project = await ProjectInfo.objects.select_related("project").get(id=project_id)
+    except NoMatch:
+        raise HTTPException(status_code=404, detail="해당 프로젝트를 찾을 수 없습니다.")
+    
+    return project
+
+# 앱에 등록
+app.include_router(router)
+
+@app.delete("/projects/{project_id}")
+async def delete_project(project_id: int, current_user: User = Depends(get_current_user)):
+    project = await ProjectInfo.objects.get_or_none(id=project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다.")
+    if current_user.id not in project.proposer:
+        raise HTTPException(status_code=403, detail="삭제 권한이 없습니다.")
+
+    await project.delete()
+    return {"detail": "삭제 성공"}

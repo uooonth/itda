@@ -1,57 +1,93 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../css/projectDetail.css";
 
-const exampleProject = {
-    title: "AI 기반 협업 플랫폼 개발",
-    description: "AI 기술을 활용한 차세대 협업 도구 개발 프로젝트입니다.",
-    thumbnailUrl: "https://mblogthumb-phinf.pstatic.net/MjAyMTA5MDNfOSAg/MDAxNjMwNjA3MDg1MzQw.thP3RTMsLwHI4bGHnlm2omRPQ3cCXAy6k_AjbSAn6ucg.2kbpPTZyS5WHxKPdCAug2xmj5XGI11Bo4GFVSWG2TP4g.PNG.pudingy/%EC%B9%A8%ED%88%AC%EB%B6%80%EA%B0%84%ED%8C%90%EF%BC%BF2019%EF%BC%8D2.png?type=w800",
-    recruitment: "5명",
-    details: {
-        모집인원: "5명",
-        계약기간: "6개월",
-        모집분야: "프론트엔드",
-        급여: "협의",
-        대표이메일: "contact@example.com",
-        경력: "무관",
-        모집마감기한: "2025-06-15",
-        학력: "무관",
-    },
-};
-
 export default function ProjectDetail() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const token = localStorage.getItem("access_token");
+
+    const [project, setProject] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
+
+    useEffect(() => {
+        if (token) {
+            axios.get("http://localhost:8008/me", {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+                .then(res => setCurrentUserId(res.data.id))
+                .catch(() => setCurrentUserId(null));
+        }
+
+        axios.get(`http://localhost:8008/projects/${id}`)
+            .then(res => setProject(res.data))
+            .catch(err => {
+                console.error("프로젝트 상세 정보 가져오기 실패", err);
+                alert("프로젝트 정보를 불러오지 못했습니다.");
+            });
+    }, [id, token]);
+
+    const handleDelete = async () => {
+        if (!window.confirm("정말로 이 프로젝트를 삭제하시겠습니까?")) return;
+
+        try {
+            await axios.delete(`http://localhost:8008/projects/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert("프로젝트가 삭제되었습니다.");
+            navigate("/home");
+        } catch (err) {
+            console.error("삭제 실패", err);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
+
+    if (!project) return <div>로딩 중...</div>;
+
+    const isOwner = currentUserId && project.proposer?.includes(currentUserId);
+
     return (
         <div className="project-detail">
             <header
                 className="project-header"
                 style={{
-                    backgroundImage: `url(${exampleProject.thumbnailUrl})`,
+                    backgroundImage: `url(${project.thumbnail || "/images/projectImage.png"})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
             >
                 <div className="header-left">
-                    <div className="header-empty">
-                    </div>
+                    <div className="header-empty" />
                     <div>
                         <div className="header-title">
                             <div className="header-button">
                                 <button>지원하기</button>
                                 <button>즐겨찾기</button>
+                                {isOwner && (
+                                    <button className="delete-button" onClick={handleDelete}>삭제</button>
+                                )}
                             </div>
-                            <h1>{exampleProject.title}</h1>
-                            <p>{exampleProject.description}</p>
-                            <p className="recruitment">모집 인원: {exampleProject.recruitment}</p>
+                            <h1>{project.project.name}</h1>
+                            <p>{project.explain}</p>
+                            <p className="recruitment">신청 인원: {project.proposer.length - 1 || 0}명</p>
                         </div>
                     </div>
                 </div>
             </header>
+
             <h2>상세 내용</h2>
             <section className="project-details">
-                <h2>{exampleProject.title}</h2>
+                <h2>{project.project.name}</h2>
                 <div className="detail-grid">
-                    {Object.entries(exampleProject.details).map(([label, value], index) => (
-                        <DetailCard key={index} label={label} value={value} />
-                    ))}
+                    <DetailCard label="모집인원" value={`${project.recruit_number || 0}명`} />
+                    <DetailCard label="계약기간" value={project.contract_until} />
+                    <DetailCard label="모집분야" value={project.project.classification} />
+                    <DetailCard label="급여" value={project.salary_type} />
+                    <DetailCard label="대표이메일" value={project.email} />
+                    <DetailCard label="경력" value={project.career} />
+                    <DetailCard label="모집마감기한" value={project.sign_deadline} />
+                    <DetailCard label="학력" value={project.education} />
                 </div>
             </section>
         </div>
