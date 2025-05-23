@@ -1,16 +1,19 @@
 import { useEffect, useState, useMemo } from "react";
 import "../../css/projectForm.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { v4 as uuidv4 } from 'uuid';
 
 export default function ProjectForm() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const token = localStorage.getItem("access_token");
 
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [form, setForm] = useState({
         projectName: "",
-        roles: [],
         roleInput: "",
+        roles: [],
         description: "",
         deadline: "",
         payType: "",
@@ -19,7 +22,10 @@ export default function ProjectForm() {
         experience: "",
         customExperience: "",
         category: "",
-        email: ""
+        email: "",
+        recruitNumber: "",
+        contractUntil: "",
+        career: ""
     });
 
     const [currentUserId, setCurrentUserId] = useState("");
@@ -27,20 +33,20 @@ export default function ProjectForm() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     useEffect(() => {
-        const fetchCurrentUser = async () => {
-            const token = localStorage.getItem("token");
-            try {
-                const res = await axios.get("http://localhost:8008/me", {
-                    headers: { Authorization: `Bearer ${token}` }
+        if (!token || !location.state?.fromButton) {
+            navigate("/login");
+        } else {
+            axios.get("http://localhost:8008/me", {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+                .then(res => {
+                    setCurrentUserId(res.data.id);
+                })
+                .catch(() => {
+                    navigate("/login");
                 });
-                setCurrentUserId(res.data.id);
-            } catch (error) {
-                console.error("유저 정보 가져오기 실패", error);
-            }
-        };
-
-        fetchCurrentUser();
-    }, []);
+        }
+    }, [token, location, navigate]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -73,31 +79,41 @@ export default function ProjectForm() {
             form.payType !== "" &&
             form.education !== "" &&
             (form.education !== "기타" || form.customEducation.trim() !== "") &&
-            form.experience !== "" &&
-            (form.experience !== "기타" || form.customExperience.trim() !== "") &&
             form.category !== "" &&
             form.email.trim() !== "" &&
-            emailRegex.test(form.email)
+            emailRegex.test(form.email) &&
+            form.recruitNumber !== "" &&
+            parseInt(form.recruitNumber) > 0 &&
+            form.contractUntil !== "" &&
+            form.career !== ""
         );
     }, [form]);
 
-    const generatedProjectId = useMemo(() => crypto.randomUUID(), []);
     const thumbnailUrl = "https://your-default-thumbnail.url";
 
+    
+
     const handleSubmit = async () => {
-        const token = localStorage.getItem("token");
         try {
+            const generatedProjectId = uuidv4().replaceAll("-", "").slice(0, 25);
             const payload = {
-                proposer: currentUserId,
-                project: generatedProjectId,
+                id: generatedProjectId,
                 name: form.projectName,
+                classification: form.category,
                 explain: form.description,
-                sign_deadline: form.deadline,
+                sign_deadline: form.deadline?.toString().slice(0, 10),
                 salary_type: form.payType,
-                education: form.education === "기타" ? form.customEducation : form.education,
+                education: form.education === "기타" ? form.customEducation || "기타" : form.education,
                 email: form.email,
-                thumbnail: thumbnailUrl
+                proposer: [currentUserId],
+                worker: [currentUserId],
+                roles: form.roles,
+                thumbnail: thumbnailUrl ?? null,
+                recruit_number: parseInt(form.recruitNumber),
+                career: form.career,
+                contract_until: form.contractUntil?.toString().slice(0, 10)
             };
+            console.log("보낼 데이터:", payload);
 
             await axios.post("http://localhost:8008/projects", payload, {
                 headers: {
@@ -109,7 +125,7 @@ export default function ProjectForm() {
             navigate("/projectInvite");
         } catch (error) {
             console.error("프로젝트 생성 실패", error);
-            alert("프로젝트 생성 중 오류가 발생했습니다.");
+            alert("프로젝트 생성 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
         }
     };
 
@@ -177,9 +193,11 @@ export default function ProjectForm() {
                     <label>급여 형태<span className="required">*</span></label>
                     <select name="payType" value={form.payType} onChange={handleChange}>
                         <option value="">선택</option>
+                        <option value="무급">무급</option>
                         <option value="시급">시급</option>
                         <option value="주급">주급</option>
                         <option value="월급">월급</option>
+                        <option value="연봉">연봉</option>
                         <option value="건당">건당</option>
                     </select>
                 </div>
@@ -187,7 +205,7 @@ export default function ProjectForm() {
                 <div className="projectForm-row">
                     <label>학력<span className="required">*</span></label>
                     <div className="radio-group">
-                        {['학력무관', '초졸이상', '중졸이상', '고졸이상', '대졸이상'].map(level => (
+                        {['무관', '초졸', '중졸', '고졸', '대졸'].map(level => (
                             <label key={level}>
                                 <input type="radio" name="education" value={level} checked={form.education === level} onChange={handleChange} /> {level}
                             </label>
@@ -200,17 +218,13 @@ export default function ProjectForm() {
                 </div>
 
                 <div className="projectForm-row">
-                    <label>경력<span className="required">*</span></label>
+                    <label>경력 조건<span className="required">*</span></label>
                     <div className="radio-group">
-                        {['신입', '경력무관'].map(exp => (
-                            <label key={exp}>
-                                <input type="radio" name="experience" value={exp} checked={form.experience === exp} onChange={handleChange} /> {exp}
+                        {["신입", "경력", "무관"].map(option => (
+                            <label key={option}>
+                                <input type="radio" name="career" value={option} checked={form.career === option} onChange={handleChange} /> {option}
                             </label>
                         ))}
-                        <label>
-                            <input type="radio" name="experience" value="기타" checked={form.experience === '기타'} onChange={handleChange} /> 기타
-                            <input type="text" name="customExperience" value={form.customExperience} onChange={handleChange} placeholder="직접 입력" />
-                        </label>
                     </div>
                 </div>
 
@@ -218,10 +232,13 @@ export default function ProjectForm() {
                     <label>프로젝트 분류<span className="required">*</span></label>
                     <select name="category" value={form.category} onChange={handleChange}>
                         <option value="">선택</option>
-                        <option value="영상편집">영상편집</option>
-                        <option value="디자인">디자인</option>
-                        <option value="개발">개발</option>
-                        <option value="기획">기획</option>
+                        <option value="유튜브">유튜브</option>
+                        <option value="작곡">작곡</option>
+                        <option value="틱톡">틱톡</option>
+                        <option value="그래픽">그래픽</option>
+                        <option value="애니메이션">애니메이션</option>
+                        <option value="게임">게임</option>
+                        <option value="기타">기타</option>
                     </select>
                 </div>
 
@@ -229,6 +246,18 @@ export default function ProjectForm() {
                     <label>대표 이메일<span className="required">*</span></label>
                     <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="example@domain.com" />
                 </div>
+
+                <div className="projectForm-row">
+                    <label>모집 인원<span className="required">*</span></label>
+                    <input type="number" name="recruitNumber" value={form.recruitNumber} onChange={handleChange} placeholder="예: 3" min="1" />
+                </div>
+
+                <div className="projectForm-row">
+                    <label>계약 종료일<span className="required">*</span></label>
+                    <input type="date" name="contractUntil" value={form.contractUntil} onChange={handleChange} />
+                </div>
+
+                
             </div>
 
             <hr className="projectform-line" />

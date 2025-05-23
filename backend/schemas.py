@@ -1,10 +1,11 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 
 class SalaryType(str, Enum):
+    HOURLY = "시급"
     MONTHLY = "월급"
     WEEKLY = "주급"
     UNPAID = "무급"
@@ -19,19 +20,30 @@ class Education(str, Enum):
     MIDDLE = "중졸"
     NONE = "무관"
 
+class Career(str, Enum):
+    NEW = "신입"
+    EXPERIENCED = "경력"
+    ANY = "무관"
+
 
 class ProjectCreate(BaseModel):
-    id: str  # 프로젝트 생성자 ID (만약 서버에서 생성한다면 제거)
+    id: str
     name: str
-    project: str
+    classification: Optional[str] = "default"
     explain: str
     sign_deadline: date
     salary_type: SalaryType
     education: Education
     email: EmailStr
-    proposer: str
-    worker: str
+    proposer: List[str]
+    worker: List[str]
+    roles: List[str]
     thumbnail: Optional[str] = None
+
+    # 추가 필드
+    recruit_number: int                          # 모집 인원 수
+    career: Career                               # 경력 조건
+    contract_until: date                         # 계약 종료일 (언제까지 같이 일할지)
 
 
 class ProjectOutlineOut(BaseModel):
@@ -42,7 +54,6 @@ class ProjectOutlineOut(BaseModel):
     class Config:
         orm_mode = True
 
-
 class ProjectOut(BaseModel):
     id: int
     project: ProjectOutlineOut
@@ -51,12 +62,19 @@ class ProjectOut(BaseModel):
     salary_type: SalaryType
     education: Education
     email: EmailStr
-    proposer: str
-    worker: str
+    proposer: List[str]
+    worker: List[str]
+    roles: List[str]
     thumbnail: Optional[str] = None
+
+    # 추가 필드
+    recruit_number: int
+    career: Career
+    contract_until: date
 
     class Config:
         orm_mode = True
+
 
 
 class UserCreate(BaseModel):

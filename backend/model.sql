@@ -23,13 +23,8 @@ CREATE TABLE project_info (
     thumbnail TEXT
 );
 
-CREATE TABLE uploaded_file (
-    name TEXT PRIMARY KEY,
-    extension TEXT,
-    owner TEXT REFERENCES users(id),
-    project TEXT REFERENCES projects(id),
-    comment JSONB
-);
+
+
 
 CREATE TABLE todo (
     id TEXT PRIMARY KEY,
@@ -51,7 +46,7 @@ CREATE TABLE calendar (
     date DATE,
     owner TEXT REFERENCES users(id),
     is_repeat BOOLEAN,
-    in_project TEXT REFERENCES projects(id)
+    in_project TEXT REFERENCES project_infos(id)
 );
 
 CREATE TABLE chat (
@@ -60,4 +55,25 @@ CREATE TABLE chat (
     receiver TEXT,
     message TEXT,
     timestamp TEXT
+);
+
+CREATE TABLE project_folders (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    project_id INTEGER NOT NULL REFERENCES project_infos(id),
+    parent_id INTEGER 
+);
+
+
+CREATE TABLE uploaded_files (
+    id SERIAL PRIMARY KEY,
+    name TEXT,
+    s3_key TEXT,
+    s3_url TEXT,
+    sixe INTEGER,
+    project_id INTEGER REFERENCES project_info(id),
+    uploader TEXT REFERENCES users(id),
+    folder INTEGER REFERENCES project_folders(id) ON DELETE SET NULL,
+    uploaded_at TIMESTAMP
 );
