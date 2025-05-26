@@ -3,8 +3,9 @@
     text-align: center;
 }
 
-.login-content h1 {
+.login-content p {
     font-family: 'Pretendard-ExtraBold';
+    font-size: 1.5rem;
 }
 
 .login-image-container {
@@ -33,7 +34,7 @@
     width: 25vw;
 }
 .input-fields h2 {
-    font-size: medium;
+    font-size: 1rem;
     text-align: left;
     font-family: 'Pretendard-Light';
     margin-top: 30px;
@@ -42,13 +43,18 @@
 .login-input {
     width: 100%;
     padding: 8px;
-    font-size: 1rem;
+    font-size: 0.8rem;
     border: 1px solid #ccc;
     border-radius: 9px;
     text-align: left;
     font-family: 'Pretendard-Light';
     height: 6vh;
     margin-top: 8px;
+}
+
+.login-input:focus {
+    border-color: #FF7676;
+    outline: none;
 }
 
 .login-button {
@@ -58,7 +64,7 @@
     color: white;
     border: none;
     border-radius: 9px;
-    height: 7vh;
+    height: 6.5vh;
     font-family: 'Pretendard-Light';
 }
 

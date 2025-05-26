@@ -195,7 +195,8 @@ async def create_project(project: ProjectCreate):
         thumbnail=project.thumbnail,
         recruit_number=project.recruit_number,
         career=project.career,
-        contract_until=project.contract_until
+        contract_until=project.contract_until,
+        starred_users=[]
     )
 
 
@@ -225,3 +226,30 @@ async def delete_project(project_id: int, current_user: User = Depends(get_curre
 
     await project.delete()
     return {"detail": "삭제 성공"}
+
+@app.post("/projects/{project_id}/star")
+async def toggle_star(
+    project_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    project = await ProjectInfo.objects.get_or_none(id=project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다.")
+
+    user_id = current_user.id
+    starred = project.starred_users or []
+
+    if user_id in starred:
+        starred.remove(user_id)
+        is_starred = False
+    else:
+        starred.append(user_id)
+        is_starred = True
+
+    project.starred_users = starred
+    await project.update()
+
+    return {
+        "isStarred": is_starred,
+        "starCount": len(starred)
+    }

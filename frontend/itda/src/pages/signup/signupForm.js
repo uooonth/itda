@@ -2,6 +2,8 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import "../../css/signupForm.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { BsCheck2Circle } from "react-icons/bs";
 
 export default function SignupForm() {
   const navigate = useNavigate();
@@ -24,7 +26,10 @@ export default function SignupForm() {
   const [checkingId, setCheckingId] = useState(false);
   const [checkingNickname, setCheckingNickname] = useState(false);
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const [showPassword, setShowPassword] = useState(false);
+
+  const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+
 
   const idCheckTimer = useRef(null);
   const nicknameCheckTimer = useRef(null);
@@ -238,34 +243,41 @@ export default function SignupForm() {
           <div className="form-row">
             <label
               htmlFor="password"
-              className={`form-label ${
-                form.password && (!passwordLengthValid || !passwordMixValid) ? "invalid" : ""
-              }`}
+              className={`form-label ${form.password && (!passwordLengthValid || !passwordMixValid) ? "invalid" : ""
+                }`}
             >
               비밀번호<span className="required">*</span>
             </label>
-            <div className="input-area no-error">
+            <div className="input-area no-error password-input-area">
               <p className="error-message"></p>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                placeholder="비밀번호를 입력해 주세요"
-                value={form.password}
-                onChange={handleChange}
-                className={
-                  form.password && (!passwordLengthValid || !passwordMixValid) ? "invalid" : ""
-                }
-                required
-              />
+              <div className="password-wrapper">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="비밀번호를 입력해 주세요"
+                  value={form.password}
+                  onChange={handleChange}
+                  className={
+                    form.password && (!passwordLengthValid || !passwordMixValid) ? "invalid" : ""
+                  }
+                  required
+                />
+                <span className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                </span>
+              </div>
             </div>
+
           </div>
 
           <div className="password-conditions">
             <p className={`condition ${passwordMixValid ? "valid" : "invalid"}`}>
+              <BsCheck2Circle />
               영문/숫자가 포함되어야합니다
             </p>
             <p className={`condition ${passwordLengthValid ? "valid" : "invalid"}`}>
+              <BsCheck2Circle />
               최소 10글자 이상 설정해주세요
             </p>
           </div>
