@@ -21,19 +21,8 @@ const ChatContent = () => {
     ]);
     const messagesEndRef = useRef(null); // 스크롤 이동을 위한 ref
 
-    // 메시지를 보낼 때 실행되는 함수
-    const sendMessage = () => {
-        if (!input.trim()) return;
-        const newMessage = { 
-            id: messages.length + 1, 
-            text: input, 
-            sender: "me", 
-            name: "나", 
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) 
-        };
-        setMessages([...messages, newMessage]);
-        setInput("");
-    };
+    const userId = "user1"; // 실제 사용자 ID
+    const projectId = "abc123"; // 실제 선택한 프로젝트 ID
 
     // 새 메시지가 추가될 때 자동으로 스크롤을 최하단으로 이동
     useEffect(() => {
@@ -43,6 +32,61 @@ const ChatContent = () => {
     const filteredRooms = rooms.filter(room =>
         room.name.toLowerCase().includes(search.toLowerCase())
     );
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            const res = await fetch(`http://localhost:8008/chat/${projectId}`);
+            const data = await res.json();
+            const formatted = data.map((msg, idx) => ({
+                id: idx + 1,
+                text: msg.text,
+                sender: msg.sender_id === userId ? "me" : "other",
+                name: msg.sender_name,
+                profile: "/smileSo.jpg",
+                time: new Date(msg.time).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }),
+            }));
+            setMessages(formatted);
+        };
+        fetchMessages();
+    }, [projectId]);
+
+    const sendMessage = async () => {
+        if (!input.trim()) return;
+
+        const newMessage = {
+            id: messages.length + 1,
+            text: input,
+            sender: "me",
+            name: "나",
+            profile: "/smileSo.jpg",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+        };
+
+        // UI 먼저 반영
+        setMessages(prev => [...prev, newMessage]);
+        setInput("");
+
+        // 서버에 전송
+        await fetch("http://localhost:8008/chat/send", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                sender_id: userId,
+                sender_name: "나",
+                text: input,
+                time: new Date().toISOString()
+            })
+        });
+    };
+
+
 
     return (
         <div className="chatPage">

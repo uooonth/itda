@@ -32,15 +32,17 @@ export default function Login({ setIsLoggedIn, setUsername }) {
             });
             if (userRes.ok) {
                 const userData = await userRes.json();
-                setUsername(userData.username); 
+                setUsername(userData.id); 
             }
 
-            setIsLoggedIn(true); 
+            setIsLoggedIn(true);
             navigate("/");
         } catch (error) {
             alert("로그인 실패");
         }
     };
+
+
     return (
         <div className="login-container">
             <div className="navigation">

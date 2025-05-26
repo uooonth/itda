@@ -16,6 +16,7 @@ watchfiles
 watchgod==0.7
 passlib[bcrypt]
 python-jose[cryptography]
+redis
 # npm install emoji-picker-react
 # npm install vis-timeline
 # npm install @lourenci/react-kanban --legacy-peer-deps
