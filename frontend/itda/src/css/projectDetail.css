@@ -3,13 +3,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: white;
+    
 }
 
 .project-header {
-    position: relative;
     width: 100%;
-    height: 45vh;
+    height: 65vh;
     display: flex;
     align-items: center;
     /* padding: 0 24px; */
@@ -42,8 +41,18 @@
         transparent 100%);
     z-index: -1;
 }
+.header-button {
+    display: flex;          
+    flex-direction: row;     
+    align-items: center;     
+    margin-bottom: 5vh;     
+}
 
 .header-button button {
+    display: flex;         
+    align-items: center;
+    justify-content: center;
+
     background-color: white;
     color: black;
     padding: 8px 16px;
@@ -51,26 +60,79 @@
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    align-items: center;
-    gap: 20px;
+    margin-right: 10px;  
 }
+
+.application {
+    width: 9.5vw;
+    height: 6.5vh;
+    font-size: 1.15rem;
+    font-family: 'Pretendard-Bold';
+}
+
+.star {
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 4vw;
+    height: 6.5vh;
+}
+
+.starIcon {
+    font-size: 1.5rem;
+    color: #797979;
+}
+
+.starIcon.filled {
+    color: gold;
+}
+
+.star-count {
+    font-size: 0.8rem;
+    color: #333;
+    margin-top: 2px;
+}
+
+.delete-button{
+    width: 7vw;
+    height: 6.5vh;
+    font-size: 1rem;
+    font-family: 'Pretendard-Bold';
+}
+
 
 .header-title {
     margin-left: 4vw;
+    color: white;
 }
 
-.header-left h1 {
-    font-size: 24px;
-    margin: 0;
+.project-name {
+    font-size: 2.8rem;
+    font-family: 'Pretendard-SemiBold';
+    margin-bottom: 3.5vh;
 }
 
-.header-left p {
-    margin: 4px 0;
+.explain {
+    font-size: 1.2rem;
+    font-family: 'Pretendard-Medium';
+    margin-bottom: 4vh;
+    color: #ffffff;
+    opacity: 0.69;
+    max-width: 50%;
 }
 
 .recruitment {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    font-family: 'Pretendard-Medium';
+    margin-bottom: 5vh;
+    color: white;
+}
+
+/* 상세내용 */
+.detail-title {
+    color: black;
 }
 
 .project-details {
@@ -117,3 +179,4 @@
     font-weight: bold;
     margin: 4px 0 0;
 }
+

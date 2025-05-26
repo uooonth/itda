@@ -79,6 +79,8 @@ class ProjectInfo(ormar.Model):
     career: Career = ormar.String(max_length=20, nullable=False, default=Career.ANY)
     contract_until: date = ormar.Date(nullable=False)
 
+    starred_users: List[str] = ormar.JSON(nullable=False, default=[])
+
 class Todo(ormar.Model):
     class Meta:
         tablename = "todos"

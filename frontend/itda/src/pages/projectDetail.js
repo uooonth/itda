@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../css/projectDetail.css";
+import { FaRegStar, FaStar } from "react-icons/fa";
 
 export default function ProjectDetail() {
     const { id } = useParams();
@@ -10,23 +11,64 @@ export default function ProjectDetail() {
 
     const [project, setProject] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [isStarred, setIsStarred] = useState(false);
+    const [starCount, setStarCount] = useState(0);
 
     useEffect(() => {
+    const fetchData = async () => {
+        let userId = null;
+
         if (token) {
-            axios.get("http://localhost:8008/me", {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-                .then(res => setCurrentUserId(res.data.id))
-                .catch(() => setCurrentUserId(null));
+            try {
+                const meRes = await axios.get("http://localhost:8008/me", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                userId = meRes.data.id;
+                setCurrentUserId(userId);
+            } catch {
+                setCurrentUserId(null);
+            }
         }
 
-        axios.get(`http://localhost:8008/projects/${id}`)
-            .then(res => setProject(res.data))
-            .catch(err => {
-                console.error("프로젝트 상세 정보 가져오기 실패", err);
-                alert("프로젝트 정보를 불러오지 못했습니다.");
-            });
-    }, [id, token]);
+        try {
+            const projectRes = await axios.get(`http://localhost:8008/projects/${id}`);
+            const data = projectRes.data;
+            setProject(data);
+            setStarCount(data.starred_users?.length || 0);
+            if (token && userId && data.starred_users?.includes(userId)) {
+                setIsStarred(true);
+            } else {
+                setIsStarred(false);
+            }
+        } catch (err) {
+            console.error("프로젝트 상세 정보 가져오기 실패", err);
+            alert("프로젝트 정보를 불러오지 못했습니다.");
+        }
+    };
+
+    fetchData();
+}, [id, token]);
+
+
+    const handleStarToggle = async () => {
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        try {
+            const res = await axios.post(
+                `http://localhost:8008/projects/${id}/star`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setIsStarred(res.data.isStarred);
+            setStarCount(res.data.starCount);
+        } catch (err) {
+            console.error("찜 토글 실패", err);
+            alert("찜 처리 중 오류가 발생했습니다.");
+        }
+    };
 
     const handleDelete = async () => {
         if (!window.confirm("정말로 이 프로젝트를 삭제하시겠습니까?")) return;
@@ -62,21 +104,30 @@ export default function ProjectDetail() {
                     <div>
                         <div className="header-title">
                             <div className="header-button">
-                                <button>지원하기</button>
-                                <button>즐겨찾기</button>
+                                <button className="application">지원하기</button>
+                                <button className="star" onClick={handleStarToggle}>
+                                    {isStarred ? (
+                                        <FaStar className="starIcon filled" />
+                                    ) : (
+                                        <FaRegStar className="starIcon" />
+                                    )}
+                                    <div className="star-count">{starCount}</div>
+                                </button>
                                 {isOwner && (
                                     <button className="delete-button" onClick={handleDelete}>삭제</button>
                                 )}
                             </div>
-                            <h1>{project.project.name}</h1>
-                            <p>{project.explain}</p>
+                            <p className="project-name">{project.project.name}</p>
+                            <p className="explain">{project.explain}</p>
                             <p className="recruitment">신청 인원: {project.proposer.length - 1 || 0}명</p>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <h2>상세 내용</h2>
+            <p className="detail-title">상세 내용</p>
+            <p className="detail-subtitle">해당 내용은 itda에서 제공하는 기본적인 계약 조건이며,</p>
+            <p className="detail-subtitle">구체적인 사항은 계약 당사자인 계약자와 근로자가 협의하여 결정하시기 바랍니다.</p>
             <section className="project-details">
                 <h2>{project.project.name}</h2>
                 <div className="detail-grid">

@@ -44,6 +44,7 @@ class ProjectCreate(BaseModel):
     recruit_number: int                          # 모집 인원 수
     career: Career                               # 경력 조건
     contract_until: date                         # 계약 종료일 (언제까지 같이 일할지)
+    starred_users: Optional[List[str]] = []
 
 
 class ProjectOutlineOut(BaseModel):
@@ -71,6 +72,8 @@ class ProjectOut(BaseModel):
     recruit_number: int
     career: Career
     contract_until: date
+
+    starred_users: List[str] = []
 
     class Config:
         orm_mode = True
