@@ -49,7 +49,7 @@ export default function Login({ setIsLoggedIn, setUsername }) {
                 <div className="logo">itda</div>
             </div>
             <div className="login-content">
-                <h1>로그인</h1>
+                <p>로그인</p>
                 <div className="login-image-container">
                     <img src="/images/loginImage.png" className="login-image" alt="" />
                     <div className="input-fields">
