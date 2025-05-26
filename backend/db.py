@@ -6,7 +6,8 @@ from datetime import date, datetime
 from enum import Enum
 from pydantic import BaseModel
 from backend.config import settings
-from typing import Optional, ForwardRef
+
+from typing import Optional, ForwardRef, List
 
 # 공통 설정
 database = databases.Database(settings.DATABASE_URL)
@@ -14,6 +15,7 @@ metadata = sqlalchemy.MetaData()
 
 # ───────────── ENUM 정의 ───────────── #
 class SalaryType(str, Enum):
+    HOURLY = "시급"
     MONTHLY = "월급"
     WEEKLY = "주급"
     UNPAID = "무급"
@@ -21,11 +23,16 @@ class SalaryType(str, Enum):
     PER_TASK = "건당"
 
 class Education(str, Enum):
-    HIGH = "고졸"   
+    HIGH = "고졸"
     COLLEGE = "대졸"
     ELEMENTARY = "초졸"
     MIDDLE = "중졸"
     NONE = "무관"
+
+class Career(str, Enum):
+    NEW = "신입"
+    EXPERIENCED = "경력"
+    ANY = "무관"
 
 # ───────────── 모델 정의 ───────────── #
 
@@ -54,19 +61,25 @@ class ProjectInfo(ormar.Model):
         metadata = metadata
         database = database
 
-    id: int = ormar.Integer(primary_key=True) 
-    project: ProjectOutline = ormar.ForeignKey(ProjectOutline)  
+    id: int = ormar.Integer(primary_key=True)
+    project: ProjectOutline = ormar.ForeignKey(ProjectOutline)
     explain: str = ormar.Text(nullable=False)
     sign_deadline: date = ormar.Date(nullable=False)
     salary_type: SalaryType = ormar.String(max_length=20, nullable=False)
     education: Education = ormar.String(max_length=20, nullable=False)
     email: str = ormar.String(max_length=128)
-    proposer: str = ormar.String(max_length=30)
-    worker: str = ormar.String(max_length=30)
+
+    proposer: List[str] = ormar.JSON(nullable=False)
+    worker: List[str] = ormar.JSON(nullable=False)
+    roles: List[str] = ormar.JSON(nullable=False)
+
     thumbnail: str = ormar.String(max_length=255, nullable=True)
 
-
-
+    # 추가 필드
+    recruit_number: int = ormar.Integer(nullable=False, default=1)
+    career: Career = ormar.String(max_length=20, nullable=False, default=Career.ANY)
+    contract_until: date = ormar.Date(nullable=False)
+    starred_users: List[str] = ormar.JSON(nullable=False, default=[])
 
 class Todo(ormar.Model):
     class Meta:
@@ -117,6 +130,7 @@ class Chat(ormar.Model):
 ProjectFolderRef = ForwardRef("ProjectFolder")
 
 #폴더 관리용
+
 class ProjectFolder(ormar.Model):
     class Meta:
         tablename = "project_folders"
@@ -128,7 +142,7 @@ class ProjectFolder(ormar.Model):
     created_at: datetime = ormar.DateTime(default=datetime.utcnow)
     project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
     parent_id: Optional[int] = ormar.Integer(nullable=True)  
-# 업로드 파일 관리용
+
 class UploadedFile(ormar.Model):
     class Meta:
         tablename = "uploaded_files"
@@ -143,8 +157,7 @@ class UploadedFile(ormar.Model):
     project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
     folder: Optional[ProjectFolder] = ormar.ForeignKey(ProjectFolder, nullable=True) 
     uploaded_at: datetime = ormar.DateTime(default=datetime.utcnow)
-    
-    
+
 # ───────────── 테이블 생성 ───────────── #
 engine = sqlalchemy.create_engine(settings.DATABASE_URL)
 metadata.create_all(engine)

@@ -2,6 +2,7 @@ import React, { useState,useEffect,useCallback } from 'react';
 import { useParams,useLocation  } from 'react-router-dom';
 import sendIcon from '../../../icons/sendIcon.png';
 import pencilIcon from '../../../icons/pencilIcon.png';
+import React, { useState, useEffect } from 'react';
 import '../../../css/feedbackpopup.css';
 
 const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
@@ -56,6 +57,26 @@ const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
                     folder_id: file.folder_id,
                     uploader:file.uploader
                 }));
+
+    useEffect(() => {
+        if (!viewingFile) return;
+
+        const fetchMessages = async () => {
+            try {
+                const res = await fetch(`http://localhost:8008/feedbackchat/${viewingFile.name}`);
+                const data = await res.json();
+                setMessages(data.map((msg, idx) => ({
+                    ...msg,
+                    id: idx,
+                    time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                })));
+            } catch (err) {
+                console.error("채팅 메시지 불러오기 실패", err);
+            }
+        };
+
+        fetchMessages();
+    }, [viewingFile]); // viewingFile이 바뀔 때마다 실행됨    
     
                 // 폴더 및 그 폴더에 직접 포함된 파일만 매핑
                 const mapFolder = (folder) => {
@@ -488,24 +509,32 @@ useEffect(() => {
             message: inputText,
             timestamp: new Date().toISOString()
         };
-    
+
+        setMessages([...messages, newMessage]);
+        setInputText('');
+
+        // 👉 Redis에 메시지 저장 요청
         try {
-            await fetch(`http://localhost:8008/projects/${projectId}/files/${viewingFile.id}/feedback`, {
+            await fetch("http://localhost:8008/feedbackchat/send", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
+                    // Authorization: `Bearer ${token}` 필요한 경우 추가
                 },
-                body: JSON.stringify(msg)
+                body: JSON.stringify({
+                    feedback_id: viewingFile?.name ?? "temp-feedback-id", // ← 작업물 ID나 임시 ID
+                    sender_id: "user-id",      // ← 실제 사용자 ID
+                    sender_name: "User Name",  // ← 실제 사용자 이름
+                    text: inputText,
+                    time: new Date().toISOString()
+                })
             });
-    
-            setMessages(prev => [...prev, msg]);
-            setInputText('');
         } catch (err) {
-            console.error("메시지 전송 실패:", err);
-            alert("메시지 전송에 실패했습니다.");
+            console.error("채팅 메시지 저장 실패", err);
         }
     };
     
+
 
     const displayedFolders = currentFolder ? currentFolder.folder.contents : folders;
 
@@ -780,6 +809,37 @@ const renderFilePreview = (fileToView) => {
     
 
 
+    // 타임스탬프 시간 감지
+    const timeRegex = /\b(\d{1,2}):([0-5]\d)\b/g;
+
+    const renderMessageText = (text) => {
+        return text.split(timeRegex).map((part, i, arr) => {
+            if (i % 3 === 1) {
+                const minutes = parseInt(arr[i]);
+                const seconds = parseInt(arr[i + 1]);
+                const totalSeconds = minutes * 60 + seconds;
+                const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                return (
+                    <span
+                        key={i}
+                        className="seekTime"
+                        onClick={() => {
+                            const video = document.querySelector("video");
+                            if (video) video.currentTime = totalSeconds;
+                        }}
+                    >
+                        {timeString}
+                    </span>
+                );
+            } else if (i % 3 === 2) {
+                return null;
+            }
+            return <span key={i}>{part}</span>;
+        });
+    };
+
+    
+
     return (
         <div className="feedbackPopup">
             <div className="popupContent">
@@ -814,23 +874,20 @@ const renderFilePreview = (fileToView) => {
                             </div>
                         </div>
                         <div className="chatContent">
-                        <div className="messageList">
-                            {messages.map((message, index) => (
-                                <div key={index} className="messageItem">
-                                <div className="profileContainer">
-                                    <div className="profilePic" />
-                                    {index > 0 && <div className="feedBackPopupline" />}
-                                </div>
-                                <div className="messageDetails">
-                                    <div className="messageHeader">
-                                    <span className="profileName">{message.user}</span>
-                                    <span className="messageTime">
-                                        {new Date(message.timestamp).toLocaleTimeString('ko-KR', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        hour12: false
-                                        })}
-                                    </span>
+                            <div className="messageList">
+                                {messages.map((message, index) => (
+                                    <div key={index} className="messageItem">
+                                        <div className="profileContainer">
+                                            <div className="profilePic" />
+                                            {index > 0 && <div className="line" />}
+                                        </div>
+                                        <div className="messageDetails">
+                                            <div className="messageHeader">
+                                                <span className="profileName">User Name</span>
+                                                <span className="messageTime">{message.time}</span>
+                                            </div>
+                                            <div className="messageText">{renderMessageText(message.text)}</div>
+                                        </div>
                                     </div>
                                     <div className="messageText">{message.message}</div>
                                 </div>

@@ -363,7 +363,7 @@
 }*/
 
 
-.messageList {
+.feedbackPopup .messageList {
     flex: 1;
     overflow-y: auto;
     padding: 3vh 1vw 0 2.4vw;
@@ -371,21 +371,21 @@
     flex-direction: column;
 }
 
-.messageItem {
+.feedbackPopup .messageItem {
     display: flex;
     align-items: flex-start;
     margin-bottom: 4vh;
 }
 
-.profileContainer {
+.feedbackPopup .profileContainer {
     position: relative;
     display: flex;
     align-items: center;
-    margin-right: 1vw;
+    margin-right: 0.3vw;
     flex-direction: column;
 }
 
-.profilePic {
+.feedbackPopup .profilePic {
     width: 40px;
     height: 40px;
     background-color: #ad7979;
@@ -396,11 +396,12 @@
 }
 
 .feedBackPopupline {
+
     width: 1px;
-    height: 10vh;
+    height: 12vh;
     background-color: #ccc;
     position: absolute;
-    bottom: 100%;
+    bottom: 70%;
     z-index: 1;
 }
 
@@ -418,17 +419,17 @@
 
 .profileName {
     font-weight: bold;
-    font-size:0.8rem;
+    font-size:0.9rem;
     margin-right: 0.5vw;
 }
 
-.messageTime {
-    font-size: 0.5rem;
+.feedbackPopup .messageTime {
+    font-size: 0.6rem;
     color: gray;
     margin-top: 0.6vh;
 }
 
-.messageText {
+.feedbackPopup .messageText {
     font-size: 0.8rem;
 }
 
@@ -486,4 +487,10 @@
     height: 2vh;
     margin-left: 0.5vw; /* 간격도 조금 조정 */
     object-fit: contain;
+}
+
+.seekTime {
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
 }
