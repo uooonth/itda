@@ -811,6 +811,61 @@ const ToggleNameDisplay = ({ name }) => {
 
 
 
+useEffect(() => {
+  const now = new Date();
+  const formattedTime = now.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  const initialMessages = [
+    {
+      name: "침착맨",
+      text: "안녕하세요! 여기는 실시간 채팅방입니다.",
+      sender: "other",
+      time: formattedTime,
+    },
+    {
+      name: "나",
+      text: "안녕하세요~!",
+      sender: "me",
+      time: formattedTime,
+    },
+  ];
+
+  setMessages(initialMessages);
+}, []);
+
+
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState('');
+    const messagesEndRef = useRef(null);
+
+    const sendMessage = () => {
+    if (!input.trim()) return;
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+
+    const newMsg = {
+        name: "나",
+        text: input,
+        sender: "me",
+        time: formattedTime,
+    };
+    setMessages(prev => [...prev, newMsg]);
+    setInput('');
+    };
+
+    useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+
 
     return (
         <div className="content">
@@ -931,9 +986,57 @@ const ToggleNameDisplay = ({ name }) => {
                 <div className="liveChat">
                     <div className="title">실시간 채팅</div>
                     <div className="content box1">
-                    </div>
+                        <div className="chatMessages">
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`chatMessageWrapper ${msg.sender}`}>
 
+                                    {/* other - 왼쪽 프로필, 오른쪽 말풍선 */}
+                                    {msg.sender === 'other' && (
+                                    <div className="chatRow">
+                                        <div className="chatProfileDot other" />
+                                        <div>
+                                        <div className="chatMeta">
+                                            <span className="chatName">{msg.name}</span>
+                                            <span className="chatTimeLeft">{msg.time}</span>
+                                        </div>
+                                        <div className="chatBubble other">{msg.text}</div>
+                                        </div>
+                                    </div>
+                                    )}
+                                    
+                                    {msg.sender === 'me' && (
+                                        <div className="chatRow me">
+                                            <div className="chatBubbleTimeGroup">
+                                            <div className="chatBubble me">{msg.text}</div>
+                                            <div className="chatTimeRight">{msg.time}</div>                                            
+                                            </div>
+                                            <div className="chatProfileDot me" />
+                                        </div>
+                                        )}
+                                    </div>
+                                ))}
+
+
+                        <div ref={messagesEndRef} />
+                        </div>
+
+                        <div className="chatInputArea">
+                            <img src="pencilIcon.png" alt="입력" className="pencilIcon" />
+                            <input 
+                                type="text" 
+                                value={input} 
+                                onChange={(e) => setInput(e.target.value)} 
+                                onKeyDown={(e) => e.key === "Enter" && sendMessage()} // 엔터 키로 전송
+                                placeholder="메시지를 입력하세요..."
+                            />
+                            {/* 전송 버튼 */}
+                            <button onClick={sendMessage}>
+                                <img src="sendIcon.png" alt="전송" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
                 <div className="feedback">
                     <div className="top">
                         <div className="title">작업물 피드백</div>

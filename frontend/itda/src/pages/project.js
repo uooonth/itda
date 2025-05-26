@@ -27,6 +27,9 @@ function Project({ isLoggedIn,username }) {
     const [activeTab, setActiveTab] = useState('home');
     const [barPosition, setBarPosition] = useState(0);
 
+
+
+
     useEffect(() => {
         const tabElement = document.querySelector(`.tab-${activeTab}`);
         if (tabElement) {
