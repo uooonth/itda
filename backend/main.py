@@ -1,4 +1,6 @@
-from fastapi import FastAPI,status,Depends
+
+from fastapi import FastAPI,status,Depends, APIRouter
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
 from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
@@ -14,6 +16,9 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
+from fastapi import Query
+from .email_routes import router as email_router
+from ormar.exceptions import NoMatch
 from backend.redisClass import Notice
 import redis
 import json
@@ -65,6 +70,16 @@ async def signup(user: UserCreate):
     
     return new_user
 
+@app.get("/check-id")
+async def check_id(id: str = Query(..., min_length=3, max_length=20)):
+    existing_user = await User.objects.get_or_none(id=id)
+    return {"is_duplicate": existing_user is not None}
+
+@app.get("/check-nickname")
+async def check_nickname(nickname: str = Query(..., min_length=2, max_length=20)):
+    existing_user = await User.objects.get_or_none(name=nickname)
+    return {"is_duplicate": existing_user is not None}
+
 
 ## ───────────── token API ───────────── #
 SECRET_KEY = "jongseolpw12345612345678901234567890"
@@ -100,6 +115,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 
     return user
 
+app.include_router(email_router, prefix="/email")
 
 ## ───────────── login API ───────────── #
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -151,22 +167,26 @@ from fastapi import HTTPException
 
 @app.post("/projects", response_model=ProjectOut)
 async def create_project(project: ProjectCreate):
-    # proposer 검증
-    proposer_user = await User.objects.get_or_none(id=project.proposer)
-    if proposer_user is None:
-        raise HTTPException(status_code=400, detail="프로포잘오류")
-    
-    # worker 검증
-    worker_user = await User.objects.get_or_none(id=project.worker)
-    if worker_user is None:
-        raise HTTPException(status_code=400, detail="워커오류")
-    
-    # ProjectOutline 생성
-    outline = await ProjectOutline.objects.create(
-        id=project.project,
-        name=project.name,
-        classification="default"
-    )
+    # proposer 리스트 검증
+    for proposer_id in project.proposer:
+        user = await User.objects.get_or_none(id=proposer_id)
+        if user is None:
+            raise HTTPException(status_code=400, detail=f"프로포저 '{proposer_id}'가 존재하지 않습니다.")
+
+    # worker 리스트 검증
+    for worker_id in project.worker:
+        user = await User.objects.get_or_none(id=worker_id)
+        if user is None:
+            raise HTTPException(status_code=400, detail=f"워커 '{worker_id}'가 존재하지 않습니다.")
+
+    # ProjectOutline 존재 여부 확인 혹은 새로 생성
+    outline = await ProjectOutline.objects.get_or_none(id=project.id)
+    if outline is None:
+        outline = await ProjectOutline.objects.create(
+            id=project.id,
+            name=project.name,
+            classification=project.classification
+        )
 
     # ProjectInfo 생성
     new_project = await ProjectInfo.objects.create(
@@ -178,11 +198,69 @@ async def create_project(project: ProjectCreate):
         email=project.email,
         proposer=project.proposer,
         worker=project.worker,
-        thumbnail=project.thumbnail
+        roles=project.roles,
+        thumbnail=project.thumbnail,
+        recruit_number=project.recruit_number,
+        career=project.career,
+        contract_until=project.contract_until,
+        starred_users=[]
     )
+
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
 
+router = APIRouter()
+
+@router.get("/projects/{project_id}", response_model=ProjectOut)
+async def get_project_detail(project_id: int):
+    try:
+        project = await ProjectInfo.objects.select_related("project").get(id=project_id)
+    except NoMatch:
+        raise HTTPException(status_code=404, detail="해당 프로젝트를 찾을 수 없습니다.")
+    
+    return project
+
+# 앱에 등록
+app.include_router(router)
+
+@app.delete("/projects/{project_id}")
+async def delete_project(project_id: int, current_user: User = Depends(get_current_user)):
+    project = await ProjectInfo.objects.get_or_none(id=project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다.")
+    if current_user.id not in project.proposer:
+        raise HTTPException(status_code=403, detail="삭제 권한이 없습니다.")
+
+    await project.delete()
+    return {"detail": "삭제 성공"}
+
+@app.post("/projects/{project_id}/star")
+async def toggle_star(
+    project_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    project = await ProjectInfo.objects.get_or_none(id=project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다.")
+
+    user_id = current_user.id
+    starred = project.starred_users or []
+
+    if user_id in starred:
+        starred.remove(user_id)
+        is_starred = False
+    else:
+        starred.append(user_id)
+        is_starred = True
+
+    project.starred_users = starred
+    await project.update()
+
+    return {
+        "isStarred": is_starred,
+        "starCount": len(starred)
+    }
+=======
 # ───────────── 플젝 탭 API ───────────── #
 @app.get("/project/{project_id}", response_model=ProjectOut)
 async def get_project_detail(project_id: str = Path(...)):

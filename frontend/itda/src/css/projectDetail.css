@@ -1,0 +1,182 @@
+.project-detail {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+}
+
+.project-header {
+    width: 100%;
+    height: 65vh;
+    display: flex;
+    align-items: center;
+    /* padding: 0 24px; */
+    background-position: center;
+}
+
+.header-left {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 1;
+    width: 50%;
+}
+
+.header-left::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(to right,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 40%,
+        rgba(0, 0, 0, 0.6) 60%,
+        rgba(0, 0, 0, 0.2) 80%,
+        transparent 100%);
+    z-index: -1;
+}
+.header-button {
+    display: flex;          
+    flex-direction: row;     
+    align-items: center;     
+    margin-bottom: 5vh;     
+}
+
+.header-button button {
+    display: flex;         
+    align-items: center;
+    justify-content: center;
+
+    background-color: white;
+    color: black;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-right: 10px;  
+}
+
+.application {
+    width: 9.5vw;
+    height: 6.5vh;
+    font-size: 1.15rem;
+    font-family: 'Pretendard-Bold';
+}
+
+.star {
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 4vw;
+    height: 6.5vh;
+}
+
+.starIcon {
+    font-size: 1.5rem;
+    color: #797979;
+}
+
+.starIcon.filled {
+    color: gold;
+}
+
+.star-count {
+    font-size: 0.8rem;
+    color: #333;
+    margin-top: 2px;
+}
+
+.delete-button{
+    width: 7vw;
+    height: 6.5vh;
+    font-size: 1rem;
+    font-family: 'Pretendard-Bold';
+}
+
+
+.header-title {
+    margin-left: 4vw;
+    color: white;
+}
+
+.project-name {
+    font-size: 2.8rem;
+    font-family: 'Pretendard-SemiBold';
+    margin-bottom: 3.5vh;
+}
+
+.explain {
+    font-size: 1.2rem;
+    font-family: 'Pretendard-Medium';
+    margin-bottom: 4vh;
+    color: #ffffff;
+    opacity: 0.69;
+    max-width: 50%;
+}
+
+.recruitment {
+    font-size: 1.2rem;
+    font-family: 'Pretendard-Medium';
+    margin-bottom: 5vh;
+    color: white;
+}
+
+/* 상세내용 */
+.detail-title {
+    color: black;
+}
+
+.project-details {
+    background-color: #f0f0f0;
+    color: black;
+    padding: 24px;
+    width: 80%;
+    max-width: 1000px;
+    margin: 40px auto;
+    border-radius: 12px;
+}
+
+.project-details h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ccc;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    /* border-right: 1px solid #ccc; */
+    padding-top: 16px;
+}
+
+.detail-card {
+    padding: 16px;
+    border-radius: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+
+.detail-card p.label {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.detail-card p.value {
+    font-weight: bold;
+    margin: 4px 0 0;
+}
+

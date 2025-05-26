@@ -1,41 +1,11 @@
-@font-face {
-    font-weight: 300;
-    font-family: "Pretendard-Light";
-    src: url("./fonts/Pretendard-Light.otf") format("truetype");
-}
-@font-face {
-    font-weight: 400;
-    font-family: "Pretendard-Regular";
-    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
-}
-@font-face {
-    font-weight: 500;
-    font-family: "Pretendard-Medium";
-    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
-}
-@font-face {
-    font-weight: 600;
-    font-family: "Pretendard-SemiBold";
-    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
-}
-@font-face {
-    font-weight: 700;
-    font-family: "Pretendard-Bold";
-    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
-}
-@font-face {
-    font-weight: 800;
-    font-family: "Pretendard-ExtraBold";
-    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
-}
-
 .login-content {
     margin-top: 20vh;
     text-align: center;
 }
 
-.login-content h1 {
+.login-content p {
     font-family: 'Pretendard-ExtraBold';
+    font-size: 1.5rem;
 }
 
 .login-image-container {
@@ -64,7 +34,7 @@
     width: 25vw;
 }
 .input-fields h2 {
-    font-size: medium;
+    font-size: 1rem;
     text-align: left;
     font-family: 'Pretendard-Light';
     margin-top: 30px;
@@ -73,12 +43,18 @@
 .login-input {
     width: 100%;
     padding: 8px;
-    font-size: 1rem;
+    font-size: 0.8rem;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 9px;
     text-align: left;
     font-family: 'Pretendard-Light';
-    height: 7vh;
+    height: 6vh;
+    margin-top: 8px;
+}
+
+.login-input:focus {
+    border-color: #FF7676;
+    outline: none;
 }
 
 .login-button {
@@ -87,19 +63,19 @@
     background-color: black;
     color: white;
     border: none;
-    border-radius: 5px;
-    height: 7vh;
+    border-radius: 9px;
+    height: 6.5vh;
     font-family: 'Pretendard-Light';
 }
 
 .signup-button {
-    bottom: 10px;
     background: none;
     border: none;
     color: gray;
     font-size: 1rem;
     cursor: pointer;
-    text-align: right;
-    font-family: 'Pretendard-Light';
-    margin-left: 79.7%;
+    font-family: 'Pretendard-Medium';
+    margin-top: 6px;
+    display: block;
+    margin-left: auto; 
 }

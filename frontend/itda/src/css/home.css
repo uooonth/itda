@@ -46,7 +46,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     color: white;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-family: 'Pretendard-Medium';
 }
 .create-button {
@@ -60,9 +60,9 @@
     background-color: white;
     color: #333;
     border: 2px solid #ffffff;
-    font-size: medium;
+    font-size: 1rem;
     font-family: 'Pretendard-Bold';
-    border-radius: 5px;
+    border-radius: 10px;
     margin-top: 10px;
 }
 .bottom-content {
@@ -85,9 +85,9 @@
     border: 1px solid #ffffff;
     background-color: #fafafa;
     border-radius: 10px;
-    width: 18.5vw;
-    height: 3vh;
-    font-family: 'Pretendard-Medium';
+    width: 20vw;
+    height: 4vh;
+    font-family: 'Pretendard-Light';
 }
 
 .tab-button {
@@ -117,12 +117,13 @@
 .tab-button:hover, ::after {
     background-color: #FF7676;
     color: white;
+    opacity: 0.8;
 }
 .tab-button.active {
     background-color: #FF7676;
     color: white;
+    transition: opacity 0.3s;
 }
-
 
 .right-panel {
     width: 75%;
@@ -132,6 +133,7 @@
 .title {
     text-align: left;
     font-family: 'Pretendard-Medium';
+    margin-bottom: 20px;
 }
 
 .project-grid {
@@ -189,4 +191,47 @@
 .project-card h4 {
     font-family: 'Pretendard-Bold';
     font-size: small;
+}
+.focus {
+    font-family: 'Pretendard-Bold';
+}
+
+.project-card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2); /* 반투명 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1;
+}
+
+.project-card:hover .card-overlay {
+    opacity: 1;
+}
+
+.overlay-text {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 2;
+}
+.empty-p {
+    margin-top: 50px;
 }

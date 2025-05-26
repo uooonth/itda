@@ -1,15 +1,16 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date, datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
-    
 class SalaryType(str, Enum):
+    HOURLY = "시급"
     MONTHLY = "월급"
     WEEKLY = "주급"
     UNPAID = "무급"
     ANNUAL = "연봉"
     PER_TASK = "건당"
+
 
 class Education(str, Enum):
     HIGH = "고졸"
@@ -18,18 +19,31 @@ class Education(str, Enum):
     MIDDLE = "중졸"
     NONE = "무관"
 
+class Career(str, Enum):
+    NEW = "신입"
+    EXPERIENCED = "경력"
+    ANY = "무관"
+
+
 class ProjectCreate(BaseModel):
-    id: str            # 만든 사람 id (ProjectOutline용)
-    name: str          # 프로젝트 이름 (ProjectOutline용)
-    project: str       # 프로젝트 ID (ProjectInfo 외래키용)
+    id: str
+    name: str
+    classification: Optional[str] = "default"
     explain: str
     sign_deadline: date
     salary_type: SalaryType
     education: Education
-    email: str
-    proposer: str
-    worker: str
-    thumbnail: str | None = None
+    email: EmailStr
+    proposer: List[str]
+    worker: List[str]
+    roles: List[str]
+    thumbnail: Optional[str] = None
+
+    # 추가 필드
+    recruit_number: int                          # 모집 인원 수
+    career: Career                               # 경력 조건
+    contract_until: date                         # 계약 종료일 (언제까지 같이 일할지)
+    starred_users: Optional[List[str]] = []
 
 
 class ProjectOutlineOut(BaseModel):
@@ -45,36 +59,46 @@ class ProjectOut(BaseModel):
     project: ProjectOutlineOut
     explain: str
     sign_deadline: date
-    salary_type: str
-    education: str
-    email: str
-    proposer: str
-    worker: str
+    salary_type: SalaryType
+    education: Education
+    email: EmailStr
+    proposer: List[str]
+    worker: List[str]
+    roles: List[str]
     thumbnail: Optional[str] = None
+
+    # 추가 필드
+    recruit_number: int
+    career: Career
+    contract_until: date
+
+    starred_users: List[str] = []
 
     class Config:
         orm_mode = True
-        
-        
-        
+
+
+
 class UserCreate(BaseModel):
     id: str
     name: str
-    pw_hash: str 
+    password: str  # 원본 비밀번호를 받고 서버에서 해싱 권장
     email: EmailStr
 
 
 class UserResponse(BaseModel):
     id: str
-    email: str
+    email: EmailStr
     name: str
 
     class Config:
         orm_mode = True
 
+
 class UserLogin(BaseModel):
     id: str
     password: str
+
 
 class Token(BaseModel):
     access_token: str
