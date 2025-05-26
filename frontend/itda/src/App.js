@@ -54,7 +54,7 @@ function App() {
         <Route path="/" element={<Navigate replace to="/home" />} />
         <Route path="/home" element={<Home />} />
         <Route path="/project" element={<Project isLoggedIn={isLoggedIn}  username={username} />} />
-        <Route path="/project/:id" element={
+        <Route path="/project/:Pg_id" element={
           <Project isLoggedIn={isLoggedIn} username={username} initialTab="project">
             <ProjectDetail />
           </Project>
