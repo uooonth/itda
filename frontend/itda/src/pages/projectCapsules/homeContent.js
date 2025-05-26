@@ -95,9 +95,9 @@ const HomeContent = ({ username }) => {
     /*--------------------------------------------------------*/
     const navigate = useNavigate();
     const handleProjectClick = (projectId) => {
-        navigate(`/project/${projectId}`);
-    };
-
+        navigate(`/project/${projectId}`, {
+            state: { username: username }
+        });    };
 
 
     return (
@@ -136,7 +136,7 @@ const HomeContent = ({ username }) => {
                 <div className="title">{projects.length}개의 프로젝트가 있어요.</div>
 
                 {projects.map((project) => (
-                    <div className="object" key={project.id} onClick={() => handleProjectClick(project.id)} style={{ cursor: 'pointer' }}>
+                    <div className="object" key={project.project.id} onClick={() => handleProjectClick(project.project.id)} style={{ cursor: 'pointer' }}>
                         <div className="object_icon">icon자리</div>
                         <div className="object_content">
                             <div className="title">{project.project.name}</div>

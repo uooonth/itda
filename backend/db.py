@@ -1,3 +1,4 @@
+from __future__ import annotations
 import databases
 import ormar
 import sqlalchemy
@@ -5,6 +6,7 @@ from datetime import date, datetime
 from enum import Enum
 from pydantic import BaseModel
 from backend.config import settings
+from typing import Optional, ForwardRef
 
 # 공통 설정
 database = databases.Database(settings.DATABASE_URL)
@@ -64,19 +66,7 @@ class ProjectInfo(ormar.Model):
     thumbnail: str = ormar.String(max_length=255, nullable=True)
 
 
-class UploadedFile(ormar.Model):
-    class Meta:
-        tablename = "uploaded_files"
-        metadata = metadata
-        database = database
-    id: int = ormar.Integer(primary_key=True)
-    name: str = ormar.String(max_length=255)
-    extension: str = ormar.String(max_length=10)
-    owner: User = ormar.ForeignKey(User)
-    project: ProjectOutline = ormar.ForeignKey(ProjectOutline)
-    comment_user: str = ormar.String(max_length=30)
-    comment_text: str = ormar.Text()
-    performance: bool = ormar.Boolean(default=False)
+
 
 class Todo(ormar.Model):
     class Meta:
@@ -96,7 +86,7 @@ class ProjectTag(ormar.Model):
         database = database
     id: int = ormar.Integer(primary_key=True)
     tag_name: str = ormar.String(max_length=50)
-    project: ProjectOutline = ormar.ForeignKey(ProjectOutline)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
 
 class Calendar(ormar.Model):
     class Meta:
@@ -108,7 +98,7 @@ class Calendar(ormar.Model):
     dates: date = ormar.Date()
     owner: User = ormar.ForeignKey(User)
     is_repeat: bool = ormar.Boolean(default=False)
-    in_project: ProjectOutline = ormar.ForeignKey(ProjectOutline, nullable=True)
+    in_project: ProjectInfo = ormar.ForeignKey(ProjectInfo, nullable=True)
 
 class Chat(ormar.Model):
     class Meta:
@@ -121,6 +111,40 @@ class Chat(ormar.Model):
     message: str = ormar.Text()
     timestamp: datetime = ormar.DateTime(default=datetime.utcnow)
 
+
+
+#건들 ㄴㄴ
+ProjectFolderRef = ForwardRef("ProjectFolder")
+
+#폴더 관리용
+class ProjectFolder(ormar.Model):
+    class Meta:
+        tablename = "project_folders"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    name: str = ormar.String(max_length=255, nullable=False)
+    created_at: datetime = ormar.DateTime(default=datetime.utcnow)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
+    parent_id: Optional[int] = ormar.Integer(nullable=True)  
+# 업로드 파일 관리용
+class UploadedFile(ormar.Model):
+    class Meta:
+        tablename = "uploaded_files"
+        metadata = metadata
+        database = database 
+    id: int = ormar.Integer(primary_key=True)
+    name: str = ormar.String(max_length=255)
+    s3_key: str = ormar.String(max_length=255)
+    s3_url: str = ormar.String(max_length=1000)
+    size: int = ormar.Integer(nullable=True) 
+    uploader: User = ormar.ForeignKey(User)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
+    folder: Optional[ProjectFolder] = ormar.ForeignKey(ProjectFolder, nullable=True) 
+    uploaded_at: datetime = ormar.DateTime(default=datetime.utcnow)
+    
+    
 # ───────────── 테이블 생성 ───────────── #
 engine = sqlalchemy.create_engine(settings.DATABASE_URL)
 metadata.create_all(engine)

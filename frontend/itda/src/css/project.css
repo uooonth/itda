@@ -518,6 +518,7 @@
 
 .projectContent .todoList .top {
     display: flex;
+    justify-content: space-between;
 }
 
 .projectContent .todoList .content .object {
@@ -541,7 +542,7 @@
 
 .projectContent .liveChat .content {
     height: 41.30vh;         /* 55.063vh * 0.75 */
-    width: 100%;
+    width: 155%;
 }
 
 .projectContent .feedback .top {
@@ -551,12 +552,14 @@
     font-size: 0.94rem;       /* 1.25rem * 0.75 */
     color: black;
     display: flex;
-    justify-items: space-between;
+    justify-content: space-between;
 }
 
 .projectContent .feedback .content-feedback {
-    height: 23.25vh;         /* 31vh * 0.75 */
+    height: 40vh;         /* 31vh * 0.75 */
     width: 100%;
+    display:block;
+    overflow-y: auto;
 }
 
 .more {
@@ -736,7 +739,7 @@
     flex: 1;
     padding: 25px;
     border-radius: 10px;
-    min-height: 400px;
+    min-height: 550px;
     max-height: 614px;
     background-color: white;
     overflow-y: auto;
@@ -905,3 +908,98 @@
   button {
     padding: 5px 10px;
   }
+  .folderPreview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    column-gap: 16px;
+    row-gap: 4vh;
+    padding-top: 3vw;
+    padding-left: 2vw;
+    padding-right: 2vw;
+    padding-bottom: 3vw;
+}
+.folderPreview::-webkit-scrollbar {
+    width: 5px;
+}
+.folderPreview > .folderPreSee {
+    box-sizing: border-box;
+    width: calc(25% - (3 * 16px / 4)); 
+}
+.folderPreview::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 5px;
+}
+
+.folderPreview::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+.folderPreview .folderIcon{
+    width: 7vw;
+    height: 7vw;
+    
+}
+
+.folderPreview .folderIcon{
+    width: 7vw;
+    height: 7vw;
+}
+.folderPreview .fileItem,
+.folderPreview .folderItem {
+    font-family: 'pretendard-Medium';
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center; 
+    width: 100%; 
+}
+
+
+.folderName {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+}
+.folderPreview .folderIcon {
+    width: 70px;  
+    height: 70px; 
+    margin-bottom: 8px;
+}
+.folderName.expanded {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-break: break-word;
+}
+@media (max-width: 1024px) { 
+    .folderPreview > .folderPreSee {
+        width: calc(33.333% - (2 * 16px / 3)); 
+    }
+}
+
+@media (max-width: 768px) {
+    .folderPreview > .folderPreSee {
+        width: 100%;
+    }
+
+    .folderPreview .folderIcon { 
+        width: 60px;
+        height: 60px;
+    }
+}
+
+.folderPreview::-webkit-scrollbar {
+    width: 5px;
+}
+.folderPreview::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 5px;
+}
+.folderPreview::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
