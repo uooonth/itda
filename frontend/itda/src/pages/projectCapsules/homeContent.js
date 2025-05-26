@@ -1,11 +1,16 @@
 import React,{useState,useEffect} from 'react';
 import search from '../../icons/search.svg';
 import pinBefore from '../../icons/pinBefore.svg';
+import { useNavigate } from 'react-router-dom';
 
 
 const STORAGE_KEY = 'itda_search_history';
 
-const HomeContent = () => {
+const HomeContent = ({ username }) => {
+
+    /*--------------------------------------------------------*/
+    /*---------------------  검색 History ---------------------*/
+    /*--------------------------------------------------------*/
     const [searchHistory, setSearchHistory] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
         try {
@@ -25,6 +30,7 @@ const HomeContent = () => {
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(searchHistory));
     }, [searchHistory]);
+
 
 
     const handleKeyDown = (e) => {
@@ -48,6 +54,50 @@ const HomeContent = () => {
     const handleDeleteAll = () => {
         setSearchHistory([]);
     };
+
+
+
+
+    /*--------------------------------------------------------*/
+    /*----------------  Project List 불러오기------------------*/
+    /*--------------------------------------------------------*/
+    const [projects, filteredList] = useState([]);
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        if (!token || !username) return;
+    
+        const fetchProjects = async () => {
+          const res = await fetch("http://127.0.0.1:8008/getProjects", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await res.json();
+          console.log(data);
+
+
+          const filtered = data.filter((project) => {
+            const workers = project.worker.split(' ');
+            return workers.includes(username);
+          });
+          
+          filteredList(filtered);
+        };
+    
+        fetchProjects();
+      }, [username]);
+    
+
+
+
+    /*--------------------------------------------------------*/
+    /*----------------  Project 대시보드 입장 ------------------*/
+    /*--------------------------------------------------------*/
+    const navigate = useNavigate();
+    const handleProjectClick = (projectId) => {
+        navigate(`/project/${projectId}`);
+    };
+
 
 
     return (
@@ -83,22 +133,23 @@ const HomeContent = () => {
             </div>
 
             <div className="projectList">
-                <div className="title">nn개의 프로젝트가 있어요.</div>
-                {[1, 2, 3, 4].map((_, i) => (
-                    <div className="object" key={i}>
+                <div className="title">{projects.length}개의 프로젝트가 있어요.</div>
+
+                {projects.map((project) => (
+                    <div className="object" key={project.id} onClick={() => handleProjectClick(project.id)} style={{ cursor: 'pointer' }}>
                         <div className="object_icon">icon자리</div>
                         <div className="object_content">
-                            <div className="title">침착맨 유튜브 편집팀</div>
-                            <div className="explain">침착맨유튜브를 전문적으로 시청합시다</div>
+                            <div className="title">{project.project.name}</div>
+                            <div className="explain">{project.explain}</div>
                             <div className="status">
-                                <div className="publisher">● 게시자 침착맨</div>
-                                <div className="role">전문시청팀</div>
+                                <div className="publisher">● 게시자 {project.proposer}</div>
+                                <div className="role">작업자</div>
                             </div>
                         </div>
                         <div className="rightSide">
                             <img src={pinBefore} className="pin" alt="pin" />
-                            <div className="deadLine">2025.01.25 마감</div>
-                            <div className="lastaccess">3일전 접속</div>
+                            <div className="deadLine">{project.sign_deadline} 마감</div>
+                            <div className="lastaccess">최근 접속 정보 없음</div>
                         </div>
                     </div>
                 ))}
