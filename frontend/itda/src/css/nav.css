@@ -1,0 +1,272 @@
+@font-face {
+    font-weight: 300;
+    font-family: "Pretendard-Light";
+    src: url("./fonts/Pretendard-Light.otf") format("truetype");
+}
+@font-face {
+    font-weight: 400;
+    font-family: "Pretendard-Regular";
+    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
+}
+@font-face {
+    font-weight: 500;
+    font-family: "Pretendard-Medium";
+    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
+}
+@font-face {
+    font-weight: 600;
+    font-family: "Pretendard-SemiBold";
+    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 700;
+    font-family: "Pretendard-Bold";
+    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
+}
+@font-face {
+    font-weight: 800;
+    font-family: "Pretendard-ExtraBold";
+    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
+}
+
+.navigation {
+    position: absolute;
+    height: 3.25vw; 
+    width: 100vw;
+    padding: 0 3.125vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    border-bottom: 0.052vw solid rgba(0, 0, 0, 0.17);
+    top: 0; 
+    z-index: 1000;
+    background-color: white;
+    left: 0; 
+}
+
+.logo {
+    font-family: 'Pretendard-ExtraBold';
+    font-size: 1.45rem;
+    width: 14.06vw;
+    color: black;
+}
+  
+.navLinks {
+    display: flex;
+    gap: 4.375vw;
+
+    margin: 0 auto;
+}
+  
+.navLink {
+    font-family: 'Pretendard-ExtraLight';
+    font-size: 1.05rem;
+    color: black;
+    text-decoration: none;
+}
+  
+.navLink.active {
+    font-family: 'Pretendard-Bold';
+}
+.popupUserName{
+    font-family: 'Pretendard-bold';
+    font-size: 1.05rem; 
+    color: black;
+    cursor: pointer;
+    text-align: center;
+}
+.userSection {
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    gap: 0.852vw;
+    width: 14.06vw;
+}
+  
+.userName {
+    font-family: 'Pretendard-ExtraLight';
+    font-size: 0.95rem; 
+    color: black;
+    text-align: center;
+}
+  
+.icon {
+    cursor: pointer;
+    position: relative;
+    scale:0.8;
+}
+  
+.icon::after {
+    content: '';
+    position: absolute;
+    top: -0.463vw;
+    right: -0.463vw;
+    width: 0.926vw; 
+    height: 0.926vw;
+    background-color: red;
+    border-radius: 50%;
+    display: none;
+}
+  
+.icon.notification::after {
+    display: block;
+}
+  
+.popup {
+    position: absolute;
+    background-color: white;
+    border-radius: 1.852vw;
+    box-shadow: 0 0.37vw 0.556vw rgba(0, 0, 0, 0.1);
+    padding: 3.79vw 2.083vw 1.54vw 2.083vw;
+    z-index: 1000;
+    top: 0.926vw;
+    min-height: 9.259vw;
+}
+
+.popup .section {
+    margin-bottom: 1.2vw; 
+}
+
+.popup .section:last-child {
+    margin-bottom: 0;
+}
+
+.popup .section .content-nav .email {
+    font-family: 'Pretendard-Light';
+    font-size: 0.95rem; 
+    color: #a8a8a8;
+}
+.popup .section .popupUserName{
+    font-size: 1.35rem;
+    font-family: 'Pretendard-Bold';
+}
+.popup .section .title{
+    font-size: 1rem;
+    font-family: 'pretendard-SemiBold';
+    margin-bottom: 1.54vw;
+    margin-top:2.05vw
+}
+.popup .section .content-nav .profileSettings {
+    font-family: 'Pretendard-Regular';
+    font-size: 0.85rem;
+    color: #a2a2a2;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.popup .section .content-nav{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.5rem;
+    font-family: 'Pretendard-bold';
+    margin-bottom: 1.75vw;
+    cursor: pointer;
+}
+.popup .section .content{
+    all:unset;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Pretendard-Regular';
+}
+.popup .divider {
+    height: 0.093vw;
+    background-color: rgba(216, 216, 216, 0.4);
+    padding-left: 0!important;
+}
+.popup .logout {
+    font-family: 'Pretendard-SemiBold';
+    font-size:0.91rem ;
+    color: #6F6F6F;
+    margin-top: 1.54vw;
+    cursor: pointer;
+}
+  
+.profilePopup {
+    width: 21.875vw;
+    min-height: 9.259vw; 
+}
+  
+.alarmPopup {
+    width: 21.875vw; 
+    min-height: 9.259vw; 
+    padding: 3.79vw 2.083vw 1.54vw 2.083vw;
+}
+
+.close {
+    position: absolute;
+    top: 2.084vw; 
+    right:2.084vw;
+    cursor: pointer;
+}
+
+.authSection {
+    display: flex;
+    align-items: center;
+    gap: 1.042vw;
+    width: 14.06vw;
+    justify-content: right;
+}
+  
+.signUp {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 0.9rem; 
+    color: black;
+    background-color: white;
+    text-decoration: none;
+}
+  
+.loginButton {
+    background-color: black;
+    color: white;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 0.9rem; 
+    width: 5.5vw; 
+    height: 2vw;
+    border-radius: 4.444vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+  
+.loginIcon {
+    font-size: 1.667vw;
+}
+
+.alarmPopup .notification {
+    display: flex;
+    justify-content: space-between;
+}
+
+.alarmPopup .notification .icon {
+    scale: 1;
+    margin-right: 0.833vw; /* 16px / 1920px */
+}
+
+.alarmPopup .notification .toptext {
+    display: flex;
+
+}
+.alarmPopup .notification .toptext .title{
+    font-size: 0.79rem;
+    color: #939393;
+    font-family: 'pretendard-Medium';
+}
+.alarmPopup .notification .time{
+    font-size:0.79rem;
+    color: #939393;
+    font-family: 'pretendard-Medium';
+}
+.alarmPopup .bottomtext {
+    font-size: 0.9rem;
+    font-family: 'pretendard-semibold';
+    margin-left: 2.3vw;
+}
+
+
+.alarmPopup .divider {
+    height: 0.093vw; 
+    background-color: rgba(216, 216, 216, 0.4);
+    margin: 2.222vw 0;
+}

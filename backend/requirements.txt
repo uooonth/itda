@@ -1,0 +1,22 @@
+fastapi 
+uvicorn
+sqlalchemy
+alembic
+psycopg2-binary 
+websockets 
+asyncpg
+ormar==0.12.1
+psycopg2-binary
+pydantic<=1.10.5
+databases
+Tortoise 
+python-dotenv
+email-validator
+watchfiles
+watchgod==0.7
+passlib[bcrypt]
+python-jose[cryptography]
+redis
+# npm install emoji-picker-react
+# npm install vis-timeline
+# npm install @lourenci/react-kanban --legacy-peer-deps
