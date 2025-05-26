@@ -11,7 +11,7 @@ import SignupAgreement from './pages/signup/signupAgreement';
 import SignupForm from './pages/signup/signupForm';
 import SignupVerification from './pages/signup/signupVerification';
 import SignupComplete from './pages/signup/signupComplete';
-
+import ProjectDetail from './pages/projectCapsules/projectContent';
 // component 요소
 import "./App.css";
 
@@ -53,7 +53,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate replace to="/home" />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/project" element={<Project />} />
+        <Route path="/project" element={<Project isLoggedIn={isLoggedIn}  username={username} />} />
+        <Route path="/project/:id" element={
+          <Project isLoggedIn={isLoggedIn} username={username} initialTab="project">
+            <ProjectDetail />
+          </Project>
+        } />        
         <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUsername={setUsername} />} />
         <Route path="/signupAgreement" element={<SignupAgreement />} />
