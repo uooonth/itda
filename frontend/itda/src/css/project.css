@@ -905,3 +905,174 @@
   button {
     padding: 5px 10px;
   }
+
+  /* 아래부터는 실시간 채팅 css */
+.projectContent .liveChat .content {
+  width: 25vw;
+  height: 75vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 아래 고정되게 */
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 1vh;
+}
+
+.liveChat .chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 5vh 1vw 0 1vw;  
+}
+
+.liveChat .chatBubble {
+  background-color: #ececec;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  
+}
+
+.liveChat .chatBubble.me {
+  background-color: #000000;
+  align-self: flex-end;
+  border-radius: 15px 0 15px 15px;
+}
+
+.liveChat .chatBubble.other {
+  background-color: #eee;
+  align-self: flex-start;
+  border-radius: 0 15px 15px 15px;
+}
+
+.liveChat .chatInputArea {
+    display: flex;
+    align-items: center;
+    border-radius: 30px; 
+    border: none;
+    background-color: #f7f7f7;
+    border-top: 1px solid #eee;
+    margin: 0 auto;  /* 가운데 정렬 */
+    height:8vh;
+    width: 100%;
+}
+
+.liveChat .chatInputArea input {
+    flex: 1;
+    padding: 6px 12px;  /* 내부 패딩 축소 */
+    border: none;
+    font-size: 1rem;
+    outline: none;
+    background-color: #f7f7f7;
+}
+
+.liveChat .chatInputArea button {
+    width: 3.5vw;
+    height: 3.5vh;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* 전송 아이콘 */
+.liveChat button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* 연필 아이콘 */
+.liveChat .pencilIcon {
+    width: 2vw;  /* 기존보다 작게 */
+    height: 2vh;
+    margin-left: 0.5vw; /* 간격도 조금 조정 */
+    object-fit: contain;
+}
+
+.liveChat .chatMessageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0.8vh;
+}
+
+.liveChat .chatMessageWrapper.other {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.liveChat .chatMessageWrapper.me {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.liveChat .chatTime {
+  font-size: 0.3rem;
+  color: #999;
+  margin-bottom: 2px;
+  font-family: 'Pretendard-Light';
+}
+
+.liveChat .chatMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* 이름과 시간 사이 간격 */
+  padding: 0 5px;
+  font-size: 0.75rem;
+  font-family: 'Pretendard-Medium';
+  color: #555;
+}
+
+.liveChat .chatName {
+  font-weight: bold;
+  color:#1a1a1a
+}
+
+.liveChat .chatTimeLeft {
+  font-size: 0.6rem;
+  margin-left: 0;
+}
+
+.liveChat .chatTimeRight {
+  font-size: 0.6rem;
+  margin-left: 0;
+}
+
+.liveChat .chatBubbleTimeGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* 오른쪽 정렬 */
+}
+
+.liveChat .chatRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.liveChat .chatRow.me {
+  flex-direction: flex-end;;
+}
+
+/* 동그란 색깔 프로필 표시 */
+.liveChat .chatProfileDot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 상대방 프로필은 회색 */
+.liveChat .chatProfileDot.other {
+  background-color: #b9caf5;
+  margin-bottom:4vh;
+}
+
+/* 나(me) 프로필은 파랑 또는 검정 */
+.liveChat .chatProfileDot.me {
+  background-color: #dfa4d0;
+  margin-bottom:6vh;
+}
