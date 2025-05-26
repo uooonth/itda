@@ -1,8 +1,7 @@
 from pydantic import BaseModel, EmailStr
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from typing import Optional
-
 
     
 class SalaryType(str, Enum):
@@ -80,3 +79,33 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class CalendarCreate(BaseModel):
+    text: str
+    start: datetime
+    end: datetime
+    owner: str  # 사용자 ID
+    is_repeat: Optional[bool] = False
+    in_project: Optional[str] = None 
+
+class ChatMessage(BaseModel):
+    project_id: str
+    sender_id: str
+    sender_name: str
+    text: str
+    time: datetime
+
+class FeedbackChatMessage(BaseModel):
+    feedback_id: str
+    sender_id: str
+    sender_name: str
+    text: str
+    time: datetime
+
+"""
+class LiveChatMessage(BaseModel):
+    sender_id: str
+    receiver_id: str
+    text: str
+    time: datetime
+"""

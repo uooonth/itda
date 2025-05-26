@@ -1,7 +1,9 @@
 from fastapi import FastAPI,status,Depends
-from backend.db import database, User,ProjectInfo, ProjectOutline,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo
+from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo
+from backend.db import Calendar as CalendarModel
+from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage, LiveChatMessage
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path
@@ -14,6 +16,8 @@ from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
 from backend.redisClass import Notice
 import redis
+import json
+
 
 # ───────────── Docker 생명주기 설정 ───────────── #
 @asynccontextmanager
@@ -26,7 +30,6 @@ app = FastAPI(lifespan=lifespan)
 
 # ───────────── redis 설정 ───────────── #
 r = redis.Redis(host='itda_redis', port=6379, db=0, decode_responses=True)
-
 
 # ───────────── 3000포트에서 이쪽 주소를 쓸 수 있게 해주는 CORS설정 ───────────── #
 app.add_middleware(
@@ -211,3 +214,86 @@ async def get_notice(project_id: str):
         return {"project_id": project_id, "content": notice}
     else:
         raise HTTPException(status_code=404, detail="공지사항이 없습니다.")
+    
+"""    
+# ───────────── 플젝 페이지 실시간 채팅 저장 API ───────────── #
+@app.post("/livechat/send")
+async def send_live_chat_message(msg: LiveChatMessage):
+    # 양방향 키 만들기 (ex: user1↔user2)
+    sorted_ids = sorted([msg.sender_id, msg.receiver_id])
+    redis_key = f"livechat:{sorted_ids[0]}:{sorted_ids[1]}"
+    message_data = {
+        "sender_id": msg.sender_id,
+        "text": msg.text,
+        "time": msg.time.isoformat()
+    }
+    r.rpush(redis_key, json.dumps(message_data))
+    return {"message": "메시지 저장 완료"}
+
+# 채팅 불러오기 API
+@app.get("/livechat/{user1}/{user2}") # 1대多 채팅방이라 일케 하면 안됨 수정 필요
+async def get_live_chat_messages(user1: str, user2: str):
+    sorted_ids = sorted([user1, user2])
+    redis_key = f"livechat:{sorted_ids[0]}:{sorted_ids[1]}"
+    messages = r.lrange(redis_key, 0, -1)
+    return [json.loads(m) for m in messages]
+"""
+    
+# ───────────── 피드백 팝업 페이지 채팅 저장 API ───────────── #
+@app.post("/feedbackchat/send")
+async def send_feedback_chat_message(msg: FeedbackChatMessage):
+    redis_key = f"chat:feedback:{msg.feedback_id}"
+    message_data = {
+        "sender_id": msg.sender_id,
+        "sender_name": msg.sender_name,
+        "text": msg.text,
+        "time": msg.time.isoformat()
+    }
+    r.rpush(redis_key, json.dumps(message_data))
+    return {"message": "피드백 채팅 메시지 저장 완료"}
+
+# 채팅 불러오기 API
+@app.get("/feedbackchat/{feedback_id}")
+async def get_feedback_chat_messages(feedback_id: str):
+    redis_key = f"chat:feedback:{feedback_id}"
+    messages = r.lrange(redis_key, 0, -1)
+    return [json.loads(m) for m in messages]
+
+
+# ───────────── 채팅 페이지 채팅 저장 API ───────────── #
+@app.post("/chat/send")
+async def send_chat_message(msg: ChatMessage):
+    redis_key = f"chat:project:{msg.project_id}"
+    message_data = {
+        "sender_id": msg.sender_id,
+        "sender_name": msg.sender_name,
+        "text": msg.text,
+        "time": msg.time.isoformat()
+    }
+    r.rpush(redis_key, json.dumps(message_data))  # Redis에 메시지 저장
+    return {"message": "메시지 저장 완료"}
+
+# 채팅 불러오기 API
+@app.get("/chat/{project_id}")
+async def get_chat_messages(project_id: str):
+    redis_key = f"chat:project:{project_id}"
+    messages = r.lrange(redis_key, 0, -1)  # 전체 메시지 가져오기
+    return [json.loads(m) for m in messages]
+
+
+# ───────────── 캘린더 API ───────────── #
+@app.post("/calendar/", status_code=status.HTTP_201_CREATED)
+async def create_calendar_event(calendar: CalendarCreate):
+    try:
+        query = CalendarModel.insert().values(
+            id=str(uuid4()),
+            text=calendar.text,
+            date=calendar.start.date(),
+            owner=calendar.owner,
+            is_repeat=calendar.is_repeat,
+            in_project=calendar.in_project
+        )
+        await database.execute(query)
+        return {"message": "일정이 성공적으로 추가되었습니다."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"일정 추가 실패: {str(e)}")
