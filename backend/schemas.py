@@ -104,6 +104,32 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
+class TodoCreate(BaseModel):
+    text: str
+    user_id: str
+    deadline: str
+    start_day: str
+    project_id: str
+    
+    
+class TodoResponse(BaseModel):
+    id: str
+    text: str
+    user_id: str
+    deadline: str
+    start_day: str
+    project_id: Optional[str] = None
+
+
+class UploadedFileCreate(BaseModel):
+    name: str
+    extension: str
+    owner_id: str
+    project_id: int
+    comment_user: str
+    comment_text: str
+    performance: bool = False
 class CalendarCreate(BaseModel):
     text: str
     start: datetime

@@ -1,16 +1,15 @@
 
-from fastapi import FastAPI,status,Depends, APIRouter
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
+from fastapi import FastAPI,status,Depends, APIRouter,Body
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut,ProjectFolder
 from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage, LiveChatMessage
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage, LiveChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,
 from fastapi import HTTPException
 from typing import List
-from fastapi import Path
+from fastapi import Path,HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import HTTPException
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
@@ -19,7 +18,7 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Query
 from .email_routes import router as email_router
 from ormar.exceptions import NoMatch
-from backend.redisClass import Notice
+from backend.redisClass import Notice,r,FeedbackStore,FeedbackMessage
 import redis
 import json
 
@@ -33,13 +32,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# ───────────── redis 설정 ───────────── #
-r = redis.Redis(host='itda_redis', port=6379, db=0, decode_responses=True)
 
 # ───────────── 3000포트에서 이쪽 주소를 쓸 수 있게 해주는 CORS설정 ───────────── #
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React 개발 서버 주소
+    allow_origins=["*"],  # React 개발 서버 주소
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -165,8 +162,12 @@ async def get_projects():
 
 from fastapi import HTTPException
 
+
+
+#───────────── 프로젝트 생성 ─────────────#
 @app.post("/projects", response_model=ProjectOut)
 async def create_project(project: ProjectCreate):
+
     # proposer 리스트 검증
     for proposer_id in project.proposer:
         user = await User.objects.get_or_none(id=proposer_id)
@@ -208,6 +209,7 @@ async def create_project(project: ProjectCreate):
 
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
+
 
 router = APIRouter()
 
@@ -260,7 +262,6 @@ async def toggle_star(
         "isStarred": is_starred,
         "starCount": len(starred)
     }
-=======
 # ───────────── 플젝 탭 API ───────────── #
 @app.get("/project/{project_id}", response_model=ProjectOut)
 async def get_project_detail(project_id: str = Path(...)):
@@ -280,19 +281,466 @@ async def get_project_detail(project_id: str = Path(...)):
 @app.post("/project/{project_id}/notice")
 async def create_notice(project_id: str, notice: Notice):
     redis_key = f"project:공지:{project_id}"
-    r.set(redis_key, notice.content)
-    return {"{project_id}에 공지사항이 설정"}
+    await r.set(redis_key, notice.content)
+    return {"message": f"{project_id}에 공지사항이 설정되었습니다."}
+
 
 # 공지사항 가져오기 API
 @app.get("/project/{project_id}/notice")
 async def get_notice(project_id: str):
     redis_key = f"project:공지:{project_id}"
-    notice = r.get(redis_key)
+    notice = await r.get(redis_key)  # ✅ await 추가
     if notice:
-        return {"project_id": project_id, "content": notice}
+        return {"project_id": project_id, "content": notice.decode('utf-8')}  # Redis는 bytes로 반환됨
     else:
         raise HTTPException(status_code=404, detail="공지사항이 없습니다.")
     
+    
+# ───────────── 플젝-투두-postgreSQL,redis ───────────── #
+
+
+# 투두 생성 API
+@app.post("/todos", response_model=Todo)
+async def create_todo(todo: TodoCreate):
+    todo_id = str(uuid.uuid4())
+    new_todo = await Todo.objects.create(
+        id=todo_id,
+        text=todo.text,
+        user={"id": todo.user_id},
+        deadline=todo.deadline,
+        start_day=todo.start_day
+    )
+    # Redis에 매핑 (Set 사용)
+    r.sadd(f"project:{todo.project_id}:todos", todo_id)
+    return new_todo
+@app.get("/todos")
+async def get_all_todos():
+    todos = await Todo.objects.all()
+    return todos
+@app.get("/projects/{project_id}/todos/status/{status}")
+async def filltering_status_todo(project_id: str, status: str):
+    if status not in VALID_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    result = []
+    for key in r.keys("project:*:todos"):
+        if key == f"project:{project_id}:todos":
+            todo_ids = r.smembers(key)
+            for todo_id in todo_ids:
+                todo_status = r.get(f"todo_status:{todo_id}")
+                if todo_status == status:
+                    result.append(todo_id)
+
+    return {"status": status, "todos": result}
+
+# 투두 프로젝트 별 가져오기 api
+@app.get("/projects/{project_id}/todos", response_model=List[TodoResponse])
+async def get_todos_by_project(project_id: str):
+    todo_ids = r.smembers(f"project:{project_id}:todos")
+
+    if not todo_ids:
+        return []
+
+    result = []
+    for todo_id in todo_ids:
+        todo = await Todo.objects.get_or_none(id=todo_id)
+        if todo:
+            # 상태 가져오기
+            status = r.get(f"todo_status:{todo_id}") or "in_progress"
+            result.append(TodoResponse(
+                id=todo.id,
+                text=todo.text,
+                user_id=todo.user.id,
+                deadline=str(todo.deadline),
+                start_day=str(todo.start_day),
+                project_id=project_id,
+                status=status
+            ))
+
+    return result
+
+# 투두 개별 가져오기 API
+@app.get("/todos/{todo_id}", response_model=Todo)
+async def get_todo(todo_id: str):
+    todo = await Todo.objects.get_or_none(id=todo_id)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    return todo
+
+# 투두 수정 API
+@app.put("/todos/{todo_id}", response_model=Todo)
+async def update_todo(todo_id: str, update_data: TodoCreate):
+    todo = await Todo.objects.get_or_none(id=todo_id)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    await todo.update(
+        text=update_data.text,
+        user={"id": update_data.user_id},
+        deadline=update_data.deadline,
+        start_day=update_data.start_day
+    )
+    return todo
+
+# 투두 삭제 API
+@app.delete("/todos/{todo_id}")
+async def delete_todo(todo_id: str, project_id: str):
+    todo = await Todo.objects.get_or_none(id=todo_id)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    await todo.delete()
+    r.srem(f"project:{project_id}:todos", todo_id)
+    return {"message": f"{todo_id} deleted successfully"}
+
+
+
+# ───────────── 플젝-투두-상태변경crud───────────── #
+VALID_STATUSES = ["in_progress", "completed", "waiting_feedback"]
+
+@app.post("/todos/{todo_id}/status")
+async def set_todo_status(todo_id: str, status: str):
+    """
+    Redis에 Todo 상태를 설정합니다.
+    """
+    if status not in VALID_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    # PostgreSQL에 실제로 Todo가 존재하는지 확인
+    todo = await Todo.objects.get_or_none(id=todo_id)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    # Redis에 상태 저장
+    r.set(f"todo_status:{todo_id}", status)
+    return {"message": f"{todo_id}의 상태가 '{status}'로 설정되었습니다."}
+
+
+@app.get("/todos/{todo_id}/status")
+async def get_todo_status(todo_id: str):
+    """
+    Redis에서 Todo 상태를 조회합니다.
+    """
+    status = r.get(f"todo_status:{todo_id}")
+    if not status:
+        raise HTTPException(status_code=404, detail="Status not found")
+    return {"todo_id": todo_id, "status": status}
+
+
+@app.get("/todos/status/{status}")
+async def get_todos_by_status(status: str):
+    """
+    특정 상태에 해당하는 모든 Todo ID를 가져옵니다.
+    """
+    if status not in VALID_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    result = []
+    for key in r.keys("todo_status:*"):
+        if r.get(key) == status:
+            todo_id = key.split(":")[1]
+            result.append(todo_id)
+    return {"status": status, "todos": result}
+
+
+
+
+
+# ───────────── 플젝-피드백-업로드 파일 crud ───────────── #
+from .s3 import s3, BUCKET_NAME
+import uuid
+from fastapi import UploadFile, File
+#객체조회
+@app.get("/projects/{project_id}/files")
+async def get_project_files(project_id: int):
+    files = await UploadedFile.objects.filter(project__id=project_id).all()
+    return [
+        {
+            "id": f.id,
+            "key": f.s3_key,
+            "url": f.s3_url,
+            "name": f.name,
+            "uploaded_at": f.uploaded_at.isoformat(),
+            "size": f.size,
+            "folder_id": f.folder.id if f.folder else None,
+            "uploader": {
+                "id": f.uploader.id 
+            } if f.uploader else None,        }
+        for f in files
+    ]
+
+from datetime import datetime
+
+#s3에 업로드 api
+from fastapi import Form
+@app.post("/upload/s3/{project_id}")
+async def upload_s3(
+    project_id: int,
+    file: UploadFile = File(...),
+    folder_id: int = Form(None),
+    uploader: str = Form(...)):
+    file_content = await file.read()
+    extension = file.filename.split('.')[-1]
+    s3_key = f"uploads/{uuid.uuid4()}.{extension}"
+
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=s3_key,
+        Body=file_content,
+        ContentType=file.content_type
+    )
+
+    s3_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
+
+    project = await ProjectInfo.objects.get(id=project_id)
+    folder = await ProjectFolder.objects.get(id=folder_id) if folder_id else None
+
+    saved = await UploadedFile.objects.create(
+        name=file.filename,
+        s3_key=s3_key,
+        s3_url=s3_url,
+        size=len(file_content),  
+        project=project,
+        folder=folder,
+        uploader=uploader,
+        uploaded_at=datetime.utcnow()
+    )
+
+    return {"file_id": saved.id, "url": s3_url}
+
+#수정
+@app.put("/upload/s3/{file_id}")
+async def update_file(file_id: int, file: UploadFile = File(...)):
+    from datetime import datetime
+
+    old_file = await UploadedFile.objects.select_related("project").get(id=file_id)
+    if not old_file:
+        raise HTTPException(status_code=404, detail="기존 파일을 찾을 수 없습니다")
+
+    extension = file.filename.split('.')[-1]
+    new_key = f"uploads/{uuid.uuid4()}.{extension}"
+
+    # 파일 전체 읽기 및 사이즈 측정
+    file_content = await file.read()
+    file_size = len(file_content)
+
+    # S3에 새 파일 업로드
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=new_key,
+        Body=file_content,
+        ContentType=file.content_type
+    )
+
+    new_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{new_key}"
+
+    # 기존 파일 정보 업데이트
+    old_file.name = file.filename
+    old_file.s3_key = new_key
+    old_file.s3_url = new_url
+    old_file.uploaded_at = datetime.utcnow()
+    old_file.size = file_size
+    await old_file.update()
+
+    return {
+        "id": old_file.id,
+        "name": old_file.name,
+        "s3_url": old_file.s3_url,
+        "uploaded_at": old_file.uploaded_at.isoformat(),
+        "size": file_size,
+    }
+
+#삭제
+@app.delete("/files/{file_id}")
+async def delete_file(file_id: int):
+    file = await UploadedFile.objects.get_or_none(id=file_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="zz")
+    #S3삭제
+    try:
+        s3.delete_object(Bucket=BUCKET_NAME, Key=file.s3_key)
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail="zz")
+    #DB삭제
+    await file.delete()
+
+    return {"detail": "ㅇㅇ"}
+
+
+
+#=======================================================#
+# ─────────────            s3설정          ───────────── #
+#========================================================#
+
+
+#백엔드에서 s3에 파일 업로드
+@app.post("/upload/s3")
+async def upload_to_s3(file: UploadFile = File(...)):
+    file_content = await file.read()
+    extension = file.filename.split('.')[-1]
+    s3_key = f"uploads/{uuid.uuid4()}.{extension}"  
+
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=s3_key,
+        Body=file_content,
+        ContentType=file.content_type
+    )
+
+    file_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
+    return {"url": file_url, "key": s3_key}
+
+
+#s3삭제
+
+@app.delete("/delete/s3/{file_id}")
+async def delete_file(file_id: int):
+    file = await UploadedFile.objects.get_or_none(id=file_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="파일에러")
+    
+    try:
+        # S3에서 삭제
+        s3.delete_object(Bucket=BUCKET_NAME, Key=file.s3_key)
+        
+        # DB에서 삭제
+        await file.delete()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"삭제 중 오류, {str(e)}")
+
+
+@app.post("/projects/{project_id}/folders")
+async def create_folder(project_id: int, folder_data: dict):
+    name = folder_data.get("name")
+    parent_id = folder_data.get("parent_id")
+
+    project = await ProjectInfo.objects.get(id=project_id)
+
+    # 1 폴더 생성
+    folder = await ProjectFolder.objects.create(
+        name=name,
+        project=project,
+    )
+
+    # 2 parent_id를 수동으로 update
+    if parent_id:
+        folder.parent_id = parent_id
+        await folder.update()
+
+    return {
+        "id": folder.id,
+        "name": folder.name,
+        "created_at": folder.created_at,
+        "parent_id": folder.parent_id
+    }
+
+
+
+@app.get("/projects/{project_id}/folders/tree")
+async def get_folder_tree(project_id: int):
+    folders = await ProjectFolder.objects.filter(project__id=project_id).all()
+    files = await UploadedFile.objects.select_related("folder").filter(project__id=project_id).all()
+
+    folder_map = {
+        folder.id: {
+            "id": folder.id,
+            "name": folder.name,
+            "createdAt": folder.created_at,
+            "project_id": folder.project.id,
+            "files": [],
+            "children": [],
+            "parent_id": folder.parent_id
+        }
+        for folder in folders
+    }
+
+    for file in files:
+        if file.folder and file.folder.id in folder_map:
+            folder_map[file.folder.id]["files"].append({
+                "id": file.id,
+                "name": file.name,
+                "s3_url": file.s3_url,
+                "uploaded_at": file.uploaded_at,
+                "size": file.size  
+            })
+
+    root_folders = []
+    for folder in folder_map.values():
+        parent_id = folder["parent_id"]
+        if parent_id and parent_id in folder_map:
+            folder_map[parent_id]["children"].append(dict(folder))
+        else:
+            root_folders.append(folder)
+
+    return root_folders
+
+@app.delete("/projects/{project_id}/folders/{folder_id}")
+async def delete_folder(project_id: int, folder_id: int):
+    folder = await ProjectFolder.objects.get_or_none(id=folder_id, project__id=project_id)
+    if not folder:
+        raise HTTPException(status_code=404, detail="해당 폴더를 찾을 수 없습니다.")
+
+    files = await UploadedFile.objects.filter(folder__id=folder_id).all()
+    for file in files:
+        try:
+            s3.delete_object(Bucket=BUCKET_NAME, Key=file.s3_key)
+        except Exception:
+            pass
+        await file.delete()
+
+    child_folders = await ProjectFolder.objects.filter(parent_id=folder_id).all()
+    for child in child_folders:
+        await delete_folder(project_id, child.id)
+
+    await folder.delete()
+    return {"message": "폴더 및 그 하위 항목이 삭제되었습니다."}
+
+
+import boto3
+from botocore.exceptions import ClientError
+
+
+def generate_presigned_url(bucket_name, object_key, expiration=3600):
+    s3_client = boto3.client('s3')
+    try:
+        response = s3_client.generate_presigned_url('get_object',
+                                                    Params={'Bucket': bucket_name,
+                                                            'Key': object_key},
+                                                    ExpiresIn=expiration)
+    except ClientError as e:
+        print(e)
+        return None
+    return response
+
+@app.get("/files/presigned/{file_id}")
+async def get_presigned_url(file_id: int):
+    file = await UploadedFile.objects.get_or_none(id=file_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="파일을 찾을 수 없습니다.")
+    
+    presigned_url = generate_presigned_url(BUCKET_NAME, file.s3_key)
+    if not presigned_url:
+        raise HTTPException(status_code=500, detail="Presigned URL 생성 실패")
+
+    return {"url": presigned_url}
+
+
+
+
+# 채팅 레디스
+@app.post("/projects/{project_id}/files/{file_id}/feedback")
+async def post_feedback(project_id: int, file_id: int, msg: FeedbackMessage):
+    await FeedbackStore.save_message(project_id, file_id, msg)
+    return {"status": "saved"}
+
+@app.get("/projects/{project_id}/files/{file_id}/feedback")
+async def get_feedback(project_id: int, file_id: int):
+    messages = await FeedbackStore.get_messages(project_id, file_id)
+    return messages
+
+
+#testtest
+
 """    
 # ───────────── 플젝 페이지 실시간 채팅 저장 API ───────────── #
 @app.post("/livechat/send")

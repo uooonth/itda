@@ -1,7 +1,7 @@
 .feedbackPopup {
     position: fixed;
-    top: 5.25vw;
-    left: 14vw;
+    top: 3.25vw;
+    left: 12vw;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
@@ -59,7 +59,6 @@
 
 .popupTitle {
     position: absolute;
-    top: 2.5vh;
     left: 50%;
     transform: translateX(-50%);
     font-family: 'Pretendard-ExtraBold';
@@ -124,10 +123,26 @@
 .folder img {
     width: 140px;
     height: 140px;
+    cursor: pointer;
 }
 
 .folderNameText {
-    text-align: left;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 0.5vh; /* 이미지 아래 여백 */
+    font-size: 0.85rem;
+    line-height: 1.2;
+    font-family: 'Pretendard-Medium';
+}
+.folderNameText.expanded {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-break: break-word;
 }
 
 .deleteIcon {
@@ -253,6 +268,14 @@
     display: none;
 }
 
+.fileItem, .folderItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 150px;
+    text-align: center;
+    position: relative;
+}
 
 .uploadPopup .closeBtn {
     position: absolute;
@@ -372,7 +395,8 @@
     z-index: 2;
 }
 
-.feedbackPopup .line {
+.feedBackPopupline {
+
     width: 1px;
     height: 12vh;
     background-color: #ccc;

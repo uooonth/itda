@@ -6,6 +6,7 @@ from datetime import date, datetime
 from enum import Enum
 from pydantic import BaseModel
 from backend.config import settings
+
 from typing import Optional, ForwardRef, List
 
 # 공통 설정
@@ -78,7 +79,6 @@ class ProjectInfo(ormar.Model):
     recruit_number: int = ormar.Integer(nullable=False, default=1)
     career: Career = ormar.String(max_length=20, nullable=False, default=Career.ANY)
     contract_until: date = ormar.Date(nullable=False)
-
     starred_users: List[str] = ormar.JSON(nullable=False, default=[])
 
 class Todo(ormar.Model):
@@ -124,19 +124,24 @@ class Chat(ormar.Model):
     message: str = ormar.Text()
     timestamp: datetime = ormar.DateTime(default=datetime.utcnow)
 
-# 건들 ㄴㄴ
+
+
+#건들 ㄴㄴ
 ProjectFolderRef = ForwardRef("ProjectFolder")
+
+#폴더 관리용
 
 class ProjectFolder(ormar.Model):
     class Meta:
         tablename = "project_folders"
         metadata = metadata
         database = database
+
     id: int = ormar.Integer(primary_key=True)
     name: str = ormar.String(max_length=255, nullable=False)
     created_at: datetime = ormar.DateTime(default=datetime.utcnow)
     project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
-    parent_id: Optional[int] = ormar.Integer(nullable=True)
+    parent_id: Optional[int] = ormar.Integer(nullable=True)  
 
 class UploadedFile(ormar.Model):
     class Meta:
