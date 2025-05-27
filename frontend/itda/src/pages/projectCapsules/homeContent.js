@@ -75,11 +75,10 @@ const HomeContent = ({ username }) => {
           const data = await res.json();
           console.log(data);
 
-
           const filtered = data.filter((project) => {
-            const workers = project.worker.split(' ');
-            return workers.includes(username);
+            return project.worker.includes(username);
           });
+          
           
           filteredList(filtered);
         };
@@ -134,16 +133,18 @@ const HomeContent = ({ username }) => {
 
             <div className="projectList">
                 <div className="title">{projects.length}개의 프로젝트가 있어요.</div>
-
                 {projects.map((project) => (
                     <div className="object" key={project.project.id} onClick={() => handleProjectClick(project.project.id)} style={{ cursor: 'pointer' }}>
-                        <div className="object_icon">icon자리</div>
+                        <div className="object_icon">
+                            {/* 썸네일 이미지가 있다면 표시 */}
+                            <img src={project.thumbnail || "https://your-default-thumbnail.url"} alt="thumbnail" style={{ width: '60px', height: '60px' }} />
+                        </div>
                         <div className="object_content">
                             <div className="title">{project.project.name}</div>
                             <div className="explain">{project.explain}</div>
                             <div className="status">
-                                <div className="publisher">● 게시자 {project.proposer}</div>
-                                <div className="role">작업자</div>
+                                <div className="publisher">● 게시자 {project.proposer?.join(', ')}</div>
+                                <div className="role">작업자 {project.worker?.join(', ')}</div>
                             </div>
                         </div>
                         <div className="rightSide">
@@ -153,6 +154,7 @@ const HomeContent = ({ username }) => {
                         </div>
                     </div>
                 ))}
+
             </div>
         </div>
     );
