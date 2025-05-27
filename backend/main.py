@@ -1,11 +1,11 @@
 
-from fastapi import FastAPI,status,Depends, APIRouter,Body
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut,ProjectFolder
-from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo
+from fastapi import FastAPI,status,Depends, APIRouter,Body,Request
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
+from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage, LiveChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path,HTTPException
@@ -43,29 +43,40 @@ app.add_middleware(
 )
 
 
+
 # ───────────── 회원가입 API ───────────── #
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 @app.post("/signup", response_model=UserCreate)
-async def signup(user: UserCreate):
+async def signup(request: Request):
+    data = await request.json()
+
+    user = UserCreate(
+        id=data["id"],
+        name=data["name"],
+        password=data["pw_hash"],
+        email=data["email"]
+    )
+
+    hashed_password = get_password_hash(user.password)
+
     existing_user = await User.objects.get_or_none(email=user.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="이미 가입된 이메일"
-        )
- 
-    hashed_password = get_password_hash(user.pw_hash)
+
+    # #####################################################
+    # 배포시에 빼기 #######################################3
+    #################################################
+    email_to_store = user.email if not existing_user else "placeholder@example.com"
 
     new_user = await User.objects.create(
-        id=user.id,          
-        name=user.name,     
+        id=user.id,
+        name=user.name,
         pw_hash=hashed_password,
-        email=user.email
+        email=email_to_store
     )
-    
-    return new_user
+
+    return user
+
 
 @app.get("/check-id")
 async def check_id(id: str = Query(..., min_length=3, max_length=20)):
@@ -566,6 +577,10 @@ async def delete_file(file_id: int):
 
     return {"detail": "ㅇㅇ"}
 
+@app.get("/projects", response_model=List[ProjectOut])
+async def get_all_projects():
+    projects = await ProjectInfo.objects.select_related("project").all()
+    return projects
 
 
 #=======================================================#

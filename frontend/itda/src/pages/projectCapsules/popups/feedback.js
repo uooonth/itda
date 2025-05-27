@@ -2,7 +2,6 @@ import React, { useState,useEffect,useCallback } from 'react';
 import { useParams,useLocation  } from 'react-router-dom';
 import sendIcon from '../../../icons/sendIcon.png';
 import pencilIcon from '../../../icons/pencilIcon.png';
-import React, { useState, useEffect } from 'react';
 import '../../../css/feedbackpopup.css';
 
 const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
@@ -58,26 +57,7 @@ const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
                     uploader:file.uploader
                 }));
 
-    useEffect(() => {
-        if (!viewingFile) return;
-
-        const fetchMessages = async () => {
-            try {
-                const res = await fetch(`http://localhost:8008/feedbackchat/${viewingFile.name}`);
-                const data = await res.json();
-                setMessages(data.map((msg, idx) => ({
-                    ...msg,
-                    id: idx,
-                    time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                })));
-            } catch (err) {
-                console.error("채팅 메시지 불러오기 실패", err);
-            }
-        };
-
-        fetchMessages();
-    }, [viewingFile]); // viewingFile이 바뀔 때마다 실행됨    
-    
+ 
                 // 폴더 및 그 폴더에 직접 포함된 파일만 매핑
                 const mapFolder = (folder) => {
                     const mappedFiles = (folder.files || []).map(f => ({
@@ -117,6 +97,25 @@ const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
     useEffect(() => {
         fetchFoldersAndFiles();
     }, [projectId]);
+    useEffect(() => {
+        if (!viewingFile) return;
+
+        const fetchMessages = async () => {
+            try {
+                const res = await fetch(`http://localhost:8008/feedbackchat/${viewingFile.name}`);
+                const data = await res.json();
+                setMessages(data.map((msg, idx) => ({
+                    ...msg,
+                    id: idx,
+                    time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                })));
+            } catch (err) {
+                console.error("채팅 메시지 불러오기 실패", err);
+            }
+        };
+
+        fetchMessages();
+    }, [viewingFile]); // viewingFile이 바뀔 때마다 실행됨    
     
 // FeedbackPopup.js 내부
 useEffect(() => {
@@ -510,7 +509,7 @@ useEffect(() => {
             timestamp: new Date().toISOString()
         };
 
-        setMessages([...messages, newMessage]);
+        setMessages([...messages, msg]);
         setInputText('');
 
         // 👉 Redis에 메시지 저장 요청
@@ -875,24 +874,25 @@ const renderFilePreview = (fileToView) => {
                         </div>
                         <div className="chatContent">
                             <div className="messageList">
-                                {messages.map((message, index) => (
-                                    <div key={index} className="messageItem">
-                                        <div className="profileContainer">
-                                            <div className="profilePic" />
-                                            {index > 0 && <div className="line" />}
-                                        </div>
-                                        <div className="messageDetails">
-                                            <div className="messageHeader">
-                                                <span className="profileName">User Name</span>
-                                                <span className="messageTime">{message.time}</span>
-                                            </div>
-                                            <div className="messageText">{renderMessageText(message.text)}</div>
-                                        </div>
-                                    </div>
-                                    <div className="messageText">{message.message}</div>
-                                </div>
-                                </div>
-                            ))}
+                            {messages.map((message, index) => (
+    <React.Fragment key={index}>
+        <div className="messageItem">
+            <div className="profileContainer">
+                <div className="profilePic" />
+                {index > 0 && <div className="line" />}
+            </div>
+            <div className="messageDetails">
+                <div className="messageHeader">
+                    <span className="profileName">User Name</span>
+                    <span className="messageTime">{message.time}</span>
+                </div>
+                <div className="messageText">{renderMessageText(message.text)}</div>
+            </div>
+        </div>
+        <div className="messageText">{message.message}</div>
+    </React.Fragment>
+))}
+
                             </div>
 
                             <div className="chatInputContainer">

@@ -5,6 +5,8 @@ import { useRef, useState, useMemo, useEffect } from "react";
 export default function SignupVerification() {
     const location = useLocation();
     const email = location.state?.email ?? "";
+    const formData = location.state?.formData;
+    console.log(formData)
     const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [code, setCode] = useState(['', '', '', '', '']);
@@ -90,7 +92,17 @@ export default function SignupVerification() {
             })
             .then(() => {
                 alert("인증 성공");
-                navigate("/signupComplete", { state: { email } }); // 여기서 이동
+                fetch("http://localhost:8008/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: formData.id,
+                        name: formData.nickname,     
+                        pw_hash: formData.password, 
+                        email: formData.email
+                    }),
+                })
+                navigate("/signupComplete", { state: { email } }); 
             })
             .catch(() => {
                 alert("인증 코드가 틀렸습니다.");
