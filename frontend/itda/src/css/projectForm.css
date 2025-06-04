@@ -14,7 +14,7 @@
     display: flex;
     justify-content: center;
     gap: 30px;
-    margin-top: 40px;
+    margin-top: 50px;
 }
 
 .project-form {
@@ -24,12 +24,12 @@
 }
 
 .projectForm-row {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  align-items: center;
-  gap: 7vw;
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    align-items: center;
+    gap: 7vw;
+    margin-bottom: 3vh;
 }
-
 
 .form-label {
     justify-self: start;
@@ -44,9 +44,9 @@
     border-radius: 8px;
     text-align: left;
     height: 5vh;
-    align-items: left;
     font-family: 'Pretendard-Light';
-    /* width: 20vw; */
+    padding-left: 10px;
+    box-sizing: border-box;
 }
 
 .projectForm-row input[type="radio"] {
@@ -60,20 +60,53 @@
     transition: all 0.2s ease-in-out;
 }
 
-.projectForm-row input[type="checkbox"]:checked {
-    background-color: #ccc;
-}
-
 .projectForm-row input[type="radio"]:checked::before {
     content: "";
     width: 10px;
     height: 10px;
-    background-color: #ff6666; 
+    background-color: #ff6666;
     border-radius: 50%;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+.projectForm-row input[type="date"] {
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: left;
+    height: 5vh;
+    font-family: 'Pretendard-Light';
+    padding-left: 10px;
+    width: 40%;
+}
+
+.projectForm-row select {
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    height: 5vh;
+    font-family: 'Pretendard-Light';
+    padding-left: 10px;
+    width: 40%;
+    background-color: white;
+}
+
+.projectForm-row textarea {
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: left;
+    height: 15vh;
+    font-family: 'Pretendard-Light';
+    padding: 10px;
+    resize: vertical;
+}
+
+.projectForm-row input[name="recruitNumber"] {
+    width: 25%;
 }
 
 .required {
@@ -91,7 +124,117 @@
     font-size: 1rem;
     font-family: 'Pretendard-Light';
 }
-.projectForm-row input[type="date"] {
-    width: 40%;
-    height: 100%;
+
+/* 역할 입력 영역 */
+.tag-input {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
+
+.tag-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.tag-input input[type="text"] {
+    width: 100%;
+    padding-right: 35px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    height: 5vh;
+    font-family: 'Pretendard-Light';
+    font-size: 14px;
+    padding-left: 10px;
+    box-sizing: border-box;
+}
+
+.tag-input button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 2;
+    color: #333;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.tag {
+    background-color: black;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: 'Pretendard-Regular';
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+    position: relative;
+}
+
+.tag button {
+    all: unset;
+    color: white;
+    font-weight: bold;
+    width: 16px;
+    height: 16px;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* 급여 형태 버튼 스타일 */
+.radio-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Pretendard-Light';
+}
+
+.pay-type-option {
+    padding: 10px 16px;
+    border-radius: 10px;
+    background-color: #e0e0e0;
+    color: black;
+    cursor: pointer;
+    font-family: 'Pretendard-Regular';
+}
+
+.pay-type-option.selected {
+    background-color: black;
+    color: white;
+}
+
+.projectForm-row input[type="file"] {
+    font-family: 'Pretendard-Light';
+    font-size: 14px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    height: 5vh;
+}
+
