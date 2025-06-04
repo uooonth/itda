@@ -25,7 +25,8 @@ export default function ProjectForm() {
         email: "",
         recruitNumber: "",
         contractUntil: "",
-        career: ""
+        career: "",
+        thumbnail: null
     });
 
     const [currentUserId, setCurrentUserId] = useState("");
@@ -89,40 +90,38 @@ export default function ProjectForm() {
         );
     }, [form]);
 
-    const thumbnailUrl = "https://your-default-thumbnail.url";
-
-    
-
     const handleSubmit = async () => {
         try {
             const generatedProjectId = uuidv4().replaceAll("-", "").slice(0, 25);
-            const payload = {
-                id: generatedProjectId,
-                name: form.projectName,
-                classification: form.category,
-                explain: form.description,
-                sign_deadline: form.deadline?.toString().slice(0, 10),
-                salary_type: form.payType,
-                education: form.education === "기타" ? form.customEducation || "기타" : form.education,
-                email: form.email,
-                proposer: [currentUserId],
-                worker: [currentUserId],
-                roles: form.roles,
-                thumbnail: thumbnailUrl ?? null,
-                recruit_number: parseInt(form.recruitNumber),
-                career: form.career,
-                contract_until: form.contractUntil?.toString().slice(0, 10)
-            };
-            console.log("보낼 데이터:", payload);
+            const formData = new FormData();
 
-            await axios.post("http://localhost:8008/projects", payload, {
+            formData.append("id", generatedProjectId);
+            formData.append("name", form.projectName);
+            formData.append("classification", form.category);
+            formData.append("explain", form.description);
+            formData.append("sign_deadline", form.deadline);
+            formData.append("salary_type", form.payType);
+            formData.append("education", form.education === "기타" ? form.customEducation || "기타" : form.education);
+            formData.append("email", form.email);
+            formData.append("proposer", JSON.stringify([currentUserId]));
+            formData.append("worker", JSON.stringify([currentUserId]));
+            formData.append("roles", JSON.stringify(form.roles));
+            formData.append("recruit_number", form.recruitNumber);
+            formData.append("career", form.career);
+            formData.append("contract_until", form.contractUntil);
+
+            if (form.thumbnail) {
+                formData.append("thumbnail", form.thumbnail); // ✅ 대표 이미지 포함
+            }
+
+            await axios.post("http://localhost:8008/projects", formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json"
+                    Authorization: `Bearer ${token}`
+                    // ❌ 'Content-Type': 'multipart/form-data'는 생략해야 boundary 자동 생성됨
                 }
             });
 
-            navigate("/projectInvite");
+            navigate("/ProjectComplete");
         } catch (error) {
             console.error("프로젝트 생성 실패", error);
             alert("프로젝트 생성 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
@@ -140,13 +139,13 @@ export default function ProjectForm() {
                     </div>
                     <p>정보 입력</p>
                 </div>
-                <div className="step-line"></div>
+                {/* <div className="step-line"></div>
                 <div className="step">
                     <div className="circle">
                         <img src="/images/form.png" alt="" />
                     </div>
                     <p>인원 초대</p>
-                </div>
+                </div> */}
                 <div className="step-line"></div>
                 <div className="step">
                     <div className="circle">
@@ -167,8 +166,16 @@ export default function ProjectForm() {
                 <div className="projectForm-row">
                     <label>역할 설정<span className="required">*</span></label>
                     <div className="tag-input">
-                        <input type="text" name="roleInput" value={form.roleInput} onChange={handleChange} placeholder="추가할 역할을 입력해주세요" />
-                        <button type="button" onClick={addRole}>+</button>
+                        <div className="tag-input-wrapper">
+                            <input
+                                type="text"
+                                name="roleInput"
+                                value={form.roleInput}
+                                onChange={handleChange}
+                                placeholder="추가할 역할을 입력해주세요"
+                            />
+                            <button type="button" onClick={addRole}>+</button>
+                        </div>
                         <div className="tag-list">
                             {form.roles.map((role, idx) => (
                                 <span key={idx} className="tag">
@@ -177,6 +184,8 @@ export default function ProjectForm() {
                             ))}
                         </div>
                     </div>
+
+
                 </div>
 
                 <div className="projectForm-row">
@@ -191,16 +200,19 @@ export default function ProjectForm() {
 
                 <div className="projectForm-row">
                     <label>급여 형태<span className="required">*</span></label>
-                    <select name="payType" value={form.payType} onChange={handleChange}>
-                        <option value="">선택</option>
-                        <option value="무급">무급</option>
-                        <option value="시급">시급</option>
-                        <option value="주급">주급</option>
-                        <option value="월급">월급</option>
-                        <option value="연봉">연봉</option>
-                        <option value="건당">건당</option>
-                    </select>
+                    <div className="radio-group">
+                        {["무급", "시급", "주급", "월급", "연봉", "건당"].map((option) => (
+                            <div
+                                key={option}
+                                className={`pay-type-option ${form.payType === option ? "selected" : ""}`}
+                                onClick={() => setForm({ ...form, payType: option })}
+                            >
+                                {option}
+                            </div>
+                        ))}
+                    </div>
                 </div>
+
 
                 <div className="projectForm-row">
                     <label>학력<span className="required">*</span></label>
@@ -257,7 +269,23 @@ export default function ProjectForm() {
                     <input type="date" name="contractUntil" value={form.contractUntil} onChange={handleChange} />
                 </div>
 
-                
+                <div className="projectForm-row">
+                    <label>대표 이미지<span className="required">*</span></label>
+                    <input
+                        type="file"
+                        name="thumbnail"
+                        accept="image/*"
+                        onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                                setForm({ ...form, thumbnail: file });
+                            }
+                        }}
+                    />
+                </div>
+
+
+
             </div>
 
             <hr className="projectform-line" />

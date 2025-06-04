@@ -15,39 +15,39 @@ export default function ProjectDetail() {
     const [starCount, setStarCount] = useState(0);
 
     useEffect(() => {
-    const fetchData = async () => {
-        let userId = null;
+        const fetchData = async () => {
+            let userId = null;
 
-        if (token) {
+            if (token) {
+                try {
+                    const meRes = await axios.get("http://localhost:8008/me", {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    userId = meRes.data.id;
+                    setCurrentUserId(userId);
+                } catch {
+                    setCurrentUserId(null);
+                }
+            }
+
             try {
-                const meRes = await axios.get("http://localhost:8008/me", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                userId = meRes.data.id;
-                setCurrentUserId(userId);
-            } catch {
-                setCurrentUserId(null);
+                const projectRes = await axios.get(`http://localhost:8008/projects/${id}`);
+                const data = projectRes.data;
+                setProject(data);
+                setStarCount(data.starred_users?.length || 0);
+                if (token && userId && data.starred_users?.includes(userId)) {
+                    setIsStarred(true);
+                } else {
+                    setIsStarred(false);
+                }
+            } catch (err) {
+                console.error("프로젝트 상세 정보 가져오기 실패", err);
+                alert("프로젝트 정보를 불러오지 못했습니다.");
             }
-        }
+        };
 
-        try {
-            const projectRes = await axios.get(`http://localhost:8008/projects/${id}`);
-            const data = projectRes.data;
-            setProject(data);
-            setStarCount(data.starred_users?.length || 0);
-            if (token && userId && data.starred_users?.includes(userId)) {
-                setIsStarred(true);
-            } else {
-                setIsStarred(false);
-            }
-        } catch (err) {
-            console.error("프로젝트 상세 정보 가져오기 실패", err);
-            alert("프로젝트 정보를 불러오지 못했습니다.");
-        }
-    };
-
-    fetchData();
-}, [id, token]);
+        fetchData();
+    }, [id, token]);
 
 
     const handleStarToggle = async () => {
@@ -94,11 +94,13 @@ export default function ProjectDetail() {
             <header
                 className="project-header"
                 style={{
-                    backgroundImage: `url(${project.thumbnail || "/images/projectImage.png"})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
+                    backgroundImage: `url(${project.thumbnail ? `http://localhost:8008${project.thumbnail}` : "/images/projectImage.png"})`,
+                    backgroundSize: "auto 100%",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right",
                 }}
             >
+
                 <div className="header-left">
                     <div className="header-empty" />
                     <div>

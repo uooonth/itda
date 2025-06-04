@@ -14,7 +14,7 @@ import SignupComplete from './pages/signup/signupComplete';
 
 import ProjectDetail from './pages/projectDetail';
 import ProjectForm from './pages/projectCreate/projectForm';
-import ProjectInvite from './pages/projectCreate/projectInvite';
+import ProjectComplete from './pages/projectCreate/projectComplete';
 
 import ProjectContent from './pages/projectCapsules/projectContent';
 
@@ -73,7 +73,7 @@ function App() {
         <Route path="/signupComplete" element={<SignupComplete />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/projectForm" element={<ProjectForm />} />
-        <Route path="/projectInvite" element={<ProjectInvite />} />
+        <Route path="/projectComplete" element={<ProjectComplete />} />
       </Routes>
     </div>
   );

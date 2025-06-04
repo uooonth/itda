@@ -94,7 +94,11 @@ export default function Home() {
                                 {displayedProjects.length > 0 ? (
                                     displayedProjects.map((project) => (
                                         <div className="project-card" key={project.id} onClick={() => navigate(`/projects/${project.id}`)}>
-                                            <img src={project.thumbnail || "/images/projectImage.png"} alt={project.title} />
+                                            <img
+                                                src={project.thumbnail ? `http://localhost:8008${project.thumbnail}` : "/images/projectImage.png"}
+                                                alt={project.title}
+                                            />
+
                                             <div className="card-overlay">
                                                 <span className="overlay-text">정보 확인하기</span>
                                             </div>

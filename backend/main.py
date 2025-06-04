@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI,status,Depends, APIRouter,Body,Request
 from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
-from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder
+from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder, UserProfile
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
@@ -21,6 +21,9 @@ from ormar.exceptions import NoMatch
 from backend.redisClass import Notice,r,FeedbackStore,FeedbackMessage
 import redis
 import json
+from fastapi import File, UploadFile, Form
+from datetime import date
+from fastapi.staticfiles import StaticFiles
 
 
 # ───────────── Docker 생명주기 설정 ───────────── #
@@ -48,6 +51,7 @@ app.add_middleware(
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
+
 @app.post("/signup", response_model=UserCreate)
 async def signup(request: Request):
     data = await request.json()
@@ -68,6 +72,7 @@ async def signup(request: Request):
     #################################################
     email_to_store = user.email if not existing_user else "placeholder@example.com"
 
+    # 1. User 생성
     new_user = await User.objects.create(
         id=user.id,
         name=user.name,
@@ -75,7 +80,24 @@ async def signup(request: Request):
         email=email_to_store
     )
 
+    # 2. UserProfile 기본값 생성
+    await UserProfile.objects.create(
+        user=new_user,
+        profile_image=None,
+        tech_stack=[],
+        tags=[],
+        education=None,
+        intro="",
+        career_summary="",
+        phone=None,
+        location=None,
+        birth=None,
+        portfolio_url=None,
+        is_public=True
+    )
+
     return user
+
 
 
 @app.get("/check-id")
@@ -176,48 +198,78 @@ from fastapi import HTTPException
 
 
 #───────────── 프로젝트 생성 ─────────────#
+import os
+
+# static/uploads 경로가 없으면 생성
+os.makedirs("static/uploads", exist_ok=True)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.post("/projects", response_model=ProjectOut)
-async def create_project(project: ProjectCreate):
+async def create_project(
+    id: str = Form(...),
+    name: str = Form(...),
+    classification: str = Form(...),
+    explain: str = Form(...),
+    sign_deadline: date = Form(...),
+    salary_type: str = Form(...),
+    education: str = Form(...),
+    email: str = Form(...),
+    proposer: str = Form(...),  # JSON string
+    worker: str = Form(...),
+    roles: str = Form(...),
+    recruit_number: int = Form(...),
+    career: str = Form(...),
+    contract_until: date = Form(...),
+    thumbnail: UploadFile = File(None)
+):
+    # JSON 필드들 디코딩
+    proposer_list = json.loads(proposer)
+    worker_list = json.loads(worker)
+    roles_list = json.loads(roles)
 
-    # proposer 리스트 검증
-    for proposer_id in project.proposer:
-        user = await User.objects.get_or_none(id=proposer_id)
-        if user is None:
-            raise HTTPException(status_code=400, detail=f"프로포저 '{proposer_id}'가 존재하지 않습니다.")
+    # 유저 존재 여부 확인
+    for proposer_id in proposer_list:
+        if not await User.objects.get_or_none(id=proposer_id):
+            raise HTTPException(400, f"프로포저 '{proposer_id}' 없음")
+    for worker_id in worker_list:
+        if not await User.objects.get_or_none(id=worker_id):
+            raise HTTPException(400, f"워커 '{worker_id}' 없음")
 
-    # worker 리스트 검증
-    for worker_id in project.worker:
-        user = await User.objects.get_or_none(id=worker_id)
-        if user is None:
-            raise HTTPException(status_code=400, detail=f"워커 '{worker_id}'가 존재하지 않습니다.")
+    # 썸네일 저장
+    thumbnail_url = None
+    if thumbnail:
+        content = await thumbnail.read()
+        filename = f"{uuid.uuid4().hex}_{thumbnail.filename}"
+        save_path = f"static/uploads/{filename}"
+        with open(save_path, "wb") as f:
+            f.write(content)
+        thumbnail_url = f"/static/uploads/{filename}"
 
-    # ProjectOutline 존재 여부 확인 혹은 새로 생성
-    outline = await ProjectOutline.objects.get_or_none(id=project.id)
-    if outline is None:
-        outline = await ProjectOutline.objects.create(
-            id=project.id,
-            name=project.name,
-            classification=project.classification
-        )
+    # Outline 생성 또는 get
+    outline = await ProjectOutline.objects.get_or_none(id=id)
+    if not outline:
+        outline = await ProjectOutline.objects.create(id=id, name=name, classification=classification)
 
-    # ProjectInfo 생성
+
     new_project = await ProjectInfo.objects.create(
         project=outline,
-        explain=project.explain,
-        sign_deadline=project.sign_deadline,
-        salary_type=project.salary_type.value,
-        education=project.education.value,
-        email=project.email,
-        proposer=project.proposer,
-        worker=project.worker,
-        roles=project.roles,
-        thumbnail=project.thumbnail,
-        recruit_number=project.recruit_number,
-        career=project.career,
-        contract_until=project.contract_until,
+        explain=explain,
+        sign_deadline=sign_deadline,
+        salary_type=salary_type,
+        education=education,
+        email=email,
+        proposer=proposer_list,
+        worker=worker_list,
+        roles=roles_list,
+        thumbnail=thumbnail_url,
+        recruit_number=recruit_number,
+        career=career,
+        contract_until=contract_until,
         starred_users=[]
     )
-
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
 
