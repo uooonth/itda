@@ -53,7 +53,7 @@ const CalendarContent = () => {
 
     // DB 저장 요청
     try {
-      await axios.post('http://localhost:8008/calendar/', {
+      await axios.post('http://localhost:8008/calendar', {
         text: title,
         start: start,
         end: end,
