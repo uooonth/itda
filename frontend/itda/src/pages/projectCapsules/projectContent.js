@@ -5,7 +5,8 @@ import Edit from '../../icons/edit.svg';
 import leftBtn from '../../icons/left.svg';
 import rightBtn from '../../icons/righ.svg';
 import rechange from '../../icons/rechange.svg';
-
+import TodoEditModal from './popups/todoEdit';
+import TodoMorePopup from './popups/todoMore';
 import FeedbackPopup from './popups/feedback';
 /* timeline */ 
 import { Timeline,DataSet } from 'vis-timeline/standalone'
@@ -28,12 +29,14 @@ import DeleteIcon from '../../icons/trash.svg';
 const ProjectContent = () => {
     const location = useLocation();
     const { username } = location.state || {};
+    const [projectName,setProjectName]=useState(null);
+
 
     //===================================================================== //
-    // ------------------------  프로젝트정보 불러오기  -----------------------//
+    //---------------------------프로젝트정보 불러오기-------------------------//
     //===================================================================== // 
     const { Pg_id } = useParams(); 
-    console.log(Pg_id,)
+
     useEffect(() => {
         const fetchProjectInfo = async () => {
             const response = await fetch(`http://localhost:8008/project/name/${Pg_id}`);
@@ -44,6 +47,8 @@ const ProjectContent = () => {
     }, [Pg_id]);
     const [projectInfo, setProjectInfo] = useState(null);
     const [projectData, setProjectData] = useState(null);
+
+
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         const fetchProject= async () =>  {
@@ -66,9 +71,11 @@ const ProjectContent = () => {
         };
         fetchProject();
     }, [Pg_id]);
+    console.log(projectData)
 
-
-
+    useEffect(() => {
+        setProjectName(projectData?.project?.name || '');
+      }, [projectData]);
     //===================================================================== //
     // ------------------------  공지 불러오기(redis)  -----------------------//
     //===================================================================== // 
@@ -79,20 +86,22 @@ const ProjectContent = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [tempContent, setTempContent] = useState(''); 
 
-
     useEffect(() => {
-        console.log(Pg_id)
         const fetchNotice = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`http://127.0.0.1:8008/project/${projectInfo.id}/notice`);
+                const response = await fetch(`http://127.0.0.1:8008/project/${Pg_id}/notice`);
                 if (!response.ok) {
                     setTempContent('');
                 }
                 const data = await response.json();
+                console.log(data,"잘불러오지는데??????????????????????????????????????????????")
                 setNotice(data.content);
+                setError(null);
             } catch (err) {
                 setError(err.message);
+                console.log("ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ어디선가나는에러")
+                setNotice('');
             } finally {
                 setIsLoading(false);
             }
@@ -107,18 +116,9 @@ const ProjectContent = () => {
         }        setIsEditing(true);
     };
     const handleInputChange = (e) => {
-        const dateValue = e.target.value;
-    
-        if (dateValue.includes('.')) {
-            const [year, month, day] = dateValue.split('.');
-            const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-            setLocalEditDueDate(formattedDate);
-        } else {
-            setLocalEditDueDate(dateValue);
-        }
+        setTempContent(e.target.value);
     };
     
-
     const handleSaveClick = async () => {
         try {
             const response = await fetch(`http://127.0.0.1:8008/project/${Pg_id}/notice`, {
@@ -130,7 +130,12 @@ const ProjectContent = () => {
             });
 
             if (!response.ok) {
+                const errorData = await response.json().catch(() => ({})); // JSON 파싱 실패 방지
+                console.error("서버 응답 오류:", errorData);
                 throw new Error("공지사항 수정에 실패했습니다.");
+            } else {
+                const result = await response.json().catch(() => null);
+                console.log("공지사항 수정 응답:", result);
             }
 
             setNotice(tempContent);
@@ -144,9 +149,6 @@ const ProjectContent = () => {
     const handleCancelClick = () => {
         setIsEditing(false);
     };
-
-
-
 
     //이모지
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -176,29 +178,42 @@ const ProjectContent = () => {
     const [completedCount, setCompletedCount] = useState(0);
     const [waitingFeedbackCount, setWaitingFeedbackCount] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
-  
-    // 상태별 Todo 개수 가져오기
-    const todoCount = async (status, setter) => {
+    
+    const updateTodoCounts = async () => {
+      if (!Pg_id) return;
+    
       try {
-        const response = await fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/${status}`);
-        const data = await response.json();
-        setter(data.todos.length);
-      } catch (error) {
-        console.error("Error fetching todos: ", error);
+        const [inProgressRes, completedRes, feedbackRes] = await Promise.all([
+          fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/in_progress`),
+          fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/completed`),
+          fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/waiting_feedback`)
+        ]);
+        
+        const inProgressData = await inProgressRes.json();
+        const completedData = await completedRes.json();
+        const feedbackData = await feedbackRes.json();
+        console.log(inProgressData,"ㄹ더랴러데ㅓ랻레")
+        const inProgressLen = inProgressData.todos.length;
+        const completedLen = completedData.todos.length;
+        const feedbackLen = feedbackData.todos.length;
+        console.log(inProgressLen,completedLen,feedbackLen,"길이가왜그럴까????????????????")
+        setInProgressCount(inProgressLen);
+        setCompletedCount(completedLen);
+        setWaitingFeedbackCount(feedbackLen);
+        setTotalCount(inProgressLen + completedLen + feedbackLen);
+      } catch (err) {
+        console.error("Error fetching todo counts:", err);
       }
     };
-  
+    
     useEffect(() => {
       if (Pg_id) {
-        todoCount("in_progress", setInProgressCount);
-        todoCount("completed", setCompletedCount);
-        todoCount("waiting_feedback", setWaitingFeedbackCount);
-        setTotalCount(inProgressCount + completedCount + waitingFeedbackCount);
+        fetchTodos();
+
+        updateTodoCounts();
       }
-    }, [Pg_id, inProgressCount, completedCount, waitingFeedbackCount]);
-  
-
-
+    }, [Pg_id]);
+    
 
 
 
@@ -265,27 +280,302 @@ const ProjectContent = () => {
       setCurrentMonth(newWeek[0].getMonth());
       setCurrentWeek(newWeek);
     };
+    //===================================================================== //
+    // ------------------------      투두 칸반       ------------------------//
+    //===================================================================== // 
+    const [showDetail, setShowDetail] = useState({ open: false, status: null });
+    const [todos, setTodos] = useState({
+        inProgress: [],
+        completed: [],
+        feedbackPending: [],
+    });
+    
+    const [editingId, setEditingId] = useState(null);
+    const [editContent, setEditContent] = useState('');
+    const [editDueDate, setEditDueDate] = useState('');
+    // 전체 할 일 개수 계산
+    const totalTodosCount = todos.inProgress.length + todos.completed.length + todos.feedbackPending.length;
+    const [localEditContent, setLocalEditContent] = useState('');
+    const [localEditDueDate, setLocalEditDueDate] = useState('');
+    const handleEdit = (id, content, dueDate) => {
+        setEditingId(id);
+        setLocalEditContent(content);
+        setLocalEditDueDate(dueDate);
+    };
+    // 투두 데이터 가져오기
+    const fetchTodos = async () => {
+        console.log("얘실행은됨?")
+        try {
+            const response = await fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos`);
+            const data = await response.json();
+            console.log(data,"펫치투두데이터가져온겁확인이나해보자")
+            const inProgress = [];
+            const completed = [];
+            const feedbackPending = [];
+    
+            for (const todo of data) {
+                const base = {
+                    id: todo.id,
+                    content: todo.text,
+                    dueDate: todo.deadline,
+                    completed: todo.status === 'completed',
+                };
+    
+                switch (todo.status) {
+                    case 'in_progress':
+                        inProgress.push(base);
+                        break;
+                    case 'completed':
+                        completed.push(base);
+                        break;
+                    case 'waiting_feedback':
+                        feedbackPending.push(base);
+                        break;
+                    default:
+                        console.warn(`Unknown status "${todo.status}" for todo ID: ${todo.id}`);
+                }
+            }
+    
+            setTodos({ inProgress, completed, feedbackPending });
+            updateTodoCounts();
+        } catch (error) {
+            console.error("Todo 목록 불러오기 오류:", error);
+        }
+    };
+    //마감일 자동 complete옮기기
+    useEffect(() => {
+        const today = new Date();
+        const updatedTodos = { ...todos };
+        Object.keys(updatedTodos).forEach((status) => {
+            updatedTodos[status].forEach((item) => {
+                const due = new Date(item.dueDate);
+                if (due < today && status !== 'completed') {
+                    const itemToMove = updatedTodos[status].splice(
+                        updatedTodos[status].findIndex((i) => i.id === item.id),
+                        1
+                    )[0];
+                    updatedTodos.completed.push({ ...itemToMove, completed: true });
+                }
+            });
+        });
+        setTodos(updatedTodos);
+    }, []);
+    const calculateDDay = (dueDate) => {
+        const today = new Date();
+        const due = new Date(dueDate);
+        const diffTime = due - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
+    };
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+    
+        if (!active || !over || active.id === over.id) return;
+    
+        const activeId = active.id;
+        const overStatus = over?.data?.current?.status || over?.id;
+    
+        const newStatusMap = {
+            inProgress: "in_progress",
+            completed: "completed",
+            feedbackPending: "waiting_feedback",
+        };
+        
+        const newStatus = newStatusMap[overStatus];
+        if (!newStatus) {
+            console.warn("ㅉㅉㅉㅉㅉ", overStatus);
+            return;
+        }
+    
+        try {
+            const res = await fetch(`http://127.0.0.1:8008/todos/${activeId}/status?status=${newStatus}`, {
+                method: "POST"
+            });
+            if (!res.ok) throw new Error("ㅉㅉ");
+    
+            await fetchTodos();
+            updateTodoCounts();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    // 체크박스 todo
+    const handleCheck = (id, status) => {
+        if (!todos[status]) return; // status가 유효하지 않으면 종료
+        setTodos((prevTodos) => ({
+            ...prevTodos,
+            [status]: prevTodos[status].map((item) =>
+                item.id === id ? { ...item, completed: !item.completed } : item
+            ),
+        }));
+    };
+    // 수정 todo
+    const saveEdit = async (id, status) => {
+        if (!todos[status]) return;
+    
+        const updatedData = {
+            text: localEditContent,
+            user_id: username,
+            deadline: localEditDueDate.includes('.') 
+                ? localEditDueDate.replaceAll('.', '-') 
+                : localEditDueDate,
+            start_day: '2025-04-01',
+            project_id: Pg_id,
+        };
+    
+        try {
+            const response = await fetch(`http://127.0.0.1:8008/todos/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData),
+            });
+    
+            if (!response.ok) throw new Error("세이브에딧함수 ㅉㅉㅉㅉ");
+    
+            setTodos((prevTodos) => ({
+                ...prevTodos,
+                [status]: prevTodos[status].map((item) =>
+                    item.id === id ? { ...item, content: localEditContent, dueDate: updatedData.deadline } : item
+                ),
+            }));
+            setEditingId(null);
+        } catch (error) {
+            console.error("세이브에딧ㅉㅉㅉㅉㅉ", error);
+        }
+    };
+    const handleDelete = async (id, status) => {
+        if (!todos[status]) return;
+    
+        try {
+            const response = await fetch(`http://127.0.0.1:8008/todos/${id}?project_id=${Pg_id}`, {
+                method: "DELETE",
+            });
+    
+            if (!response.ok) throw new Error("삭제 실패");
+    
+            await fetchTodos();
+            updateTodoCounts();
+        } catch (error) {
+            console.error("핸들딜릿ㅉㅉㅉㅈ:", error);
+        }
+    };
+    const SortableItem = ({ id, content, dueDate, status, completed }) => {
+        const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+            id,  data: { status }, handle: '.drag-handle',
+        });
+        const inputRef = useRef(null);
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition: transform ? 'transform 0.1s ease' : 'transform 0.3s ease-out', 
+            width: '100%',
+            boxSizing: 'border-box',
+            opacity: transform ? 0.7 : 1,
+        };
+        useEffect(() => {
+            if (editingId === id && inputRef.current) {
+                inputRef.current.focus();
+            }
+        }, [editingId]);
+        return (
+            <div ref={setNodeRef} style={style} className="todo-item">
+                {editingId === id ? (
+                    <div className="edit-form">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={localEditContent}
+                            onChange={(e) => setLocalEditContent(e.target.value)}
+                        />
+                        <input
+                            type="date"
+                            value={localEditDueDate}
+                            onChange={(e) => setLocalEditDueDate(e.target.value)}
+                        />
+                        <button onClick={() => saveEdit(id, status)}>저장</button>
+                    </div>
+                ) : (
+                    <>
+                        <div className="todo-content">
+                            <span className="drag-handle" {...attributes} {...listeners}>≡</span>
+                            <div style={{ textDecoration: completed ? 'line-through' : 'none' }}>
+                                {content}
+                            </div>
+                            <span className="due-date">{calculateDDay(dueDate)}</span>
+                        </div>
+                        <div className="todo-meta">
+                            <span>{dueDate}까지</span>
+                            <div className="icons">
+                                <img
+                                    src={DeleteIcon}
+                                    alt="delete"
+                                    className="icon trash"
+                                    onClick={() => handleDelete(id, status)}
+                                />
+                                <div
+                                    className={`checkBox ${completed ? 'checked' : ''}`}
+                                    onClick={() => handleCheck(id, status)}
+                                />
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+        );
+    };
+    const TodoColumn = ({ title, items, status, onDetail }) => {
+        const { setNodeRef } = useDroppable({
+            id: status,
+            data: { status },
+        });
+    
+        return (
+            <div ref={setNodeRef} className={`todo-column ${status}`}>
+                <div className="column-header">
+                    <h2>{title}</h2>
+                    <span>{`${items.length}/${totalTodosCount}`}</span>
+                    <img   src={EditIcon}   alt="edit"  className="icon"    onClick={onDetail}/>
+
+                </div>
+                <SortableContext
+                    id={status}
+                    items={items.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {items.map((item) => (
+                        <SortableItem
+                            key={item.id}
+                            id={item.id}
+                            content={item.content}
+                            dueDate={item.dueDate}
+                            status={status}
+                            completed={item.completed}
+                        />
+                    ))}
+                </SortableContext>
+            </div>
+        );
+    };
+    
+
 
     //===================================================================== //
     // ------------------------       타임라인       ------------------------//
     //===================================================================== // 
+    const [timelineTodos, setTimelineTodos] = useState([]); 
+    const [timelineItems, setTimelineItems] = useState(new DataSet([]));
+    const [groups, setGroups] = useState(new DataSet([]));
+    const [todoProgress, setTodoProgress] = useState({});
+    const [todoEditModal, setTodoEditModal] = useState({
+        isOpen: false,
+        todoId: null
+    });    const [selectedTodoId, setSelectedTodoId] = useState(null);
     const timelineRef = useRef(null);
-    const groups = useMemo(
-        () =>
-            new DataSet([
-                { id: '서지혜', content: '서지혜', value: 1, className:'groupStyle' },
-                { id: '박지수', content: '박지수', value: 2, className:'groupStyle'},
-                { id: '황윤성', content: '황윤성', value: 3, className:'groupStyle'},
-            ]),
-        []
-    );
     const groupColors = {};
-    const colorClasses = [
-        'color-coral', 'color-mustard', 'color-lavender', 'color-mint', 
-        'color-sky', 'color-orange', 'color-indigo', 'color-steel'
-    ];  
-    let colorIndex = 0;
 
+// 컬러 설정 
+    const colorClasses = [
+        'color-white'
+    ];  
     function getGroupColorClass(groupName) {
         if (!groupColors[groupName]) {
             groupColors[groupName] = colorClasses[colorIndex];
@@ -293,38 +583,143 @@ const ProjectContent = () => {
         }
         return groupColors[groupName];
     }
-    const items = useMemo(
-        () =>
-            new DataSet([
-                { start: new Date(2025, 3, 20), end: new Date(2025, 4, 5), group: '서지혜', content: '프로젝트 기획 회의 진행',        className: `item-common ${getGroupColorClass('서지혜')}` },
-                { start: new Date(2025, 4, 1), end: new Date(2025, 4, 12), group: '황윤성', content: 'UI 디자인 초안 작성',        className: `item-common ${getGroupColorClass('황윤성')}` },
-                { start: new Date(2025, 4, 5), end: new Date(2025, 4, 18), group: '박지수', content: '백엔드 API 개발',        className: `item-common ${getGroupColorClass('박지수')}` },
-                { start: new Date(2025, 4, 10), end: new Date(2025, 4, 25), group: '서지혜', content: '프론트엔드 UI 구현',        className: `item-common ${getGroupColorClass('서지혜')}` },  
-                { start: new Date(2025, 4, 8), end: new Date(2025, 4, 22), group: '서지혜', content: '데이터베이스 스키마 설계' ,       className: `item-common ${getGroupColorClass('서지혜')}` },
-                { start: new Date(2025, 3, 10), end: new Date(2025, 3, 24), group: '황윤성', content: '프론트엔드 컴포넌트 구현',       className: `item-common ${getGroupColorClass('황윤성')}` },
-                { start: new Date(2025, 4, 15), end: new Date(2025, 4, 30), group: '박지수', content: '테스트 및 디버깅 진행',        className: `item-common ${getGroupColorClass('박지수')}` },
-                { start: new Date(2025, 4, 15), end: new Date(2025, 4, 30), group: '박지수', content: '테스트 및 디버깅 진행',        className: `item-common ${getGroupColorClass('박지수')}` },
-
-                { start: new Date(2025, 4, 15), end: new Date(2025, 4, 30), group: '박지수', content: '테스트 및 디버깅 진행',        className: `item-common ${getGroupColorClass('박지수')}` },
-
-                { start: new Date(2025, 4, 15), end: new Date(2025, 4, 30), group: '박지수', content: '테스트 및 디버깅 진행',        className: `item-common ${getGroupColorClass('박지수')}` },
-
-                { start: new Date(2025, 4, 15), end: new Date(2025, 4, 30), group: '박지수', content: '테스트 및 디버깅 진행',        className: `item-common ${getGroupColorClass('박지수')}` },
-
-                { start: new Date(2025, 4, 15), end: new Date(2025, 4, 30), group: '박지수', content: '테스트 및 디버깅 진행',        className: `item-common ${getGroupColorClass('박지수')}` },
-
-
-            ]),
-        []
-    );
+    let colorIndex = 0;
+    //타임라인 리로드
+    const fetchTimelineTodos = async () => {
+        try {
+          const res = await fetch(`http://localhost:8008/projects/${Pg_id}/todos`);
+          const data = await res.json();
+          setTimelineTodos(data);
+        } catch (err) {
+          console.error("타임라인 투두 불러오기 에러", err);
+        }
+      };
+      
+// 1. Pg_id ( 프로젝트 아이디로 ) 프로젝트 투두 목록 불러오기
     useEffect(() => {
-        if (!timelineRef.current) return;
+        fetchTimelineTodos();
+      }, [Pg_id]);
+      
+// 2. 각 투두의 user_id의 프로필 이미지 매핑 + timeline 아이템 생성
+    useEffect(() => {
+        if (!timelineTodos.length) return;
+        const uniqueUsers = [...new Set(timelineTodos.map(todo => todo.user_id))];
+        // (1) 각 user_id에 대해 프로필 이미지 API 요청
+        const fetchProfilesAndSetItems = async () => {
+            const userProfileMap = {};
+            await Promise.all(
+                uniqueUsers.map(async (userId) => {
+                    const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    userProfileMap[userId] = Array.isArray(data) && data.length > 0
+                    ? data[0].profile_image
+                    : null;
 
+                })
+            );
+
+        // (2) 그룹 생성
+        const groupData = uniqueUsers.map((user, idx) => ({
+            id: user,
+            content: user,
+            value: idx + 1,
+            className: 'groupStyle',
+        }));
+        setGroups(new DataSet(groupData));
+
+        // (3) timelineItems 생성 (profile_image 매핑)
+        const mappedItems = timelineTodos
+            .filter(todo => todo.deadline)
+            .map(todo => {
+                const start = new Date(todo.start_day || todo.deadline);
+                const end = new Date(todo.deadline);
+                end.setDate(end.getDate());
+                return {
+                    id: todo.id,
+                    start,
+                    end,
+                    group: todo.user_id,
+                    content: todo.text,
+                    className: `item-common ${getGroupColorClass(todo.user_id)}`,
+                    editable: true,
+                    profile_image: userProfileMap[todo.user_id], 
+                };
+            });
+        setTimelineItems(new DataSet(mappedItems));
+        };
+        fetchProfilesAndSetItems();
+    }, [timelineTodos]);
+    const moveTimeoutRef = useRef(null);
+    const [pendingMove, setPendingMove] = useState(null);
+
+
+// 3. 각 투두 진행도 가져오기
+    const fetchTodoProgress = async (todoIds) => {
+        try {
+            const progressData = {};
+            const progressPromises = todoIds.map(async (todoId) => {
+            const response = await fetch(`http://localhost:8008/todos/${todoId}/progress`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return { todoId, progress: data.progress };
+                }
+                console.log("000프로그레스데이터어어어어어ㅓㅇ")
+
+                return { todoId, progress: 0 };
+            });
+            
+            const results = await Promise.all(progressPromises);
+            results.forEach(({ todoId, progress }) => {
+                progressData[todoId] = progress;
+            });
+            setTodoProgress(progressData);
+        } catch (error) {
+            console.error('진행도 데이터 ㅉㅉ :', error);
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (projectInfoId) {
+                await fetchTodos();
+                if (todos.length > 0) {
+                    const todoIds = todos.map(todo => todo.id);
+                    await fetchTodoProgress(todoIds);
+                }
+            }
+        };
+        
+        fetchData();
+    }, [Pg_id]);
+
+// todos가 변경될 때마다 실행
+useEffect(() => {
+    const allIds = [
+        ...todos.inProgress.map(todo => todo.id),
+        ...todos.completed.map(todo => todo.id),
+        ...todos.feedbackPending.map(todo => todo.id)
+    ];
+    if (allIds.length > 0) {
+        fetchTodoProgress(allIds);
+    }
+}, [todos]);
+
+
+
+
+// 4. 타임라인 옵션 렌더링
+    useEffect(() => {
+        if (!timelineRef.current || !timelineItems || groups.length === 0) return;
         const today = new Date();
-
         const options = {
             groupOrder: 'content',
-            editable: true,
+            editable: {
+                updateTime: true,   // 아이템 위치(날짜) 이동 가능
+                updateGroup: false, // 그룹 이동은 금지하려면 false
+                overrideItems: false,
+                add: false,
+            },
             orientation: 'top',
             margin: { item: 30, axis: 50 },
             zoomable: true,
@@ -344,7 +739,7 @@ const ProjectContent = () => {
                 container.style.alignItems = 'center';
                 container.style.justifyContent = 'space-between';
                 container.style.padding = '5px';
-                container.style.minHeight = group.minHeight || '180px'; // 개별 최소 높이 적용
+                container.style.minHeight = group.minHeight || '180px'; 
                 const label = document.createElement('span');
                 label.innerHTML = group.content;
                 container.appendChild(label);
@@ -365,7 +760,6 @@ const ProjectContent = () => {
                     groups.update({ id: group.id, visible: group.visible !== false ? false : true });
                 });
                 container.appendChild(toggleButton);
-
                 return container;
             },
             timeAxis: { scale: 'day', step: 1 },
@@ -374,45 +768,164 @@ const ProjectContent = () => {
                 majorLabels: { day: '' },
             },
             zoomMin: 1000 * 60 * 60 * 24 * 5, 
-            zoomMax: 1000 * 60 * 60 * 24 * 30,        };
+            zoomMax: 1000 * 60 * 60 * 24 * 30,  
+              dataAttributes: ['id'],
+            
+            //타임라인아이템 속 들어갈 내용 
+            template: function (item) {
+                const progress = todoProgress[item.id] || 0;
+                return '<div class="timeline-card">' +
+                '<div class="timeline-divider"></div>' +
+                '<div class="timeline-title">' + item.content + '</div>' +
+                '<img src="' + (item.profile_image || '/default_profile.png') + '" class="timeline-avatar"/>' +
+                '</div>';
+         
+            }
+            ,
+            
 
-        const timeline = new Timeline(timelineRef.current, items, groups, options);
-        let currentTodayStr = moment().startOf('day').format('YYYY-MM-DD');
-        // 오늘 날짜 셀 강조 
-        const highlightTodayCell = () => {
-            const minorCells = timelineRef.current?.querySelectorAll('.vis-time-axis .vis-minor');
-            if (!minorCells) return;
-        
-            minorCells.forEach((cell) => {
-                cell.classList.remove('today');
-        
-                const cellDate = cell.innerText.trim(); // 예: "4월 9일"
-                const formattedCellDate = moment(cellDate, 'M월 D일').format('YYYY-MM-DD');
-        
-                if (formattedCellDate === currentTodayStr) {
-                    cell.classList.add('today');
+            //아이템 이동 설정 
+            onMove: (item, callback) => {
+                const dontShowExpire = localStorage.getItem('dontShowMoveModal');
+                if (dontShowExpire && Date.now() < Number(dontShowExpire)) {
+                    handleMoveConfirm(item, callback);
+                    return;
                 }
-                console.log(cellDate, formattedCellDate, currentTodayStr);
-            });
+                setPendingMove({ item, callback });
+                setShowCancelModal(true);
+            },
+
+            
         };
-        
+        const timeline = new Timeline(timelineRef.current, timelineItems, groups, options);          
+        let currentTodayStr = moment().startOf('day').format('YYYY-MM-DD');
+        timeline.on('doubleClick', (properties) => {
+            if (properties.item) {
+                setTodoEditModal({
+                    isOpen: true,
+                    todoId: properties.item
+                });
+            }
+        });
+
         setTimeout(() => {
-            highlightTodayCell();
-        }, 100); 
+            const itemContents = timelineRef.current.querySelectorAll('.vis-item-content');
+            itemContents.forEach(content => {
+                if (!content.querySelector('.timeline-divider')) {
+                    let timelineCard = content.querySelector('.vis-item-content');
+                    if (!timelineCard) {
+                        timelineCard = document.createElement('div');
+                        timelineCard.className = 'timeline-card';
+                        timelineCard.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            width: 100%;
+                            height: 100%;
+                            gap: 8px;
+                            padding: 5px;
+                            box-sizing: border-box;
+                        `;
+                        content.appendChild(timelineCard);
+                    }
+                    const images = document.querySelectorAll('.vis-item-content img');
+                    images.forEach(img => {
+                        img.style.width = '32px';
+                        img.style.height = '32px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '50%';
+                    });
+        
+                    // timeline-divider 생성
+                    const divider = document.createElement('div');
+                    divider.className = 'timeline-divider';
+                    divider.style.cssText = `
+                        width: 100px;
+                        height: 50.5px;
+                        background: #f0f0f0;
+                        margin-bottom: 4px;
+                        margin-top: 2px;
+                        border-radius: 4px;
+                        position: relative;
+                        overflow: hidden;
+                        border: 1px solid #ddd;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    `;
+                    
+                    // 해당 아이템의 todo ID 찾기 (vis-item에서 data 속성으로 가져오기)
+                    const visItem = content.closest('.vis-item');
+                    const itemId = visItem ? visItem.getAttribute('data-id') : null;
+                    const progress = itemId ? (todoProgress[itemId] || 0) : 0;
+                    
+                    // 진행도 바 컨테이너
+                    const progressContainer = document.createElement('div');
+                    progressContainer.style.cssText = `
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: flex-start;
+                `;
+                    // 진행도 바 채우기
+                    const progressFill = document.createElement('div');
+                    progressFill.className = 'progress-bar-fill';
+                    progressFill.style.cssText = `
+                    height: 100%;
+                    width: ${progress}%;
+                    background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+                    transition: width 0.3s ease-in-out;
+                    border-radius: 3px 0 0 3px;
+                    position: relative;
+                `;
+                
+                    
+                    // 진행도 텍스트
+                    const progressText = document.createElement('span');
+                    progressText.className = 'progress-text';
+                    progressText.textContent = `${progress}%`;
+                    progressText.style.cssText = `
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 10px;
+                        font-weight: bold;
+                        font-family: "Pretendard-SemiBold";
+                        color: #333;
+                        text-shadow: 1px 1px 1px rgba(255,255,255,0.8);
+                        z-index: 2;
+                        pointer-events: none;
+                    `;
+                    
+                    // 요소들 조립
+                    progressContainer.appendChild(progressFill);
+                    divider.appendChild(progressContainer);
+                    divider.appendChild(progressText); 
+                    
+
+
+                    // 기존 내용 정리하고 새로운 구조로 재구성
+                    timelineCard.innerHTML = '';
+                    timelineCard.appendChild(divider);
+                }
+                
+            });
+        }, 100);
+
         setInterval(() => {
             const nowStr = moment().startOf('day').format('YYYY-MM-DD');
             if (nowStr !== currentTodayStr) {
                 currentTodayStr = nowStr;
-                highlightTodayCell();
             }
         }, 1000 * 60 * 60); 
 
-    return () => {
-        timeline.destroy();
-    };
-    }, [groups, items]);  
+        return () => timeline.destroy();
+    }, [timelineItems, groups,todoProgress])
 
-    // 그룹 모두보기 핸들러
+// 그룹 모두보기 핸들러
     const handleShowAllGroups = () => {
         const updatedGroups = groups.get().map(group => ({
             ...group,
@@ -421,331 +934,83 @@ const ProjectContent = () => {
         groups.update(updatedGroups);
     };
 
-    //===================================================================== //
-    // ------------------------      투두 칸반       ------------------------//
-    //===================================================================== // 
-        const [todos, setTodos] = useState({
-            inProgress: [],
-            completed: [],
-            feedbackPending: [],
+
+//옮길때 경고 모달
+    const [showCancelModal, setShowCancelModal] = useState(false);
+
+
+    const [dontShowAgain, setDontShowAgain] = useState(false);
+    const handleDontShowAgainChange = (e) => {
+        setDontShowAgain(e.target.checked);
+        if (e.target.checked) {
+            const expireAt = Date.now() + 24 * 60 * 60 * 1000;
+            localStorage.setItem('dontShowMoveModal', expireAt);
+        } else {
+            localStorage.removeItem('dontShowMoveModal');
+        }
+    };
+    
+
+    const handleConfirm = async () => {
+        setShowCancelModal(false);
+        if (!pendingMove) return;
+        await handleMoveConfirm(pendingMove.item, pendingMove.callback);
+        setPendingMove(null);
+    };
+    
+    
+    const handleCancel = () => {
+        setShowCancelModal(false);
+        if (pendingMove && pendingMove.callback) {
+            pendingMove.callback(null); 
+        }
+        setPendingMove(null);
+    };
+
+    const handleMoveConfirm = async (item, callback) => {
+        try {
+            const startDate = new Date(item.start);
+            const endDate = new Date(item.end);
+            endDate.setDate(endDate.getDate());
+    
+            const updates = {
+                start_day: startDate.toISOString().split("T")[0],
+                deadline: endDate.toISOString().split("T")[0]
+            };
+    
+            const res = await fetch(`http://localhost:8008/todos/${item.id}/schedule`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updates)
+            });
+    
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error("DB 저장 실패:", errorText);
+                callback(null);
+            } else {
+                timelineItems.update(item);
+                callback(item);
+            }
+        } catch (err) {
+            console.error("서버 에러:", err);
+            callback(null);
+        }
+    };
+       
+    
+
+    const handleTodoEditClose = () => {
+        setTodoEditModal({
+            isOpen: false,
+            todoId: null
         });
-        const [editingId, setEditingId] = useState(null);
-        const [editContent, setEditContent] = useState('');
-        const [editDueDate, setEditDueDate] = useState('');
-        // 전체 할 일 개수 계산
-        const totalTodosCount = todos.inProgress.length + todos.completed.length + todos.feedbackPending.length;
-        const [localEditContent, setLocalEditContent] = useState('');
-        const [localEditDueDate, setLocalEditDueDate] = useState('');
-        
-        const handleEdit = (id, content, dueDate) => {
-            setEditingId(id);
-            setLocalEditContent(content);
-            setLocalEditDueDate(dueDate);
-        };
+    };
 
-
-    // 투두 데이터 가져오기
-        const fetchTodos = async () => {
-            try{
-                const response = await fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos`);
-                const data = await response.json();
-                const inProgress = [];
-                const completed = [];   
-                const feedbackPending = [];
-
-                for ( const todo of data){
-                    const statusResponse = await fetch(`http://127.0.0.1:8008/todos/${todo.id}/status`);
-                    const statusData = await statusResponse.json();
-
-                    switch (statusData.status) {
-                        case 'in_progress':
-                            inProgress.push({id:todo.id, content: todo.text, dueDate: todo.deadline, completed: false});
-                            break;
-                        case 'completed':
-                            completed.push({id:todo.id, content: todo.text, dueDate: todo.deadline, completed: true});
-                            break;
-                        case 'waiting_feedback':
-                            feedbackPending.push({id:todo.id, content: todo.text, dueDate: todo.deadline, completed: false});
-                            break;
-                } }
-                setTodos({ inProgress, completed, feedbackPending });
-                updateTodoCounts();
-            }catch(error){
-                console.error(error.message);
-        };};
-
-        useEffect(() => {
-            if (Pg_id) {
-                fetchTodos();
-            }
-        }, [Pg_id]);
-
-        //마감일 자동 complete옮기기
-        useEffect(() => {
-            const today = new Date();
-            const updatedTodos = { ...todos };
-            Object.keys(updatedTodos).forEach((status) => {
-                updatedTodos[status].forEach((item) => {
-                    const due = new Date(item.dueDate);
-                    if (due < today && status !== 'completed') {
-                        const itemToMove = updatedTodos[status].splice(
-                            updatedTodos[status].findIndex((i) => i.id === item.id),
-                            1
-                        )[0];
-                        updatedTodos.completed.push({ ...itemToMove, completed: true });
-                    }
-                });
-            });
-            setTodos(updatedTodos);
-        }, []);
-
-        const calculateDDay = (dueDate) => {
-            const today = new Date();
-            const due = new Date(dueDate);
-            const diffTime = due - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays >= 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
-        };
-        const handleDragEnd = async (event) => {
-            const { active, over } = event;
-            if (active.id === over?.id) return;
-        
-            const activeContainer = Object.keys(todos).find((key) =>
-                todos[key].some((item) => item.id === active.id)
-            );
-        
-            if (!activeContainer) return;
-        
-            const overContainer = over?.data?.current?.status || over?.id;
-        
-            setTodos((prevTodos) => {
-                const newTodos = { ...prevTodos };
-                const sourceItems = [...newTodos[activeContainer]];
-                const activeIndex = sourceItems.findIndex((item) => item.id === active.id);
-                const [movedItem] = sourceItems.splice(activeIndex, 1);
-        
-                if (!overContainer) {
-                    newTodos[activeContainer] = [...sourceItems, movedItem];
-                    return newTodos;
-                }
-        
-                const destItems = [...newTodos[overContainer]];
-                destItems.push(movedItem);
-                newTodos[activeContainer] = sourceItems;
-                newTodos[overContainer] = destItems;
-        
-                const newStatusMap = {
-                    inProgress: "in_progress",
-                    completed: "completed",
-                    feedbackPending: "waiting_feedback",
-                };
-        
-                fetch(`http://127.0.0.1:8008/todos/${active.id}/status?status=${newStatusMap[overContainer]}`, {
-                    method: "POST",
-                })
-                    .then((res) => {
-                        if (!res.ok) {
-                            console.error("Failed to update status");
-                        } else {
-                            fetchTodos(); 
-                            updateTodoCounts();
-                        }
-                    })
-                    .catch((err) => console.error(err));
-        
-                return newTodos;
-            });
-        };
-        const updateTodoCounts = () => {
-            if (Pg_id) {
-                todoCount("in_progress", setInProgressCount);
-                todoCount("completed", setCompletedCount);
-                todoCount("waiting_feedback", setWaitingFeedbackCount);
-                setTotalCount(inProgressCount + completedCount + waitingFeedbackCount);
-            }
-        };
-        // 체크박스 todo
-        const handleCheck = (id, status) => {
-            if (!todos[status]) return; // status가 유효하지 않으면 종료
-            setTodos((prevTodos) => ({
-                ...prevTodos,
-                [status]: prevTodos[status].map((item) =>
-                    item.id === id ? { ...item, completed: !item.completed } : item
-                ),
-            }));
-        };
-        // 수정 todo
-        const saveEdit = async (id, status, userId, start_day) => {
-            if (!todos[status]) return; 
-            const existingTodo = todos[status].find((item) => item.id === id);
-            if (!existingTodo) {
-                console.error("해당 Todo를 찾을 수 없습니다.");
-                return;
-            }
-
-            const updatedData = {
-                text: localEditContent,
-                user_id: username,
-                deadline: localEditDueDate.includes('.') 
-                    ? localEditDueDate.replaceAll('.', '-') 
-                    : localEditDueDate,                     
-                start_day: '2025-04-01',
-                project_id: Pg_id, 
-            };
-            console.log(updatedData)
-            try {
-                const response = await fetch(`http://127.0.0.1:8008/todos/${id}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        text: localEditContent,
-                        user_id: username,
-                        deadline: localEditDueDate.includes('.') 
-                            ? localEditDueDate.replaceAll('.', '-') 
-                            : localEditDueDate,                     
-                        start_day: '2025-04-01',
-                        project_id: Pg_id, 
-                    }),
-                });
-        
-                if (!response.ok) {
-                    return;
-                }
-        
-                // 정상 응답 시 상태 업데이트
-                setTodos((prevTodos) => ({
-                    ...prevTodos,
-                    [status]: prevTodos[status].map((item) =>
-                        item.id === id ? { ...item, content: localEditContent, dueDate: updatedData.deadline } : item
-                    ),
-                }));
-                setEditingId(null);
-        
-            } catch (error) {
-            }
-        };
-        
-        // 삭제 todo
-        const handleDelete = async (id, status) => {
-            if (!todos[status]) return;
-        
-            try {
-                const response = await fetch(`http://127.0.0.1:8008/todos/${id}?project_id=${Pg_id}`, {
-                    method: "DELETE",
-                });
-                setTodos((prevTodos) => ({
-                    ...prevTodos,
-                    [status]: prevTodos[status].filter((item) => item.id !== id),
-                }));
-                fetchTodos(); 
-                updateTodoCounts();
-        
-            } catch (error) {
-            }
-        };
-        
-
-        const SortableItem = ({ id, content, dueDate, status, completed }) => {
-            const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-                id,
-                handle: '.drag-handle',
-            });
-            const inputRef = useRef(null);
-            const style = {
-                transform: CSS.Transform.toString(transform),
-                transition: transform ? 'transform 0.1s ease' : 'transform 0.3s ease-out', 
-                width: '100%',
-                boxSizing: 'border-box',
-                opacity: transform ? 0.7 : 1,
-            };
-            useEffect(() => {
-                if (editingId === id && inputRef.current) {
-                    inputRef.current.focus();
-                }
-            }, [editingId]);
-            return (
-                <div ref={setNodeRef} style={style} className="todo-item">
-                    {editingId === id ? (
-                        <div className="edit-form">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={localEditContent}
-                                onChange={(e) => setLocalEditContent(e.target.value)}
-                            />
-                            <input
-                                type="date"
-                                value={localEditDueDate}
-                                onChange={(e) => setLocalEditDueDate(e.target.value)}
-                            />
-                            <button onClick={() => saveEdit(id, status)}>저장</button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="todo-content">
-                                <span className="drag-handle" {...attributes} {...listeners}>≡</span>
-                                <div style={{ textDecoration: completed ? 'line-through' : 'none' }}>
-                                    {content}
-                                </div>
-                                <span className="due-date">{calculateDDay(dueDate)}</span>
-                            </div>
-                            <div className="todo-meta">
-                                <span>{dueDate}까지</span>
-                                <div className="icons">
-                                    <img
-                                        src={EditIcon}
-                                        alt="edit"
-                                        className="icon"
-                                        onClick={() => handleEdit(id, content, dueDate)}
-                                    />
-                                    <img
-                                        src={DeleteIcon}
-                                        alt="delete"
-                                        className="icon trash"
-                                        onClick={() => handleDelete(id, status)}
-                                    />
-                                    <div
-                                        className={`checkBox ${completed ? 'checked' : ''}`}
-                                        onClick={() => handleCheck(id, status)}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            );
-        };
-        
-        const TodoColumn = ({ title, items, status }) => {
-            const { setNodeRef } = useDroppable({
-                id: status, // 각 컬럼의 고유 ID로 설정
-                data: { status }, // 드롭 시 status 전달
-            });
-
-            return (
-                <div ref={setNodeRef} className={`todo-column ${status}`}>
-                    <div className="column-header">
-                        <h2>{title}</h2>
-                        <span>{`${items.length}/${totalTodosCount}`}</span>
-                    </div>
-                    <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
-                        {items.map((item) => (
-                            <SortableItem
-                                key={item.id}
-                                id={item.id}
-                                content={item.content}
-                                dueDate={item.dueDate}
-                                status={status}
-                                completed={item.completed}
-                            />
-                        ))}
-                    </SortableContext>
-                </div>
-            );
-        };
-
+    const handleTodoUpdate = () => {
+        fetchTodos();
+        fetchTimelineTodos();
+    };
 
 
     //===================================================================== //
@@ -754,36 +1019,52 @@ const ProjectContent = () => {
     const [shouldRefresh, setShouldRefresh] = useState(false);
     const [folders, setFolders] = useState([]);
     const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
+    const [projectList, setProjectList] = useState([]);
+    const [projectInfoId, setProjectInfoId] = useState(null);
 
-
+    //우리가원하는건 ind 아이디. project.id가아니기땜에 부모 id를 찾는함수
     useEffect(() => {
-        if (!projectInfo?.id) return;
-    
-        const fetchFiles = async () => {
-            try {
-                const response = await fetch(`http://localhost:8008/projects/${projectInfo.id}/files`);
-                if (!response.ok) throw new Error("파일 로딩 실패");
-    
-                const data = await response.json();
-    
-                const mappedFiles = data.map(file => ({
-                    name: file.name,
-                    createdAt: new Date(file.uploaded_at).toLocaleString(),
-                    type: 'file',
-                    image: 'fileIcon.png',
-                    s3Url: file.s3_url,
-                    size: 0 
-                }));
-    
-                setFolders(mappedFiles);
-            } catch (err) {
-                console.error("작업물 파일 불러오기 실패:", err);
-            }
+        const fetchProjects = async () => {
+          const res = await fetch("http://localhost:8008/getProjects");
+          const data = await res.json();
+          setProjectList(data);
+      
+          // 프로젝트 리스트가 도착한 직후, Pg_id로 int형 id 추출
+          const match = data.find(p => p.project.id === Pg_id);
+          setProjectInfoId(match?.id || null);
         };
-    
+      
+        fetchProjects();
+      }, [Pg_id]);
+
+      useEffect(() => {
+        if (!projectInfoId) return;
+      
+        const fetchFiles = async () => {
+          try {
+            const response = await fetch(`http://localhost:8008/projects/${projectInfoId}/files`);
+            if (!response.ok) throw new Error("파일 로딩 실패");
+      
+            const data = await response.json();
+      
+            const mappedFiles = data.map(file => ({
+              name: file.name,
+              createdAt: new Date(file.uploaded_at).toLocaleString(),
+              type: 'file',
+              image: 'fileIcon.png',
+              s3Url: file.s3_url,
+              size: file.size ?? 0
+            }));
+      
+            setFolders(mappedFiles);
+          } catch (err) {
+            console.error("작업물 파일 불러오기 실패:", err);
+          }
+        };
+      
         fetchFiles();
-        setShouldRefresh(false); 
-    }, [projectInfo?.id, shouldRefresh]);
+        setShouldRefresh(false);
+      }, [projectInfoId, shouldRefresh]);
     
 
     const handleMoreClick = () => {
@@ -794,48 +1075,59 @@ const ProjectContent = () => {
         setShowFeedbackPopup(false);
         setShouldRefresh(true); 
     };
+    const [showMore, setShowMore] = useState(false);
 
-const ToggleNameDisplay = ({ name }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    return (
-        <div
-            className={`folderName ${expanded ? 'expanded' : ''}`}
-            onClick={() => setExpanded(!expanded)}
-            title={name}
-        >
-            {name}
-        </div>
-    );
-};
+    const [refreshKey, setRefreshKey] = useState(0);
+    const handleUpdate = () => {
+        setRefreshKey(prev => prev + 1); 
+      };
+      
 
 
+    //===================================================================== //
+    // ------------------------   챗    -----------------------//
+    //===================================================================== // 
+    const ToggleNameDisplay = ({ name }) => {
+        const [expanded, setExpanded] = useState(false);
 
-useEffect(() => {
-  const now = new Date();
-  const formattedTime = now.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+        return (
+            <div
+                className={`folderName ${expanded ? 'expanded' : ''}`}
+                onClick={() => setExpanded(!expanded)}
+                title={name}
+            >
+                {name}
+            </div>
+        );
+    };
 
-  const initialMessages = [
-    {
-      name: "침착맨",
-      text: "안녕하세요! 여기는 실시간 채팅방입니다.",
-      sender: "other",
-      time: formattedTime,
-    },
-    {
-      name: "나",
-      text: "안녕하세요~!",
-      sender: "me",
-      time: formattedTime,
-    },
-  ];
 
-  setMessages(initialMessages);
-}, []);
+
+    useEffect(() => {
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+
+    const initialMessages = [
+        {
+        name: "침착맨",
+        text: "안녕하세요! 여기는 실시간 채팅방입니다.",
+        sender: "other",
+        time: formattedTime,
+        },
+        {
+        name: "나",
+        text: "안녕하세요~!",
+        sender: "me",
+        time: formattedTime,
+        },
+    ];
+
+    setMessages(initialMessages);
+    }, []);
 
 
     const [messages, setMessages] = useState([]);
@@ -869,7 +1161,7 @@ useEffect(() => {
 
     return (
         <div className="content">
-            <div className="contentTitle">침착맨 유튜브  편집팀</div>
+            <div className="contentTitle">{projectName}</div>
             <div className="projectContent">
                 <div className="gonji  box1">
                     <div className="gonjiIcon" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
@@ -971,17 +1263,32 @@ useEffect(() => {
                 <div className="todoList">
                     <div className="top">
                         <div className="title">할 일 목록</div>
-                        <div className="more">더보기</div>
                     </div>
                     <div className="content-todo">
-                    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <div className="todo-board">
-                        <TodoColumn title="진행중" items={todos.inProgress} status="inProgress" />
-                        <TodoColumn title="완료" items={todos.completed} status="completed" />
-                        <TodoColumn title="피드백 대기중" items={todos.feedbackPending} status="feedbackPending" />
-                        </div>
-                    </DndContext>
+                        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <div className="todo-board">
+                                <TodoColumn 
+                                    title="진행중" 
+                                    items={todos.inProgress} 
+                                    status="inProgress"
+                                    onDetail={() => setShowDetail({ open: true, status: "inProgress" })}
+                                />
+                                <TodoColumn 
+                                    title="완료" 
+                                    items={todos.completed} 
+                                    status="completed" 
+                                    onDetail={() => setShowDetail({ open: true, status: "completed" })}
+                                />
+                                <TodoColumn 
+                                    title="피드백 대기중" 
+                                    items={todos.feedbackPending} 
+                                    status="feedbackPending"
+                                    onDetail={() => setShowDetail({ open: true, status: "feedbackPending" })}
+                                />
+                            </div>
+                        </DndContext>
                     </div>
+
                 </div>
                 <div className="liveChat">
                     <div className="title">실시간 채팅</div>
@@ -1077,10 +1384,47 @@ useEffect(() => {
                     
                 </div>
             </div>
+        {showCancelModal && (
+            <>
+                <div className="modal_overlay"></div> {/* 오버레이 */}
+                <div className="modal_Pc">
+                    <div className="modal_emoji">😶</div>
+                    <div className="modal_realMsg">정말 일정을 옮기시겠습니까?</div>
+                    <div className="modal-buttons_Pc">
+                        <button onClick={handleCancel}>취소</button>
+                        <button onClick={handleConfirm}>네</button>
+                    </div>
+                    <label className="modal_dontShow">
+                        <input
+                            type="checkbox"
+                            checked={dontShowAgain}
+                            onChange={handleDontShowAgainChange}
+                        />
+                        다시 보지 않기 (24시간)
+                    </label>
+                </div>
+            </>
+        )}
 
-            
-            {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfo.id}/>}
+        <TodoEditModal
+            isOpen={todoEditModal.isOpen}
+            onClose={handleTodoEditClose}
+            todoId={todoEditModal.todoId}
+            onUpdate={handleTodoUpdate}
+            projectId={Pg_id}
+        />
+        {showDetail.open && (
+            <TodoMorePopup
+            status={showDetail.status}
+            projectId={Pg_id}
+            todos={todos}
+            onClose={() => setShowDetail({ open: false, status: null })}
+            onUpdate={handleTodoUpdate}
+            />
+        )}
 
+
+        {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfoId}/>}
         </div>
     );
 };
