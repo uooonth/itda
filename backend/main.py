@@ -205,8 +205,6 @@ os.makedirs("static/uploads", exist_ok=True)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 @app.post("/projects", response_model=ProjectOut)
 async def create_project(
     id: str = Form(...),
@@ -243,6 +241,8 @@ async def create_project(
     if thumbnail:
         content = await thumbnail.read()
         filename = f"{uuid.uuid4().hex}_{thumbnail.filename}"
+        print("📂 썸네일:", thumbnail.filename)
+        print("📏 파일 크기:", len(content))
         save_path = f"static/uploads/{filename}"
         with open(save_path, "wb") as f:
             f.write(content)

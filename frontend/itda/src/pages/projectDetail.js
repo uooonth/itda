@@ -95,7 +95,7 @@ export default function ProjectDetail() {
                 className="project-header"
                 style={{
                     backgroundImage: `url(${project.thumbnail ? `http://localhost:8008${project.thumbnail}` : "/images/projectImage.png"})`,
-                    backgroundSize: "auto 100%",
+                    backgroundSize: "60% 100%",
                     backgroundRepeat: "no-repeat",
                     backgroundPosition: "right",
                 }}
@@ -126,10 +126,13 @@ export default function ProjectDetail() {
                     </div>
                 </div>
             </header>
-
-            <p className="detail-title">상세 내용</p>
+            
             <p className="detail-subtitle">해당 내용은 itda에서 제공하는 기본적인 계약 조건이며,</p>
             <p className="detail-subtitle">구체적인 사항은 계약 당사자인 계약자와 근로자가 협의하여 결정하시기 바랍니다.</p>
+            <div className="detail-heading-wrapper">
+                <h2 className="detail-heading">상세 내용</h2>
+            </div>
+
             <section className="project-details">
                 <h2>{project.project.name}</h2>
                 <div className="detail-grid">

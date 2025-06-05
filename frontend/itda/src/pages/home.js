@@ -9,14 +9,35 @@ export default function Home() {
     const isLoggedIn = !!localStorage.getItem('access_token');
     const [selectedTab, setSelectedTab] = useState("인기");
     const [projects, setProjects] = useState([]);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
-        axios.get("http://localhost:8008/projects")
-            .then((res) => setProjects(res.data))
-            .catch((err) => {
+        const fetchProjects = async () => {
+            try {
+                const res = await axios.get("http://localhost:8008/projects");
+                setProjects(res.data);
+            } catch (err) {
                 console.error("프로젝트 목록 가져오기 실패", err);
                 alert("프로젝트 목록을 불러올 수 없습니다.");
-            });
+            }
+        };
+
+        const fetchCurrentUser = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const res = await axios.get("http://localhost:8008/me", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setCurrentUserId(res.data.id);
+            } catch (err) {
+                console.error("유저 정보 가져오기 실패", err);
+            }
+        };
+
+        fetchProjects();
+        fetchCurrentUser();
     }, []);
 
     const handleCreateClick = () => {
@@ -30,9 +51,12 @@ export default function Home() {
 
     const getDisplayedProjects = () => {
         return projects
-            .filter(p =>
-                (selectedTab === "인기" || p.project.classification === selectedTab)
-            )
+            .filter(p => {
+                if (selectedTab === "찜한 프로젝트") {
+                    return p.starred_users?.includes(currentUserId);
+                }
+                return selectedTab === "인기" || p.project.classification === selectedTab;
+            })
             .filter(p =>
                 p.project.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
@@ -114,7 +138,6 @@ export default function Home() {
                                                 })() : "마감일 없음"}
                                             </h4>
                                         </div>
-
                                     ))
                                 ) : (
                                     <p className='empty-p'>프로젝트가 없습니다.</p>
