@@ -143,7 +143,6 @@ class ChatMessage(BaseModel):
     sender_id: str
     sender_name: str
     text: str
-    time: datetime
 
 class FeedbackChatMessage(BaseModel):
     feedback_id: str
@@ -152,10 +151,3 @@ class FeedbackChatMessage(BaseModel):
     text: str
     time: datetime
 
-"""
-class LiveChatMessage(BaseModel):
-    sender_id: str
-    receiver_id: str
-    text: str
-    time: datetime
-"""
