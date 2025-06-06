@@ -520,7 +520,11 @@
     display: flex;
     justify-content: space-between;
 }
-
+.projectContent .todoList .title{
+    font-family: 'Pretendard-extraBold';
+    font-size: 0.94rem;
+    color: black;
+}
 .projectContent .todoList .content .object {
     display: flex;
 }
@@ -565,154 +569,99 @@
 .more {
     cursor: pointer;
 }
-
 .vis-timeline-container {
-    height: 472.5px;         /* 630px * 0.75 */
-    border-radius: 3.75px;    /* 5px * 0.75 */
+    height: 472.5px;
+    border-radius: 3.75px;
     overflow-y: auto;
     overflow-x: auto;
 }
-
+.vis-item .vis-item-overflow {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    width: 100%;
+    align-content: center;
+}
 .vis-timeline {
     border: none !important;
     font-family: 'pretendard-Light';
     background: #ffffff;
-    border-radius: 15px;       /* 20px * 0.75 */
+    border-radius: 15px;
 }
 
-/* 시간축 전체 */
 .vis-time-axis {
-    height: 45px !important;   /* 60px * 0.75 */
+    height: 45px !important;
     font-family: 'pretendard-bold' !important;
 }
 
-/* Major 레벨 숨기기 */
 .vis-major {
     display: none !important;
-}
-
-/* 년도 (major label) 스타일 */
-.vis-major {
     border: none !important;
-    font-size: 0.9rem !important;  /* 1.2rem * 0.75 */
-    padding: 7.5px !important;       /* 10px * 0.75 */
+    font-size: 0.9rem !important;
+    padding: 7.5px !important;
     text-align: center !important;
 }
 
-/* 날짜 (minor label) 스타일 */
 .vis-minor {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    font-size: 0.83rem !important;   /* 1.1rem * 0.75 */
+    font-size: 0.83rem !important;
     font-family: 'pretendard-semiBold' !important;
-    border-right: 0.375px solid #00000020 !important;  /* 0.5px * 0.75 */
-    height: 45px !important;         /* 60px * 0.75 */
+    border-right: 0.375px solid #00000020 !important;
+    height: 45px !important;
 }
 
-/* 그룹(사이드바) 스타일 */
 .vis-labelset .vis-label {
-    width: 150px !important;         /* 200px * 0.75 */
+    width: 150px !important;
     text-align: center !important;
     font-family: 'pretendard-bold' !important;
-    font-size: 0.9rem !important;      /* 1.2rem * 0.75 */
+    font-size: 0.9rem !important;
 }
-
-/* 아이템 스타일 */
-.vis-item {
-    height: 37.5px !important;        /* 50px * 0.75 */
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-.vis-item .vis-item-overflow {
-    display: flex;
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    align-items: center;
-    padding: 0;
+.vis-item .vis-item-content {
+    box-sizing: border-box;
+    padding: 5px;
     width: 100%;
+    white-space: nowrap;
 }
-
-.vis-time-axis .vis-grid.vis-minor {
-    border-right: none !important;
-}
-
-.vis-time-axis .vis-text {
-    color: black !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-}
-
+.vis-item,
 .vis-item.item-common {
+    background: #fff !important;
+    height: 80px !important;
+    display: flex !important;
+    align-items: center !important;
     font-weight: bold;
     font-size: small;
     border-radius: 8px;
-    color: white;
+    color: rgb(0, 0, 0);
+    border: none !important;
+    box-shadow: 1px -1px 14px rgb(0, 0, 0, 0.3);
 }
 
-/* 오늘 날짜 셀 스타일 */
-.vis-time-axis .vis-today {
-    background-color: #1b1b1b !important;
-    color: white !important;
-    font-family: 'pretendard-bold' !important;
+.vis-item.vis-selected,
+.vis-item.vis-active,
+.vis-item.vis-item--selected {
+    background: #fff !important;
+    border: 1.5px solid #FFC200 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
-
-/* 1. 선명한 코랄 */
-.vis-item.color-coral {
-    background-color: #f76767;
-    border-color: #e15252;
-}
-
-/* 2. 따뜻한 오렌지 */
-.vis-item.color-orange {
-    background-color: #ff922b;
-    border-color: #e67700;
-}
-
-/* 3. 선명한 머스터드 */
-.vis-item.color-mustard {
-    background-color: #f59f00;
-    border-color: #e67700;
-}
-
-/* 4. 상큼 민트그린 */
-.vis-item.color-mint {
-    background-color: #38d9a9;
-    border-color: #20c997;
-}
-
-/* 5. 시원한 스카이블루 */
-.vis-item.color-sky {
-    background-color: #339af0;
-    border-color: #228be6;
-}
-
-/* 6. 인디고 블루 */
-.vis-item.color-indigo {
-    background-color: #5c7cfa;
-    border-color: #4c6ef5;
-}
-
-/* 7. 보라빛 라벤더 */
-.vis-item.color-lavender {
-    background-color: #b197fc;
-    border-color: #9775fa;
-}
-
-/* 8. 차분한 블루그레이 */
-.vis-item.color-steel {
-    background-color: #748ffc;
-    border-color: #5c7cfa;
-}
-
+.vis-item-content >img {
+    width: 40px; 
+    height: 40px;
+    object-fit: cover; 
+    border-radius: 50%; 
+  }
+  .vis-item-content >div {
+    display: flex;
+    align-items: center;
+    gap:12px;
+  }
 #showAllGroup {
     cursor: pointer;
     position: relative;
-    transform: translate(11.25px, 46.5px);  /* (15px, 62px) * 0.75 */
+    transform: translate(11.25px, 46.5px);
     z-index: 100000;
 }
 
@@ -720,9 +669,27 @@
     max-height: 400px;
     min-height: 100px;
     overflow-y: auto;
-  }
+}
+
+.vis-item-content .timeline-divider {
+    width: 80px;
+    height: 10px !important;
+    background: #f0f0f0 !important;
+    margin-bottom: 4px;
+    margin-top: 2px;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
 
 
+  .vis-time-axis .vis-today {
+    background-color: black !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+  
 
 
 /* ================================================== */    
@@ -1174,3 +1141,96 @@
   background-color: #dfa4d0;
   margin-bottom:6vh;
 }
+
+
+
+.modal_emoji{
+    font-size: 3rem;
+}
+.modal_dontShow{
+
+    font-size: 0.8rem;
+}
+.modal_Pc{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    text-align: center;
+    width: 600px;
+    height: 309px;
+    font-family: "Pretendard-SemiBold";
+    align-content: center;
+    z-index: 99999999999;
+
+}
+.custom-tooltip {
+    pointer-events: none;
+    animation: fadeIn 0.18s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+.modal-buttons_Pc{
+    display: flex
+;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+    margin-bottom:20px;
+}
+.modal-buttons_Pc button {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 8px;
+    width: 130px;
+}
+.column-header > button{
+    border:none;
+    background-color: white;
+    font-family: 'pretendard-bold';
+    font-size: 2rem;
+    color:#191919;
+    cursor: pointer;
+
+}
+.modal-buttons_Pc button:nth-child(1) {
+    background-color: white;
+    border: 1px solid black;
+}
+
+.modal-buttons_Pc button:nth-child(2) {
+    background-color: black;
+    color: white;
+}
+.modal_realMsg{
+    font-family: 'pretendard-extraBold';
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    margin-top:20px;
+}
+.modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+}
+
+
+
+
+
+/* ================================================== */    
+/* ============= todoMore.css =============== */
+/* ================================================== */
