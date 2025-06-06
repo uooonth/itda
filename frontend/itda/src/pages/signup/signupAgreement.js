@@ -29,7 +29,7 @@ export default function SignupAgreement() {
         setAgreements(newAgreements);
     };
 
-    const isNextEnabled = agreements.terms && agreements.privacy;
+    const isNextEnabled = agreements.terms && agreements.privacy && agreements.marketing;
 
     return (
         <div className="signupAgreement-container">
@@ -69,7 +69,7 @@ export default function SignupAgreement() {
                     </div>
                 </div>
 
-                <h3>* 필수 약관에 동의하셔야 회원가입이 가능합니다.</h3>
+                <h4>* 필수 약관에 동의하셔야 회원가입이 가능합니다.</h4>
                 
                 <div className="agreement">
                     <div className="agreement-line" />
@@ -90,7 +90,7 @@ export default function SignupAgreement() {
                     <div className="agreement-line" />
                     <label>
                         <input type="checkbox" name="agree_marketing" checked={agreements.marketing} onChange={() => handleSingleCheck("marketing")} />
-                        마케팅 수신 동의 (선택)
+                        마케팅 수신 동의 (필수)
                     </label>
                     <div className="agreement-line" />
                 </div>

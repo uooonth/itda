@@ -68,16 +68,19 @@ export default function Home() {
         <div className="home-content">
             <div className="project-create">
                 <div className="main-banner-wrapper">
-                    <img src="/images/mainButton.png" alt="로고" className="mainButtonImage" />
-                    <div className="main-overlay">
-                        <div className="text-overlay">
-                            <p><span className='focus'>Collaborate</span> without limits.</p>
-                            <p>Share, innovate, and grow <span className='focus'>together</span>.</p>
+                    <div className="project-create-button">
+                        <img src="/images/mainButton.png" alt="로고" className="mainButtonImage" />
+                        <div className="main-overlay">
+                            <div className="text-overlay">
+                                <p><span className='focus'>Collaborate</span> without limits.</p>
+                                <p>Share, innovate, and grow <span className='focus'>together</span>.</p>
+                            </div>
+                            <button className="create-button" onClick={handleCreateClick}>
+                                프로젝트 생성하기 ▶
+                            </button>
                         </div>
-                        <button className="create-button" onClick={handleCreateClick}>
-                            프로젝트 생성하기 ▶
-                        </button>
                     </div>
+
 
                     <div className="bottom-content">
                         <div className="left-panel">

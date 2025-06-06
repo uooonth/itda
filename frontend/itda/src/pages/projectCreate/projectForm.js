@@ -86,9 +86,12 @@ export default function ProjectForm() {
             form.recruitNumber !== "" &&
             parseInt(form.recruitNumber) > 0 &&
             form.contractUntil !== "" &&
-            form.career !== ""
+            form.career !== "" &&
+            form.thumbnail !== null
         );
     }, [form]);
+
+
 
     const handleSubmit = async () => {
         try {
@@ -111,13 +114,12 @@ export default function ProjectForm() {
             formData.append("contract_until", form.contractUntil);
 
             if (form.thumbnail) {
-                formData.append("thumbnail", form.thumbnail); // ✅ 대표 이미지 포함
+                formData.append("thumbnail", form.thumbnail);
             }
 
             await axios.post("http://localhost:8008/projects", formData, {
                 headers: {
                     Authorization: `Bearer ${token}`
-                    // ❌ 'Content-Type': 'multipart/form-data'는 생략해야 boundary 자동 생성됨
                 }
             });
 
