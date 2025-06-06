@@ -3,7 +3,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+    margin-top: 50px;
 }
 
 .project-header {
@@ -96,7 +96,7 @@
 }
 
 .delete-button{
-    width: 7vw;
+    width: 6vw;
     height: 6.5vh;
     font-size: 1rem;
     font-family: 'Pretendard-Bold';
@@ -109,9 +109,10 @@
 }
 
 .project-name {
-    font-size: 2.8rem;
+    font-size: 2.5rem;
     font-family: 'Pretendard-SemiBold';
     margin-bottom: 3.5vh;
+    width: 50%;
 }
 
 .explain {
@@ -131,24 +132,21 @@
 }
 
 /* 상세내용 */
-.detail-title {
-    color: black;
-}
-
 .project-details {
     background-color: #f0f0f0;
     color: black;
-    padding: 24px;
+    padding: 64px;
     width: 80%;
-    max-width: 1000px;
-    margin: 40px auto;
+    /* max-width: 1000px; */
+    /* margin: 40px auto; */
     border-radius: 12px;
+    margin-bottom: 100px;
 }
 
 .project-details h2 {
-    font-size: 20px;
+    font-size: 24px;
     margin-bottom: 16px;
-    padding-bottom: 8px;
+    padding-bottom: 40px;
     border-bottom: 1px solid #ccc;
 }
 
@@ -166,17 +164,42 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    margin-bottom: 10px;
 }
 
 
 .detail-card p.label {
     font-size: 14px;
-    color: #666;
+    color: black;
     margin: 0;
+    width: 100px;
+    font-family: 'Pretendard-Regular';
 }
 
 .detail-card p.value {
-    font-weight: bold;
     margin: 4px 0 0;
+    font-family: 'Pretendard-SemiBold';
+}
+
+.detail-subtitle {
+    font-size: 0.95rem;
+    color: #B3B3B3;
+    text-align: right;
+    line-height: 1.4;
+    font-family: 'Pretendard-Regular';
+}
+
+.detail-heading-wrapper {
+    border-bottom: 3px solid #E84A4A;
+    padding-bottom: 4px;
+    margin-top: 50px;
+}
+
+
+
+.detail-heading {
+    font-size: 20px;
+    font-weight: bold;
+    color: #E84A4A;
 }
 

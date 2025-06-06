@@ -23,7 +23,39 @@ CREATE TABLE project_info (
     thumbnail TEXT
 );
 
+CREATE TABLE user_profiles (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT UNIQUE REFERENCES users(id),
+    profile_image TEXT,
+    tech_stack TEXT,        
+    tags TEXT,               
+    education TEXT,
+    intro TEXT,
+    career_summary TEXT,
+    phone TEXT,
+    location TEXT,
+    birth DATE,
+    portfolio_url TEXT,
+    is_public BOOLEAN DEFAULT TRUE
+);
 
+CREATE TABLE participation_histories (
+    id SERIAL PRIMARY KEY,
+    user_profile_id INTEGER REFERENCES user_profiles(id),
+    company TEXT,
+    title TEXT,
+    description TEXT,
+    start_date DATE,
+    end_date DATE
+);
+
+CREATE TABLE project_participations (
+    id SERIAL PRIMARY KEY,
+    user_profile_id INTEGER REFERENCES user_profiles(id),
+    project_id TEXT REFERENCES project_info(id),
+    joined_at DATE,
+    left_at DATE
+);
 
 
 CREATE TABLE todo (

@@ -9,14 +9,35 @@ export default function Home() {
     const isLoggedIn = !!localStorage.getItem('access_token');
     const [selectedTab, setSelectedTab] = useState("인기");
     const [projects, setProjects] = useState([]);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
-        axios.get("http://localhost:8008/projects")
-            .then((res) => setProjects(res.data))
-            .catch((err) => {
+        const fetchProjects = async () => {
+            try {
+                const res = await axios.get("http://localhost:8008/projects");
+                setProjects(res.data);
+            } catch (err) {
                 console.error("프로젝트 목록 가져오기 실패", err);
                 alert("프로젝트 목록을 불러올 수 없습니다.");
-            });
+            }
+        };
+
+        const fetchCurrentUser = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const res = await axios.get("http://localhost:8008/me", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setCurrentUserId(res.data.id);
+            } catch (err) {
+                console.error("유저 정보 가져오기 실패", err);
+            }
+        };
+
+        fetchProjects();
+        fetchCurrentUser();
     }, []);
 
     const handleCreateClick = () => {
@@ -30,9 +51,12 @@ export default function Home() {
 
     const getDisplayedProjects = () => {
         return projects
-            .filter(p =>
-                (selectedTab === "인기" || p.project.classification === selectedTab)
-            )
+            .filter(p => {
+                if (selectedTab === "찜한 프로젝트") {
+                    return p.starred_users?.includes(currentUserId);
+                }
+                return selectedTab === "인기" || p.project.classification === selectedTab;
+            })
             .filter(p =>
                 p.project.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
@@ -44,16 +68,19 @@ export default function Home() {
         <div className="home-content">
             <div className="project-create">
                 <div className="main-banner-wrapper">
-                    <img src="/images/mainButton.png" alt="로고" className="mainButtonImage" />
-                    <div className="main-overlay">
-                        <div className="text-overlay">
-                            <p><span className='focus'>Collaborate</span> without limits.</p>
-                            <p>Share, innovate, and grow <span className='focus'>together</span>.</p>
+                    <div className="project-create-button">
+                        <img src="/images/mainButton.png" alt="로고" className="mainButtonImage" />
+                        <div className="main-overlay">
+                            <div className="text-overlay">
+                                <p><span className='focus'>Collaborate</span> without limits.</p>
+                                <p>Share, innovate, and grow <span className='focus'>together</span>.</p>
+                            </div>
+                            <button className="create-button" onClick={handleCreateClick}>
+                                프로젝트 생성하기 ▶
+                            </button>
                         </div>
-                        <button className="create-button" onClick={handleCreateClick}>
-                            프로젝트 생성하기 ▶
-                        </button>
                     </div>
+
 
                     <div className="bottom-content">
                         <div className="left-panel">
@@ -94,7 +121,11 @@ export default function Home() {
                                 {displayedProjects.length > 0 ? (
                                     displayedProjects.map((project) => (
                                         <div className="project-card" key={project.id} onClick={() => navigate(`/projects/${project.id}`)}>
-                                            <img src={project.thumbnail || "/images/projectImage.png"} alt={project.title} />
+                                            <img
+                                                src={project.thumbnail ? `http://localhost:8008${project.thumbnail}` : "/images/projectImage.png"}
+                                                alt={project.title}
+                                            />
+
                                             <div className="card-overlay">
                                                 <span className="overlay-text">정보 확인하기</span>
                                             </div>
@@ -110,7 +141,6 @@ export default function Home() {
                                                 })() : "마감일 없음"}
                                             </h4>
                                         </div>
-
                                     ))
                                 ) : (
                                     <p className='empty-p'>프로젝트가 없습니다.</p>

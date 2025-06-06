@@ -80,6 +80,29 @@ class ProjectInfo(ormar.Model):
     career: Career = ormar.String(max_length=20, nullable=False, default=Career.ANY)
     contract_until: date = ormar.Date(nullable=False)
     starred_users: List[str] = ormar.JSON(nullable=False, default=[])
+    
+#신청자
+import ormar
+
+class ApplyForm(ormar.Model):
+    class Meta:
+        tablename = "apply_forms"
+        metadata = metadata
+        database = database
+        constraints = [ormar.UniqueColumns("user", "project")]
+
+    id: int = ormar.Integer(primary_key=True)
+    role: str = ormar.String(max_length=100, nullable=True)
+    education: str = ormar.String(max_length=100, nullable=True)
+
+    user: User = ormar.ForeignKey(User)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
+
+    contact: str = ormar.Text()
+    introduce: str = ormar.Text()
+    uploaded_file: str = ormar.String(max_length=255, nullable=True)
+
+
 
 class Todo(ormar.Model):
     class Meta:
@@ -125,6 +148,51 @@ class Chat(ormar.Model):
     timestamp: datetime = ormar.DateTime(default=datetime.utcnow)
 
 
+class UserProfile(ormar.Model):
+    class Meta:
+        tablename = "user_profiles"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    user: User = ormar.ForeignKey(User, unique=True)  # 1:1 관계
+    profile_image: str = ormar.String(max_length=255, nullable=True)
+    tech_stack: list = ormar.JSON(nullable=True, default=[])
+    tags: list = ormar.JSON(nullable=True, default=[])
+    education: Education = ormar.String(max_length=20, nullable=True)
+    intro: str = ormar.Text(nullable=True)
+    career_summary: str = ormar.String(max_length=255, nullable=True)
+    phone: str = ormar.String(max_length=30, nullable=True)
+    location: str = ormar.String(max_length=100, nullable=True)
+    birth: date = ormar.Date(nullable=True)
+    portfolio_url: str = ormar.String(max_length=255, nullable=True)
+    is_public: bool = ormar.Boolean(default=True)
+
+class ParticipationHistory(ormar.Model):
+    class Meta:
+        tablename = "participation_histories"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    user_profile: UserProfile = ormar.ForeignKey(UserProfile)
+    company: str = ormar.String(max_length=100)
+    title: str = ormar.String(max_length=100)
+    description: str = ormar.Text(nullable=True)
+    start_date: date = ormar.Date()
+    end_date: date = ormar.Date(nullable=True)
+
+class ProjectParticipation(ormar.Model):
+    class Meta:
+        tablename = "project_participations"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    user_profile: UserProfile = ormar.ForeignKey(UserProfile)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
+    joined_at: date = ormar.Date()
+    left_at: date = ormar.Date(nullable=True)
 
 #건들 ㄴㄴ
 ProjectFolderRef = ForwardRef("ProjectFolder")
