@@ -109,21 +109,6 @@ CREATE TABLE uploaded_files (
     folder INTEGER REFERENCES project_folders(id) ON DELETE SET NULL,
     uploaded_at TIMESTAMP
 );
-CREATE TABLE user_profiles (
-    id SERIAL PRIMARY KEY,
-    user_id TEXT UNIQUE REFERENCES users(id),
-    profile_image TEXT,
-    tech_stack TEXT,        
-    tags TEXT,               
-    education TEXT,
-    intro TEXT,
-    career_summary TEXT,
-    phone TEXT,
-    location TEXT,
-    birth DATE,
-    portfolio_url TEXT,
-    is_public BOOLEAN DEFAULT TRUE
-);
 
 CREATE TABLE participation_histories (
     id SERIAL PRIMARY KEY,

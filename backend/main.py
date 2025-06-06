@@ -414,7 +414,7 @@ async def reject_applicant(project_id: int, user_id: str):
 
     return {"status": "rejected"}
 
-@router.get("/projects/{project_id}/applicants")
+@router.get("/{project_id}/applicants")
 async def get_applicants(project_id: int):
     apply_forms = await ApplyForm.objects.select_related("user").filter(project__id=project_id).all()
 
@@ -430,7 +430,7 @@ async def get_applicants(project_id: int):
         })
 
     return result
-
+app.include_router(router, prefix="/projects")
 
 # ───────────── 플젝 탭 API ───────────── #
 @app.get("/project/{project_id}", response_model=ProjectOut)
