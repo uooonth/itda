@@ -77,7 +77,38 @@ class ProjectOut(BaseModel):
     class Config:
         orm_mode = True
 
+class ScheduleUpdate(BaseModel):
+    start_day: Optional[str]
+    deadline: Optional[str]
+    
+    
 
+class ParticipationHistorySchema(BaseModel):
+    company: str
+    title: str
+    description: Optional[str] = ""
+    start_date: date
+    end_date: Optional[date] = None
+
+class ProjectParticipationSchema(BaseModel):
+    project_id: str
+    joined_at: date
+    left_at: Optional[date] = None
+
+class UserProfileCreate(BaseModel):
+    profile_image: Optional[str] = None
+    tech_stack: List[str] = []
+    tags: List[str] = []
+    education: Optional[str] = None
+    intro: Optional[str] = ""
+    career_summary: Optional[str] = ""
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    birth: Optional[date] = None
+    portfolio_url: Optional[str] = None
+    is_public: bool = True
+    participation_history: List[ParticipationHistorySchema] = []
+    project_participations: List[ProjectParticipationSchema] = []
 
 class UserCreate(BaseModel):
     id: str

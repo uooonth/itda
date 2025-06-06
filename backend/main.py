@@ -1,7 +1,8 @@
 
 from fastapi import FastAPI,status,Depends, APIRouter,Body,Request
 from backend.schemas import ScheduleUpdate,UserProfileCreate,UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
-from backend.db import database, UserProfile,User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder
+from backend.db import database, UserProfile,User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder, UserProfile,ApplyForm
+
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
@@ -22,8 +23,11 @@ from backend.redisClass import Notice,r,FeedbackStore,FeedbackMessage,TodoProgre
 
 import redis
 import json
+from fastapi import File, UploadFile, Form, Depends, FastAPI, WebSocket, WebSocketDisconnect
+from datetime import date
+from fastapi.staticfiles import StaticFiles
+import shutil
 from zoneinfo import ZoneInfo
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 
 
@@ -51,6 +55,7 @@ app.add_middleware(
 # ───────────── 회원가입 API ───────────── #
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
 
 @app.post("/signup", response_model=UserCreate)
 async def signup(request: Request):
@@ -95,8 +100,8 @@ async def signup(request: Request):
         portfolio_url=None,
         is_public=True
     )
-
     return user
+
 
 @app.get("/check-id")
 async def check_id(id: str = Query(..., min_length=3, max_length=20)):
@@ -196,48 +201,78 @@ from fastapi import HTTPException
 
 
 #───────────── 프로젝트 생성 ─────────────#
+import os
+
+# static/uploads 경로가 없으면 생성
+os.makedirs("static/uploads", exist_ok=True)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.post("/projects", response_model=ProjectOut)
-async def create_project(project: ProjectCreate):
+async def create_project(
+    id: str = Form(...),
+    name: str = Form(...),
+    classification: str = Form(...),
+    explain: str = Form(...),
+    sign_deadline: date = Form(...),
+    salary_type: str = Form(...),
+    education: str = Form(...),
+    email: str = Form(...),
+    proposer: str = Form(...),  # JSON string
+    worker: str = Form(...),
+    roles: str = Form(...),
+    recruit_number: int = Form(...),
+    career: str = Form(...),
+    contract_until: date = Form(...),
+    thumbnail: UploadFile = File(None)
+):
+    # JSON 필드들 디코딩
+    proposer_list = json.loads(proposer)
+    worker_list = json.loads(worker)
+    roles_list = json.loads(roles)
 
-    # proposer 리스트 검증
-    for proposer_id in project.proposer:
-        user = await User.objects.get_or_none(id=proposer_id)
-        if user is None:
-            raise HTTPException(status_code=400, detail=f"프로포저 '{proposer_id}'가 존재하지 않습니다.")
+    # 유저 존재 여부 확인
+    for proposer_id in proposer_list:
+        if not await User.objects.get_or_none(id=proposer_id):
+            raise HTTPException(400, f"프로포저 '{proposer_id}' 없음")
+    for worker_id in worker_list:
+        if not await User.objects.get_or_none(id=worker_id):
+            raise HTTPException(400, f"워커 '{worker_id}' 없음")
 
-    # worker 리스트 검증
-    for worker_id in project.worker:
-        user = await User.objects.get_or_none(id=worker_id)
-        if user is None:
-            raise HTTPException(status_code=400, detail=f"워커 '{worker_id}'가 존재하지 않습니다.")
+    # 썸네일 저장
+    thumbnail_url = None
+    if thumbnail:
+        content = await thumbnail.read()
+        filename = f"{uuid.uuid4().hex}_{thumbnail.filename}"
+        print("📂 썸네일:", thumbnail.filename)
+        print("📏 파일 크기:", len(content))
+        save_path = f"static/uploads/{filename}"
+        with open(save_path, "wb") as f:
+            f.write(content)
+        thumbnail_url = f"/static/uploads/{filename}"
 
-    # ProjectOutline 존재 여부 확인 혹은 새로 생성
-    outline = await ProjectOutline.objects.get_or_none(id=project.id)
-    if outline is None:
-        outline = await ProjectOutline.objects.create(
-            id=project.id,
-            name=project.name,
-            classification=project.classification
-        )
+    # Outline 생성 또는 get
+    outline = await ProjectOutline.objects.get_or_none(id=id)
+    if not outline:
+        outline = await ProjectOutline.objects.create(id=id, name=name, classification=classification)
 
-    # ProjectInfo 생성
+
     new_project = await ProjectInfo.objects.create(
         project=outline,
-        explain=project.explain,
-        sign_deadline=project.sign_deadline,
-        salary_type=project.salary_type.value,
-        education=project.education.value,
-        email=project.email,
-        proposer=project.proposer,
-        worker=project.worker,
-        roles=project.roles,
-        thumbnail=project.thumbnail,
-        recruit_number=project.recruit_number,
-        career=project.career,
-        contract_until=project.contract_until,
+        explain=explain,
+        sign_deadline=sign_deadline,
+        salary_type=salary_type,
+        education=education,
+        email=email,
+        proposer=proposer_list,
+        worker=worker_list,
+        roles=roles_list,
+        thumbnail=thumbnail_url,
+        recruit_number=recruit_number,
+        career=career,
+        contract_until=contract_until,
         starred_users=[]
     )
-
 
     return await ProjectInfo.objects.select_related("project").get(id=new_project.id)
 
@@ -261,11 +296,17 @@ async def delete_project(project_id: int, current_user: User = Depends(get_curre
     project = await ProjectInfo.objects.get_or_none(id=project_id)
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다.")
-    if current_user.id not in project.proposer:
+    
+    if current_user.id != project.proposer[0]:
         raise HTTPException(status_code=403, detail="삭제 권한이 없습니다.")
-
+    
+    await ApplyForm.objects.filter(project=project).delete()
+    
+    # 프로젝트 삭제
     await project.delete()
+    
     return {"detail": "삭제 성공"}
+
 
 @app.post("/projects/{project_id}/star")
 async def toggle_star(
@@ -293,6 +334,104 @@ async def toggle_star(
         "isStarred": is_starred,
         "starCount": len(starred)
     }
+    
+@router.post("/apply/{project_id}")
+async def apply_to_project(
+    project_id: int,
+    role: str = Form(...),
+    education: str = Form("무관"),
+    contact: str = Form(...),
+    introduce: str = Form(...),
+    file: UploadFile = File(None),
+    current_user: User = Depends(get_current_user)
+):
+    # 중복 지원 방지
+    existing = await ApplyForm.objects.get_or_none(user=current_user, project__id=project_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="이미 이 프로젝트에 지원했습니다.")
+
+    UPLOAD_DIR = "static/uploads"
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    filename = None
+    if file:
+        ext = file.filename.split(".")[-1]
+        filename = f"{uuid4().hex}.{ext}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+    project = await ProjectInfo.objects.get_or_none(id=project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="해당 프로젝트가 존재하지 않습니다.")
+
+    apply_form = await ApplyForm.objects.create(
+        role=role,
+        education=education,
+        contact=contact,
+        introduce=introduce,
+        uploaded_file=filename,
+        user=current_user,
+        project=project
+    )
+    if current_user.id not in project.proposer:
+        project.proposer.append(current_user.id)
+        await project.update()
+
+
+    return {"message": "지원이 성공적으로 완료되었습니다."}
+
+# 수락
+@router.post("/projects/{project_id}/accept")
+async def accept_applicant(project_id: int, user_id: str):
+    project = await ProjectInfo.objects.get(id=project_id)
+    user = await User.objects.get(id=user_id)
+    user_profile = await UserProfile.objects.get(user=user)
+
+    # 참여기록 추가
+    await ProjectParticipation.objects.create(
+        user_profile=user_profile,
+        project=project,
+        joined_at=date.today()
+    )
+
+    # ApplyForm 삭제
+    await ApplyForm.objects.filter(user=user, project=project).delete()
+    
+    if user_id not in project.worker:
+        project.worker.append(user_id)
+        await project.update()
+
+    return {"status": "accepted"}
+
+# 거절
+@router.post("/projects/{project_id}/reject")
+async def reject_applicant(project_id: int, user_id: str):
+    project = await ProjectInfo.objects.get(id=project_id)
+    user = await User.objects.get(id=user_id)
+
+    await ApplyForm.objects.filter(user=user, project=project).delete()
+
+    return {"status": "rejected"}
+
+@router.get("/projects/{project_id}/applicants")
+async def get_applicants(project_id: int):
+    apply_forms = await ApplyForm.objects.select_related("user").filter(project__id=project_id).all()
+
+    result = []
+    for form in apply_forms:
+        result.append({
+            "user_id": form.user.id,
+            "name": form.user.name,
+            "email": form.user.email,
+            "role": form.role,
+            "introduce": form.introduce,
+            "contact": form.contact,
+        })
+
+    return result
+
+
 # ───────────── 플젝 탭 API ───────────── #
 @app.get("/project/{project_id}", response_model=ProjectOut)
 async def get_project_detail(project_id: str = Path(...)):
@@ -1159,6 +1298,7 @@ async def update_user_profile(
             ContentType=profile_image.content_type,
             
         )
+
         s3_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
         presigned_url = s3.generate_presigned_url(
             'get_object',
@@ -1248,3 +1388,4 @@ async def delete_calendar_event(data: CalendarDelete):
             return {"message": "이벤트 삭제 완료"}
 
     return {"message": "삭제할 이벤트를 찾을 수 없습니다."}
+
