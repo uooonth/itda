@@ -226,6 +226,61 @@ class UploadedFile(ormar.Model):
     folder: Optional[ProjectFolder] = ormar.ForeignKey(ProjectFolder, nullable=True) 
     uploaded_at: datetime = ormar.DateTime(default=datetime.utcnow)
 
+
+
+class UserProfile(ormar.Model):
+    class Meta:
+        tablename = "user_profiles"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    user: User = ormar.ForeignKey(User, unique=True)  # 1:1 관계
+    profile_image: str = ormar.String(max_length=255, nullable=True)
+    tech_stack: list = ormar.JSON(nullable=True, default=[])
+    tags: list = ormar.JSON(nullable=True, default=[])
+    education: Education = ormar.String(max_length=20, nullable=True)
+    intro: str = ormar.Text(nullable=True)
+    career_summary: str = ormar.String(max_length=255, nullable=True)
+    phone: str = ormar.String(max_length=30, nullable=True)
+    location: str = ormar.String(max_length=100, nullable=True)
+    birth: date = ormar.Date(nullable=True)
+    portfolio_url: str = ormar.String(max_length=255, nullable=True)
+    is_public: bool = ormar.Boolean(default=True)
+
+class ParticipationHistory(ormar.Model):
+    class Meta:
+        tablename = "participation_histories"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    user_profile: UserProfile = ormar.ForeignKey(UserProfile)
+    company: str = ormar.String(max_length=100)
+    title: str = ormar.String(max_length=100)
+    description: str = ormar.Text(nullable=True)
+    start_date: date = ormar.Date()
+    end_date: date = ormar.Date(nullable=True)
+
+class ProjectParticipation(ormar.Model):
+    class Meta:
+        tablename = "project_participations"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    user_profile: UserProfile = ormar.ForeignKey(UserProfile)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
+    joined_at: date = ormar.Date()
+    left_at: date = ormar.Date(nullable=True)
+
+
+
+
+
+
+
+
 # ───────────── 테이블 생성 ───────────── #
 engine = sqlalchemy.create_engine(settings.DATABASE_URL)
 metadata.create_all(engine)
