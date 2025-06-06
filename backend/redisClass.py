@@ -29,8 +29,6 @@ class FeedbackStore:
         return [FeedbackMessage.parse_raw(item) for item in raw_list]
     
     
-    
-    
 class TodoProgressStore:
     @staticmethod
     async def set_progress(todo_id: str, progress: int):
@@ -97,3 +95,15 @@ class TodoStyleStore:
     async def delete_style(todo_id: str):
         key = f"todo_style:{todo_id}"
         await r.delete(key)
+
+class ChatStore:
+    @staticmethod
+    async def save_message(project_id: str, data: dict):
+        key = f"chat:project:{project_id}"
+        await r.rpush(key, data)
+
+    @staticmethod
+    async def get_messages(project_id: str):
+        key = f"chat:project:{project_id}"
+        return await r.lrange(key, 0, -1)
+

@@ -136,16 +136,21 @@ class CalendarCreate(BaseModel):
     text: str
     start: datetime
     end: datetime
-    owner: str  # 사용자 ID
+    user_id: str  # 사용자 ID
     is_repeat: Optional[bool] = False
     in_project: Optional[str] = None 
+    color: Optional[str] = "#3174ad"
+    created_at: Optional[datetime] = None 
+
+class CalendarDelete(BaseModel):
+    user_id: str
+    created_at: Optional[datetime] = None 
 
 class ChatMessage(BaseModel):
     project_id: str
     sender_id: str
     sender_name: str
     text: str
-    time: datetime
 
 class FeedbackChatMessage(BaseModel):
     feedback_id: str
@@ -154,17 +159,9 @@ class FeedbackChatMessage(BaseModel):
     text: str
     time: datetime
 
-"""
-class LiveChatMessage(BaseModel):
-    sender_id: str
-    receiver_id: str
-    text: str
-    time: datetime
-"""
 class ScheduleUpdate(BaseModel):
     start_day: Optional[str]
     deadline: Optional[str]
-    
     
 
 class ParticipationHistorySchema(BaseModel):
@@ -193,3 +190,4 @@ class UserProfileCreate(BaseModel):
     is_public: bool = True
     participation_history: List[ParticipationHistorySchema] = []
     project_participations: List[ProjectParticipationSchema] = []
+
