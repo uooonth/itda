@@ -27,3 +27,14 @@ class FeedbackStore:
         key = f"feedback:{project_id}:{file_id}"
         raw_list = await r.lrange(key, 0, -1)
         return [FeedbackMessage.parse_raw(item) for item in raw_list]
+    
+class ChatStore:
+    @staticmethod
+    async def save_message(project_id: str, data: dict):
+        key = f"chat:project:{project_id}"
+        await r.rpush(key, data)
+
+    @staticmethod
+    async def get_messages(project_id: str):
+        key = f"chat:project:{project_id}"
+        return await r.lrange(key, 0, -1)
