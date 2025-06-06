@@ -876,23 +876,23 @@ const renderFilePreview = (fileToView) => {
                         <div className="chatContent">
                             <div className="messageList">
                             {messages.map((message, index) => (
-    <React.Fragment key={index}>
-        <div className="messageItem">
-            <div className="profileContainer">
-                <div className="profilePic" />
-                {index > 0 && <div className="line" />}
-            </div>
-            <div className="messageDetails">
-                <div className="messageHeader">
-                    <span className="profileName">User Name</span>
-                    <span className="messageTime">{message.time}</span>
-                </div>
-                <div className="messageText">{renderMessageText(message.text)}</div>
-            </div>
-        </div>
-        <div className="messageText">{message.message}</div>
-    </React.Fragment>
-))}
+                            <React.Fragment key={index}>
+                                <div className="messageItem">
+                                    <div className="profileContainer">
+                                        <div className="profilePic" />
+                                        {index > 0 && <div className="line" />}
+                                    </div>
+                                    <div className="messageDetails">
+                                        <div className="messageHeader">
+                                            <span className="profileName">User Name</span>
+                                            <span className="messageTime">{message.time}</span>
+                                        </div>
+                                        <div className="messageText">{renderMessageText(message.text)}</div>
+                                    </div>
+                                </div>
+                                <div className="messageText">{message.message}</div>
+                            </React.Fragment>
+                        ))}
 
                             </div>
 
