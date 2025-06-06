@@ -5,7 +5,7 @@ from backend.db import database, User,ProjectInfo, ProjectOutline, UploadedFile,
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path,HTTPException
@@ -879,12 +879,12 @@ async def get_chat(project_id: str):
     return [json.loads(m) for m in raw]
 
 
-# ───────────── 캘린더 API ───────────── #
+# ───────────── 캘린더 이벤트 생성 API ───────────── #
 calendar_router = APIRouter()
 
-@calendar_router.post("")
+@calendar_router.post("/")
 async def create_calendar_event(data: CalendarCreate):
-    key = f"calendar:{data.owner}"
+    key = f"calendar:{data.user_id}"
     now = datetime.now().isoformat()
 
     event_data = data.dict()
@@ -897,11 +897,26 @@ async def create_calendar_event(data: CalendarCreate):
     await r.rpush(key, json.dumps(event_data))
     return {"message": "이벤트 저장 완료"}
 
-@calendar_router.get("/{owner_id}")  # /calendar/{owner_id}
-async def get_calendar_events(owner_id: str):
-    key = f"calendar:{owner_id}"
+@calendar_router.get("/{user_id}")  # /calendar/{user_id}
+async def get_calendar_events(user_id: str):
+    key = f"calendar:{user_id}"
     raw_events = await r.lrange(key, 0, -1)
     return [json.loads(e) for e in raw_events]
 
 # 라우터 등록
 app.include_router(calendar_router, prefix="/calendar")
+
+# ───────────── 캘린더 이벤트 삭제제 API ───────────── #
+@calendar_router.delete("")
+async def delete_calendar_event(data: CalendarDelete):
+    key = f"calendar:{data.user_id}"
+    raw_events = await r.lrange(key, 0, -1)
+
+    # 삭제 타겟 찾기
+    for idx, raw in enumerate(raw_events):
+        event = json.loads(raw)
+        if event.get("created_at") == data.created_at.isoformat():
+            await r.lrem(key, 1, raw)
+            return {"message": "이벤트 삭제 완료"}
+
+    return {"message": "삭제할 이벤트를 찾을 수 없습니다."}

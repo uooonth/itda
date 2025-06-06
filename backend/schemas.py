@@ -134,9 +134,15 @@ class CalendarCreate(BaseModel):
     text: str
     start: datetime
     end: datetime
-    owner: str  # 사용자 ID
+    user_id: str  # 사용자 ID
     is_repeat: Optional[bool] = False
     in_project: Optional[str] = None 
+    color: Optional[str] = "#3174ad"
+    created_at: Optional[datetime] = None 
+
+class CalendarDelete(BaseModel):
+    user_id: str
+    created_at: Optional[datetime] = None 
 
 class ChatMessage(BaseModel):
     project_id: str
