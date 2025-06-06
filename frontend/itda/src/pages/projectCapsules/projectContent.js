@@ -601,24 +601,37 @@ const ProjectContent = () => {
       }, [Pg_id]);
       
 // 2. 각 투두의 user_id의 프로필 이미지 매핑 + timeline 아이템 생성
-    useEffect(() => {
-        if (!timelineTodos.length) return;
+useEffect(() => {
+    if (!timelineTodos.length) return;
+    
+    const fetchProfilesAndSetItems = async () => {
         const uniqueUsers = [...new Set(timelineTodos.map(todo => todo.user_id))];
-        // (1) 각 user_id에 대해 프로필 이미지 API 요청
-        const fetchProfilesAndSetItems = async () => {
-            const userProfileMap = {};
-            await Promise.all(
-                uniqueUsers.map(async (userId) => {
+        const userProfileMap = {};
+        
+        // 프로필 이미지 먼저 가져오기
+        await Promise.all(
+            uniqueUsers.map(async (userId) => {
+                try {
                     const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
-                    if (!res.ok) throw new Error();
-                    const data = await res.json();
-                    userProfileMap[userId] = Array.isArray(data) && data.length > 0
-                    ? data[0].profile_image
-                    : null;
-
-                })
-            );
-
+                    if (!res.ok) {
+                        console.error(`Failed to fetch profile for user ${userId}. Status: ${res.status}`);
+                        userProfileMap[userId] = '/default_profile.png'; // 실패 시 기본 이미지
+                        return; // 다음 사용자로 넘어감
+                    }
+                    const data = await res.json(); 
+                    if (data && data.profile_image_url) {
+                        userProfileMap[userId] = data.profile_image_url;
+                    } else {
+                        console.warn(`Profile image URL not found or is empty for user ${userId}. Response data:`, data);
+                        userProfileMap[userId] = '/default_profile.png';
+                    }
+                } catch (error) {
+                    console.error(`Error fetching or parsing profile for user ${userId}:`, error);
+                    userProfileMap[userId] = '/default_profile.png';
+                }
+            })
+        );
+    
         // (2) 그룹 생성
         const groupData = uniqueUsers.map((user, idx) => ({
             id: user,
@@ -643,7 +656,7 @@ const ProjectContent = () => {
                     content: todo.text,
                     className: `item-common ${getGroupColorClass(todo.user_id)}`,
                     editable: true,
-                    profile_image: userProfileMap[todo.user_id], 
+                    profile_image_url: userProfileMap[todo.user_id], 
                 };
             });
         setTimelineItems(new DataSet(mappedItems));
@@ -772,15 +785,17 @@ useEffect(() => {
               dataAttributes: ['id'],
             
             //타임라인아이템 속 들어갈 내용 
-            template: function (item) {
+            template: function (item) {console.log(item,"템플릿아이템이여기까지오긴하니?")
                 const progress = todoProgress[item.id] || 0;
-                return '<div class="timeline-card">' +
-                '<div class="timeline-divider"></div>' +
-                '<div class="timeline-title">' + item.content + '</div>' +
-                '<img src="' + (item.profile_image || '/default_profile.png') + '" class="timeline-avatar"/>' +
-                '</div>';
-         
+                const profileImageUrl = item.profile_image_url || '/default_profile.png';
+                const html = '<div class="timeline-card">' +
+                    '<div class="timeline-divider"></div>' +
+                    '<div class="timeline-title">' + item.content + '</div>' +
+                    `<img src="${profileImageUrl}" class="timeline-avatar" data-user="${item.user_id || ''}" data-group="${item.group}"/>` +
+                    '</div>';
+                return html;
             }
+            
             ,
             
 
@@ -921,10 +936,27 @@ useEffect(() => {
                 currentTodayStr = nowStr;
             }
         }, 1000 * 60 * 60); 
-
+        const images = timelineRef.current.querySelectorAll('.timeline-avatar');
+        images.forEach(img => {
+          img.onerror = async function(e) {
+            const userId = e.target.dataset.user;
+            console.log(userId)
+            try {
+              const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
+              if (res.ok) {
+                const data = await res.json();
+                e.target.src = (Array.isArray(data) && data.length > 0 && data[1].profile_image_url) ? data[1].profile_image_url : '/default_profile.png';
+              } else {
+                e.target.src = '/default_profile.png';
+              }
+            } catch {
+              e.target.src = '/default_profile.png';
+            }
+          };
+        });
+      
         return () => timeline.destroy();
     }, [timelineItems, groups,todoProgress])
-
 // 그룹 모두보기 핸들러
     const handleShowAllGroups = () => {
         const updatedGroups = groups.get().map(group => ({
