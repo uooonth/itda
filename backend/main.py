@@ -1073,7 +1073,19 @@ async def get_user_profile(user_id: str):
     profile = await UserProfile.objects.get_or_none(user=user)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
-    return {profile}
+
+    # profile_image가 S3 객체 키라고 가정 (예: "profile_images/...jpg")
+    s3_key = profile.profile_image
+    presigned_url = generate_presigned_url(BUCKET_NAME, s3_key)
+    if not presigned_url:
+        raise HTTPException(status_code=500, detail="Presigned URL 생성 실패")
+
+    # 프로필 정보와 presigned URL만 반환
+    profile_dict = dict(profile)
+    profile_dict.pop("profile_image", None)  # 원본 presigned URL은 반환하지 않음
+    return {"profile": profile_dict, "profile_image_url": presigned_url}
+
+
 
 
 
@@ -1121,7 +1133,7 @@ async def update_user_profile(
             },
             ExpiresIn=3600  # 예: 1시간 유효
         )
-        profile.profile_image = presigned_url
+        profile.profile_image = s3_key
 
         
     # 2. JSON 등 값들 갱신 (프론트에서 배열은 JSON.stringify해서 보내야 함)
@@ -1154,4 +1166,9 @@ async def update_user_profile(
         profile.is_public = is_public
 
     await profile.update()
-    return {"detail": "프로필 업데이트 완료", "profile_image": profile.profile_image}
+    response_data = {"detail": "프로필 업데이트 완료"}
+    if profile.profile_image:
+        current_presigned_url = generate_presigned_url(BUCKET_NAME, profile.profile_image)
+        response_data["profile_image_url"] = current_presigned_url
+    
+    return response_data

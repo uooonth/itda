@@ -380,7 +380,12 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
         // 프로젝트 정보 (workers)
         const projectRes = await axios.get(`http://localhost:8008/project/${projectId}`);
         setWorkers(projectRes.data.worker || []);
-        
+        const workerArr = Array.isArray(projectRes.data.worker)
+        ? projectRes.data.worker
+        : projectRes.data.worker
+          ? [projectRes.data.worker]
+          : [];
+      setWorkers(workerArr);
         // 전체 todos (user 정보 포함)
         const todosRes = await axios.get(`http://localhost:8008/projects/${projectId}/todos`);
         const allTodos = todosRes.data;
@@ -426,7 +431,7 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
       alert("수정에 실패했습니다.");
     }
   };
-  
+
 
   const handleAddClick = () => {
     setIsAdding(true);
@@ -566,12 +571,16 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
 
         <TodoList>
           {filteredTodos
-            .filter(todo => {
-              if (!search || search.trim() === '') return true;
-              const searchLower = search.toLowerCase();
-              return todo.text?.toLowerCase().includes(searchLower) ||
-                     todo.user_id?.toLowerCase().includes(searchLower);
-            })
+.filter(todo => {
+  if (!search || search.trim() === '') return true;
+  const searchLower = search.toLowerCase();
+  return todo.text?.toLowerCase().includes(searchLower) ||
+    (
+      Array.isArray(todo.user_id)
+        ? todo.user_id.some(u => u.toLowerCase().includes(searchLower))
+        : (todo.user_id?.toLowerCase().includes(searchLower))
+    );
+})
             .map((todo) => (
               <TodoCard key={todo.id}>
                 <CardHeader>
@@ -627,7 +636,12 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
                 ) : (
                 <CardContent>
                     <DateText>
-                    담당자: {todo.user_id || "미할당"} ㅤ|ㅤ 
+                    담당자: {
+                      Array.isArray(todo.user_id)
+                        ? todo.user_id.join(', ')
+                        : (todo.user_id || "미할당")
+                    }ㅤ|ㅤ
+                    
                     시작일: {todo.start_day || "없음"} ㅤ|ㅤ
                     마감일: {todo.deadline || "없음"}ㅤ
                     </DateText>
