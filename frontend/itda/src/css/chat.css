@@ -66,7 +66,7 @@
 }
 
 .chatRoomItem:hover {
-    background-color: #f5deb3; /* bisque보다 진한 hover 색 */
+    background-color: #e3e3e3;
 }
 
 .chatRoomName {

@@ -5,7 +5,7 @@ from backend.db import database, UserProfile,User,ProjectInfo, ProjectOutline, U
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path,HTTPException
@@ -19,8 +19,12 @@ from fastapi import Query
 from .email_routes import router as email_router
 from ormar.exceptions import NoMatch
 from backend.redisClass import Notice,r,FeedbackStore,FeedbackMessage,TodoProgressStore,TodoStyleStore,TodoParticipantStore
+
 import redis
 import json
+from zoneinfo import ZoneInfo
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
 
 
 # ───────────── Docker 생명주기 설정 ───────────── #
@@ -876,29 +880,51 @@ async def get_feedback(project_id: int, file_id: int):
 
 
 
-"""    
-# ───────────── 플젝 페이지 실시간 채팅 저장 API ───────────── #
-@app.post("/livechat/send")
-async def send_live_chat_message(msg: LiveChatMessage):
-    # 양방향 키 만들기 (ex: user1↔user2)
-    sorted_ids = sorted([msg.sender_id, msg.receiver_id])
-    redis_key = f"livechat:{sorted_ids[0]}:{sorted_ids[1]}"
-    message_data = {
-        "sender_id": msg.sender_id,
-        "text": msg.text,
-        "time": msg.time.isoformat()
-    }
-    r.rpush(redis_key, json.dumps(message_data))
-    return {"message": "메시지 저장 완료"}
 
-# 채팅 불러오기 API
-@app.get("/livechat/{user1}/{user2}") # 1대多 채팅방이라 일케 하면 안됨 수정 필요
-async def get_live_chat_messages(user1: str, user2: str):
-    sorted_ids = sorted([user1, user2])
-    redis_key = f"livechat:{sorted_ids[0]}:{sorted_ids[1]}"
-    messages = r.lrange(redis_key, 0, -1)
-    return [json.loads(m) for m in messages]
-"""
+# ───────────── 플젝 페이지 실시간 채팅 저장 API ───────────── #
+# 프로젝트 id 받아오는 데서 오류가 나는 듯
+active_livechat_connections: dict[str, list[WebSocket]] = {}
+
+@app.websocket("/ws/livechat/{project_id}")
+async def websocket_livechat(websocket: WebSocket, project_id: str):
+    await websocket.accept()
+
+    # 연결 관리
+    if project_id not in active_livechat_connections:
+        active_livechat_connections[project_id] = []
+    active_livechat_connections[project_id].append(websocket)
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            parsed = json.loads(data)
+
+            now = datetime.now(ZoneInfo("Asia/Seoul")).isoformat()
+            message = {
+                "sender_id": parsed["sender_id"],
+                "sender_name": parsed["sender_name"],
+                "text": parsed["text"],
+                "time": now
+            }
+
+            json_msg = json.dumps(message)
+            await r.rpush(f"livechat:{project_id}", json_msg)
+
+            # 모든 연결된 유저에게 전송
+            for conn in active_livechat_connections[project_id]:
+                await conn.send_text(json_msg)
+            
+
+    except WebSocketDisconnect:
+        active_livechat_connections[project_id].remove(websocket)
+        
+
+@app.get("/livechat/{project_id}")
+async def get_live_chat(project_id: str):
+    raw = await r.lrange(f"livechat:{project_id}", 0, -1)
+    return [json.loads(m) for m in raw]
+
+
     
 # ───────────── 피드백 팝업 페이지 채팅 저장 API ───────────── #
 @app.post("/feedbackchat/send")
@@ -920,51 +946,60 @@ async def get_feedback_chat_messages(feedback_id: str):
     messages = r.lrange(redis_key, 0, -1)
     return [json.loads(m) for m in messages]
 
+# ───────────── 채팅 페이지 웹소켓켓 API ───────────── #
+active_connections: dict[str, list[WebSocket]] = {}
+
+@app.websocket("/ws/chat/{project_id}")
+async def websocket_chat(websocket: WebSocket, project_id: str):
+    await websocket.accept()
+
+    if project_id not in active_connections:
+        active_connections[project_id] = []
+    active_connections[project_id].append(websocket)
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            parsed = json.loads(data)
+
+            time_now = datetime.now(ZoneInfo("Asia/Seoul")).isoformat()
+            message = {
+                "sender_id": parsed["sender_id"],
+                "sender_name": parsed["sender_name"],
+                "text": parsed["text"],
+                "time": time_now
+            }
+
+            json_msg = json.dumps(message)
+
+            await r.rpush(f"chat:project:{project_id}", json_msg)
+
+            # 현재 연결된 유저에게 브로드캐스트
+            for conn in active_connections.get(project_id, []):
+                await conn.send_text(json_msg)
+
+    except WebSocketDisconnect:
+        active_connections[project_id].remove(websocket)
 
 # ───────────── 채팅 페이지 채팅 저장 API ───────────── #
 @app.post("/chat/send")
 async def send_chat_message(msg: ChatMessage):
-    redis_key = f"chat:project:{msg.project_id}"
-    message_data = {
+    time_now = datetime.now(ZoneInfo("Asia/Seoul"))
+    data = json.dumps({
         "sender_id": msg.sender_id,
         "sender_name": msg.sender_name,
         "text": msg.text,
-        "time": msg.time.isoformat()
-    }
-    r.rpush(redis_key, json.dumps(message_data))  # Redis에 메시지 저장
-    return {"message": "메시지 저장 완료"}
+        "time": time_now.isoformat()
+    })
+    await r.rpush(f"chat:project:{msg.project_id}", data)
+    return {"message": "저장됨"}
 
-# 채팅 불러오기 API
 @app.get("/chat/{project_id}")
-async def get_chat_messages(project_id: str):
-    redis_key = f"chat:project:{project_id}"
-    messages = r.lrange(redis_key, 0, -1)  # 전체 메시지 가져오기
-    return [json.loads(m) for m in messages]
+async def get_chat(project_id: str):
+    raw = await r.lrange(f"chat:project:{project_id}", 0, -1)
+    return [json.loads(m) for m in raw]
 
 
-# ───────────── 캘린더 API ───────────── #
-@app.post("/calendar/", status_code=status.HTTP_201_CREATED)
-async def create_calendar_event(calendar: CalendarCreate):
-    try:
-        query = CalendarModel.insert().values(
-            id=str(uuid4()),
-            text=calendar.text,
-            date=calendar.start.date(),
-            owner=calendar.owner,
-            is_repeat=calendar.is_repeat,
-            in_project=calendar.in_project
-        )
-        await database.execute(query)
-        return {"message": "일정이 성공적으로 추가되었습니다."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"일정 추가 실패: {str(e)}")
-
-
-
-
-
-#=======================================================#
-# ─────────────           진행도            ───────────── #
 #========================================================#
 # ───────────── 진행도 업데이트 ───────────── #
 @app.put("/todos/{todo_id}/progress")
@@ -1172,3 +1207,44 @@ async def update_user_profile(
         response_data["profile_image_url"] = current_presigned_url
     
     return response_data
+
+calendar_router = APIRouter()
+
+@calendar_router.post("/")
+async def create_calendar_event(data: CalendarCreate):
+    key = f"calendar:{data.user_id}"
+    now = datetime.now().isoformat()
+
+    event_data = data.dict()
+    event_data["created_at"] = now
+
+    # datetime -> string 변환
+    event_data["start"] = event_data["start"].isoformat()
+    event_data["end"] = event_data["end"].isoformat()
+
+    await r.rpush(key, json.dumps(event_data))
+    return {"message": "이벤트 저장 완료"}
+
+@calendar_router.get("/{user_id}")  # /calendar/{user_id}
+async def get_calendar_events(user_id: str):
+    key = f"calendar:{user_id}"
+    raw_events = await r.lrange(key, 0, -1)
+    return [json.loads(e) for e in raw_events]
+
+# 라우터 등록
+app.include_router(calendar_router, prefix="/calendar")
+
+# ───────────── 캘린더 이벤트 삭제제 API ───────────── #
+@calendar_router.delete("")
+async def delete_calendar_event(data: CalendarDelete):
+    key = f"calendar:{data.user_id}"
+    raw_events = await r.lrange(key, 0, -1)
+
+    # 삭제 타겟 찾기
+    for idx, raw in enumerate(raw_events):
+        event = json.loads(raw)
+        if event.get("created_at") == data.created_at.isoformat():
+            await r.lrem(key, 1, raw)
+            return {"message": "이벤트 삭제 완료"}
+
+    return {"message": "삭제할 이벤트를 찾을 수 없습니다."}
