@@ -142,6 +142,8 @@ class TodoCreate(BaseModel):
     deadline: str
     start_day: str
     project_id: str
+    status: Optional[str] = "in_progress" 
+
     
     
 class TodoResponse(BaseModel):
@@ -151,7 +153,7 @@ class TodoResponse(BaseModel):
     deadline: str
     start_day: str
     project_id: Optional[str] = None
-
+    status: str
 
 class UploadedFileCreate(BaseModel):
     name: str
@@ -165,16 +167,21 @@ class CalendarCreate(BaseModel):
     text: str
     start: datetime
     end: datetime
-    owner: str  # 사용자 ID
+    user_id: str  # 사용자 ID
     is_repeat: Optional[bool] = False
     in_project: Optional[str] = None 
+    color: Optional[str] = "#3174ad"
+    created_at: Optional[datetime] = None 
+
+class CalendarDelete(BaseModel):
+    user_id: str
+    created_at: Optional[datetime] = None 
 
 class ChatMessage(BaseModel):
     project_id: str
     sender_id: str
     sender_name: str
     text: str
-    time: datetime
 
 class FeedbackChatMessage(BaseModel):
     feedback_id: str
@@ -183,10 +190,35 @@ class FeedbackChatMessage(BaseModel):
     text: str
     time: datetime
 
-"""
-class LiveChatMessage(BaseModel):
-    sender_id: str
-    receiver_id: str
-    text: str
-    time: datetime
-"""
+class ScheduleUpdate(BaseModel):
+    start_day: Optional[str]
+    deadline: Optional[str]
+    
+
+class ParticipationHistorySchema(BaseModel):
+    company: str
+    title: str
+    description: Optional[str] = ""
+    start_date: date
+    end_date: Optional[date] = None
+
+class ProjectParticipationSchema(BaseModel):
+    project_id: str
+    joined_at: date
+    left_at: Optional[date] = None
+
+class UserProfileCreate(BaseModel):
+    profile_image: Optional[str] = None
+    tech_stack: List[str] = []
+    tags: List[str] = []
+    education: Optional[str] = None
+    intro: Optional[str] = ""
+    career_summary: Optional[str] = ""
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    birth: Optional[date] = None
+    portfolio_url: Optional[str] = None
+    is_public: bool = True
+    participation_history: List[ParticipationHistorySchema] = []
+    project_participations: List[ProjectParticipationSchema] = []
+

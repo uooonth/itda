@@ -32,7 +32,7 @@ const profileCom = () => {
                     <div className='project_'>
                         <div className='info'>
                             <div className='date startDate'>2024.01.25</div>
-                            <div className='date line'>|</div>
+                            <div className='date lineProfile'>|</div>
                             <div className='date endDate'>2024.02.25</div>
                             <div className='cooper'>@침착맨 유튜브 코퍼레이션</div>
                         </div>
@@ -45,7 +45,7 @@ const profileCom = () => {
                     <div className='project_'>
                         <div className='info'>
                             <div className='date startDate'>2024.01.25</div>
-                            <div className='date line'>|</div>
+                            <div className='date lineProfile'>|</div>
                             <div className='date endDate'>2024.02.25</div>
                             <div className='cooper'>@침착맨 유튜브 코퍼레이션</div>
                         </div>
@@ -58,7 +58,7 @@ const profileCom = () => {
                     <div className='project_'>
                         <div className='info'>
                             <div className='date startDate'>2024.01.25</div>
-                            <div className='date line'>|</div>
+                            <div className='date lineProfile'>|</div>
                             <div className='date endDate'>2024.02.25</div>
                             <div className='cooper'>@침착맨 유튜브 코퍼레이션</div>
                         </div>
@@ -71,7 +71,7 @@ const profileCom = () => {
                     <div className='project_'>
                         <div className='info'>
                             <div className='date startDate'>2024.01.25</div>
-                            <div className='date line'>|</div>
+                            <div className='date lineProfile'>|</div>
                             <div className='date endDate'>2024.02.25</div>
                             <div className='cooper'>@침착맨 유튜브 코퍼레이션</div>
                         </div>
@@ -92,7 +92,7 @@ const profileCom = () => {
                 <div className='project_'>
                     <div className='info'>
                         <div className='date startDate'>2024.01.25</div>
-                        <div className='date line'>|</div>
+                        <div className='date lineProfile'>|</div>
                         <div className='date endDate'>2024.02.25</div>
                     </div>
                     <div className='project_name'>

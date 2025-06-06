@@ -17,9 +17,9 @@ const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [isDeletionConfirmed, setDeletionConfirmed] = useState(false);
     const [isLoadingSize, setIsLoadingSize] = useState(false); 
-
     // 데이터 불러오기
     const fetchFoldersAndFiles = useCallback(async () => {
+
         try {
                 const [treeRes, rootFilesRes] = await Promise.all([
                     fetch(`http://localhost:8008/projects/${projectId}/folders/tree`),
@@ -95,6 +95,7 @@ const FeedbackPopup = ({ onClose ,projectId,onUploadComplete }) => {
             }
     }, [projectId]);
     useEffect(() => {
+        
         fetchFoldersAndFiles();
     }, [projectId]);
     useEffect(() => {
