@@ -109,7 +109,7 @@ export default function ProjectDetail() {
         }
 
         try {
-            await axios.post(`http://localhost:8008/apply/${project.id}`, formData, {
+            await axios.post(`http://localhost:8008/projects/apply/${project.id}`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data"
