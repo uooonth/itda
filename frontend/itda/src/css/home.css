@@ -177,20 +177,20 @@
 .project-card h4, 
 .project-card h5 {
     margin: 5px 30px;
-    margin-top: 7px;
+    margin-top: 6px;
 }
 .project-card h3 {
     font-family: 'Pretendard-Bold';
-    font-size: medium;
+    font-size: 1rem;
     margin-top: 15px;
 }
 .project-card h5 {
     font-family: 'Pretendard-Medium';
-    font-size: small;
+    font-size: 0.75rem;
 }
 .project-card h4 {
     font-family: 'Pretendard-Bold';
-    font-size: small;
+    font-size: 0.8rem;
 }
 .focus {
     font-family: 'Pretendard-Bold';

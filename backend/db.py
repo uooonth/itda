@@ -80,6 +80,29 @@ class ProjectInfo(ormar.Model):
     career: Career = ormar.String(max_length=20, nullable=False, default=Career.ANY)
     contract_until: date = ormar.Date(nullable=False)
     starred_users: List[str] = ormar.JSON(nullable=False, default=[])
+    
+#신청자
+import ormar
+
+class ApplyForm(ormar.Model):
+    class Meta:
+        tablename = "apply_forms"
+        metadata = metadata
+        database = database
+        constraints = [ormar.UniqueColumns("user", "project")]
+
+    id: int = ormar.Integer(primary_key=True)
+    role: str = ormar.String(max_length=100, nullable=True)
+    education: str = ormar.String(max_length=100, nullable=True)
+
+    user: User = ormar.ForeignKey(User)
+    project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
+
+    contact: str = ormar.Text()
+    introduce: str = ormar.Text()
+    uploaded_file: str = ormar.String(max_length=255, nullable=True)
+
+
 
 class Todo(ormar.Model):
     class Meta:

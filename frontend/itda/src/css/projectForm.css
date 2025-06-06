@@ -62,8 +62,8 @@
 
 .projectForm-row input[type="radio"]:checked::before {
     content: "";
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     background-color: #ff6666;
     border-radius: 50%;
     position: absolute;
@@ -232,9 +232,14 @@
 .projectForm-row input[type="file"] {
     font-family: 'Pretendard-Light';
     font-size: 14px;
-    padding: 5px;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 8px;
     height: 5vh;
 }
 
+.projectForm-row input:not([type="radio"]):focus,
+.projectForm-row textarea:focus {
+    border-color: #FF7676;
+    outline: none;
+}
