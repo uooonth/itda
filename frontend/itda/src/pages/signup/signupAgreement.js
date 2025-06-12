@@ -82,7 +82,6 @@ export default function SignupAgreement() {
 
                 <div className="agreement">
                     <div className="agreement-line" />
-ㅈ
                     <div className="agreement-item">
                         <div className="agreement-item-label">
                             <label>
