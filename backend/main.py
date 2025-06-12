@@ -302,10 +302,12 @@ async def delete_project(project_id: int, current_user: User = Depends(get_curre
     
     await ApplyForm.objects.filter(project=project).delete()
     
-    # 프로젝트 삭제
+    await UploadedFile.objects.filter(project=project).delete()
+
     await project.delete()
     
     return {"detail": "삭제 성공"}
+
 
 
 @app.post("/projects/{project_id}/star")

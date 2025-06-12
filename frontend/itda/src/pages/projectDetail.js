@@ -131,7 +131,7 @@ export default function ProjectDetail() {
 
     if (!project) return <div>로딩 중...</div>;
 
-    const isOwner = currentUserId && project.proposer?.includes(currentUserId);
+    const isOwner = currentUserId && project.proposer?.[0] === currentUserId;
 
     return (
         <div className="project-detail">
@@ -172,7 +172,7 @@ export default function ProjectDetail() {
                             </div>
                             <p className="project-name">{project.project.name}</p>
                             <p className="explain">{project.explain}</p>
-                            <p className="recruitment">신청 인원: {project.proposer.length - 1 || 0}명</p>
+                            <p className="recruitment">신청 인원: {project.proposer.length - 1 || 0}명 | 팀원: {project.worker.length}명</p>
                         </div>
                     </div>
                 </div>
@@ -180,7 +180,7 @@ export default function ProjectDetail() {
 
             <div className="detail-heading-wrapper">
                 <h2 className="detail-heading">상세 내용</h2>
-            </div>
+            </div> 
 
             <section className="project-details">
                 <h2>{project.project.name}</h2>
