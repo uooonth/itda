@@ -1,8 +1,12 @@
 import React, { useState } from "react";
+import ReactDOM from "react-dom"; 
 import "../css/ApplyDecisionModal.css";
+import { useNavigate } from "react-router-dom";
+import { FaTimes } from "react-icons/fa";
 
 export default function ApplyDecisionModal({ open, onClose, applicants = [], projectId, onDecision }) {
   const [expandedId, setExpandedId] = useState(null);
+  const navigate = useNavigate();
 
   if (!open) return null;
 
@@ -38,35 +42,35 @@ export default function ApplyDecisionModal({ open, onClose, applicants = [], pro
     }
   };
 
-  return (
+  return ReactDOM.createPortal(
     <>
       <div className="modal-backdrop" onClick={onClose} />
       <div className="modal-container" onClick={e => e.stopPropagation()}>
-        <h2>지원자 관리</h2>
+        <button className="close-btn" onClick={onClose}><FaTimes size={20} /></button>
+        <h2>신청자 목록</h2>
+        <p className="description">프로필 사진을 클릭하면 잇다 프로필화면으로 이동합니다.</p>
         <ul className="applicant-list">
           {applicants.length === 0 && <li>지원자가 없습니다.</li>}
           {applicants.map(applicant => (
             <li key={applicant.user_id} className="applicant-item">
               <div className="applicant-summary">
-        
+                <img
+                  src={applicant.profile_image}
+                  alt={applicant.name}
+                  className="profile-image"
+                  onClick={() => navigate(`/profile/${applicant.user_id}`)}
+                />
                 <span className="applicant-name">{applicant.name}</span>
-                <span className="applicant-role">{applicant.role}</span>
 
-                <div className="decision-buttons">
-                  <button className="btn btn-accept" onClick={() => handleAccept(applicant.user_id)}>수락</button>
-                  <button className="btn btn-reject" onClick={() => handleReject(applicant.user_id)}>거절</button>
-                </div>
-                <button
-                  className="expand-btn"
-                  onClick={() => toggleExpand(applicant.user_id)}
-                  aria-label="지원자 상세 정보 토글"
-                >
-                  {expandedId === applicant.user_id ? "▼" : "▶"}
-                </button>
+                <button className="btn reject" onClick={() => handleReject(applicant.user_id)}>거절</button>
+                <button className="btn accept" onClick={() => handleAccept(applicant.user_id)}>승인</button>
+                <button className="btn view" onClick={() => toggleExpand(applicant.user_id)}>신청서보기</button>
               </div>
 
               {expandedId === applicant.user_id && (
                 <div className="applicant-details">
+                  <p><strong>지원 역할:</strong> {applicant.role}</p>
+                  <p><strong>학력:</strong> {applicant.education}</p>
                   <p><strong>이메일:</strong> {applicant.email}</p>
                   <p><strong>소개:</strong> {applicant.introduce}</p>
                   <p><strong>연락처:</strong> {applicant.contact}</p>
@@ -75,9 +79,8 @@ export default function ApplyDecisionModal({ open, onClose, applicants = [], pro
             </li>
           ))}
         </ul>
-
-        <button className="close-btn" onClick={onClose}>닫기</button>
       </div>
-    </>
+    </>,
+    document.body  
   );
 }

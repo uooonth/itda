@@ -1,22 +1,47 @@
 .modal-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0,0,0,0.4);
-  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
 }
 
 .modal-container {
-  position: fixed;
-  top: 10vh;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  max-height: 80vh;
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 1100;
+  padding: 24px;
+  border-radius: 12px;
+  width: 800px;
+  max-width: 90%;
+  position: fixed; 
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  z-index: 1001; 
+  max-height: 90vh; 
+  overflow-y: auto; 
+}
+
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+}
+
+.description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
 }
 
 .applicant-list {
@@ -27,22 +52,22 @@
 
 .applicant-item {
   border-bottom: 1px solid #ddd;
-  padding: 12px 0;
+  padding: 16px 0;
 }
 
 .applicant-summary {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.expand-btn {
-  background: none;
-  border: none;
+.profile-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
   cursor: pointer;
-  font-size: 18px;
-  width: 24px;
-  text-align: center;
+  border: 1px solid #ccc;
 }
 
 .applicant-name {
@@ -50,43 +75,40 @@
   flex-grow: 1;
 }
 
-.applicant-role {
-  font-style: italic;
-  color: #555;
-  margin-right: 12px;
-}
-
-.decision-buttons button {
-  margin-left: 8px;
-  padding: 6px 12px;
-  border-radius: 4px;
+.btn {
   border: none;
   cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.btn-accept {
-  background-color: #4CAF50;
-  color: white;
+.btn.reject {
+  background: white;
+  color: #e74c3c;
 }
 
-.btn-reject {
-  background-color: #f44336;
-  color: white;
+.btn.accept {
+  background: white;
+  color: #2ecc71;
+  margin-left: 8px;
+}
+
+.btn.view {
+  background: white;
+  color: #3498db;
+  margin-left: 8px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
 }
 
 .applicant-details {
-  margin-top: 8px;
-  padding-left: 36px;
+  margin-top: 10px;
+  padding-left: 66px;
   font-size: 14px;
   color: #333;
-}
-
-.close-btn {
-  margin-top: 20px;
-  padding: 8px 16px;
-  cursor: pointer;
-  border: none;
-  background-color: #888;
-  color: white;
-  border-radius: 4px;
 }

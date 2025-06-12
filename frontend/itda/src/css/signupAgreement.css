@@ -2,9 +2,11 @@
     margin-top: 20vh;
     text-align: center;
 }
+
 .signup-title {
     font-family: 'Pretendard-ExtraBold';
 }
+
 .signup-step {
     display: flex;
     justify-content: center;
@@ -39,13 +41,13 @@
     font-size: 14px;
     color: #ccc;
 }
+
 .step-line {
     width: 50px;
     height: 1px;
     background-color: #ccc;
     margin-top: 30px;
 }
-
 
 .signupAgreement-content h4 {
     font-family: 'Pretendard-Thin';
@@ -55,6 +57,7 @@
     font-size: small;
     margin-top: 30px;
 }
+
 .circle.now-circle {
     background-color: black ;
 }
@@ -70,21 +73,42 @@
     margin-left: 25%;
 }
 
-
 .agreement {
     display: flex;
     flex-direction: column;
     gap: 7px;
     margin-top: 10px;
-    text-align: center;
     margin-left: 25%;
+    text-align: left; /* 왼쪽 정렬 */
+}
+
+.agreement-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 50vw;
+}
+
+.agreement-item-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 텍스트 왼쪽, 토글 오른쪽 */
+    font-size: 17px;
+    gap: 10px;
+    width: 100%;
+    font-family: 'Pretendard-Medium';
+}
+
+.agreement-item-label-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
 }
 
 .agreement label {
     display: flex;
     align-items: center;
-    font-size: 17px; 
-    cursor: pointer;
     gap: 10px;
     font-family: 'Pretendard-Medium';
 }
@@ -116,12 +140,40 @@
     transform: translate(-50%, -50%);
 }
 
+.agreement-line {
+    width: 50vw;
+    height: 1px;
+    background-color: #ccc;
+    margin: 15px 0;
+}
+
+.toggle-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding-right: 5px;
+}
+
+.agreement-detail {
+    margin-top: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #fafafa;
+    font-size: 15px;
+    color: #555;
+    line-height: 1.5;
+    width: 100%;
+}
+
 .button-group {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-top: 20px;
-    margin-bottom: 40px;
 }
 
 .cancel-button,
@@ -175,7 +227,7 @@
     height: 4rem; 
 }
 
-.modal p{
+.modal p {
     margin-top: 15px;
 }
 
@@ -203,11 +255,4 @@
 .modal-buttons button:nth-child(2) {
     background-color: black;
     color: white;
-}
-
-.agreement-line {
-    width: 50vw;
-    height: 1px;
-    background-color: #ccc;
-    margin: 15px 0;
 }
