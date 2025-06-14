@@ -25,8 +25,7 @@ import FeedbackPopup from './popups/feedback';
 import pencilIcon from '../../icons/pencilIcon.png';
 import sendIcon from '../../icons/sendIcon.png';
 /* timeline */ 
-import { Timeline,DataSet } from 'vis-timeline/standalone'
-import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
+
 
 // CSS
 import '../../css/feedbackpopup.css';
@@ -129,7 +128,7 @@ const ProjectContent = () => {
                     const data = await response.json();
                     setNotice(data.content);
                 } else {
-                    setNotice('');
+                    setNotice('공지사항이 없습니다.');
                 }
                 setError(null);
             } catch (err) {
@@ -1079,12 +1078,6 @@ const ProjectContent = () => {
     const [input, setInput] = useState('');
     const wsRef = useRef(null);
     const messagesEndRef = useRef(null);
-
-    // 파일명 토글 표시 컴포넌트
-    const ToggleNameDisplay = ({ name }) => {
-        const [expanded, setExpanded] = useState(false);
-
-
     const [loginUserId, setLoginUserId] = useState(null);
     const [loginUserName, setLoginUserName] = useState(null);
 
