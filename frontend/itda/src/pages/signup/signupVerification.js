@@ -77,42 +77,97 @@ export default function SignupVerification() {
     }
 }, [email]);
 
-    const verifyCode = () => {
-        if (!isVerificationValid) return;
+const verifyCode = () => {
+    if (!isVerificationValid) return;
 
-        setLoading(true);
-        fetch("http://localhost:8008/email/verify-code", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, code: code.join('') }),
+    setLoading(true);
+    fetch("http://localhost:8008/email/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: code.join('') }),
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("인증 실패");
+            return res.json();
         })
-            .then(res => {
-                if (!res.ok) throw new Error("인증 실패");
-                return res.json();
-            })
-            .then(() => {
-                alert("인증 성공");
-                fetch("http://localhost:8008/signup", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id: formData.id,
-                        name: formData.nickname,     
-                        pw_hash: formData.password, 
-                        email: formData.email
-                    }),
-                })
-                navigate("/signupComplete", { state: { email } }); 
-            })
-            .catch(() => {
+        .then(() => {
+            alert("인증 성공");
+            // fetch를 return해야 다음 then에서 받을 수 있음
+            return fetch("http://localhost:8008/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: formData.id,
+                    name: formData.nickname,     
+                    pw_hash: formData.password, 
+                    email: formData.email
+                }),
+            });
+        })
+        .then(async (signupResponse) => {
+            if (!signupResponse.ok) {
+                throw new Error("회원가입 실패");
+            }
+            
+            // 회원가입 성공 후 기본 프로필 생성
+            await createDefaultProfile(formData.id);
+            
+            // 완료 페이지로 이동
+            navigate("/signupComplete", { state: { email } });
+        })
+        .catch((error) => {
+            console.error('회원가입 또는 프로필 생성 오류:', error);
+            if (error.message.includes("인증")) {
                 alert("인증 코드가 틀렸습니다.");
-            })
-            .finally(() => setLoading(false));
+            } else {
+                alert("회원가입 중 오류가 발생했습니다.");
+            }
+        })
+        .finally(() => setLoading(false));
+
     console.log("전송된 이메일:", email);
-console.log("입력한 인증 코드:", code.join(''));
+    console.log("입력한 인증 코드:", code.join(''));
+};
 
+
+
+
+
+
+    // 기본 프로필 셋팅
+      // 기본 프로필 생성 함수
+      const createDefaultProfile = async (userId) => {
+        try {
+            const formData = new FormData();
+            
+            // 기본값들 설정
+            formData.append('education', '저장된 학력이 없습니다.');
+            formData.append('intro', '저장된 소개글이 없습니다.');
+            formData.append('phone', '저장된 연락처가 없습니다.');
+            formData.append('location', '저장된 거주지역이 없습니다.');
+            formData.append('roles', '저장된 직업이 없습니다.');
+            formData.append('birth', '저장된 생년월일이 없습니다.');
+            formData.append('career_summary', '');
+            formData.append('portfolio_url', '');
+            formData.append('tags', '');
+            formData.append('tech_stack', '');
+            formData.append('is_public', 'true');
+
+            const response = await fetch(`http://localhost:8008/users/${userId}/profile`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('기본 프로필 생성 실패');
+            }
+
+            console.log('기본 프로필 생성 완료');
+        } catch (error) {
+            console.error('기본 프로필 생성 실패:', error);
+            // 프로필 생성 실패해도 회원가입은 완료된 상태이므로 계속 진행
+        }
     };
-
 
     return (
         <div className="signupVerification-container">
