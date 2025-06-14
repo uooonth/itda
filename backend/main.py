@@ -1,7 +1,7 @@
-
 from fastapi import FastAPI,status,Depends, APIRouter,Body,Request
 from backend.schemas import ScheduleUpdate,UserProfileCreate,UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, ProjectOut
-from backend.db import database,ParticipationHistory, ProjectParticipation,UserProfile,User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder, UserProfile,ApplyForm
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete,ChatRoomCreateRequest
+from backend.db import database,ParticipationHistory, ProjectParticipation,UserProfile,User,ProjectInfo, ProjectOutline, UploadedFile, Calendar, Chat, Todo,ProjectFolder, UserProfile,ApplyForm,ChatRoom,ChatRoomMessage
 import mimetypes
 import urllib.parse
 import base64
@@ -21,7 +21,7 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Query
 from .email_routes import router as email_router
 from ormar.exceptions import NoMatch
-from backend.redisClass import Notice,r,FeedbackStore,FeedbackMessage,TodoProgressStore,TodoStyleStore,TodoParticipantStore
+from backend.redisClass import Notice,r,FeedbackStore,FeedbackMessage,TodoProgressStore,TodoStyleStore,TodoParticipantStore,ChatStore
 from fastapi.responses import StreamingResponse
 import io
 
@@ -408,7 +408,6 @@ async def accept_applicant(project_id: int, req: AcceptRequest):
         project.worker.append(user_id)
         await project.update()
 
-    return {"status": "accepted"}
 
 # 거절
 @router.post("/{project_id}/reject")
@@ -1101,15 +1100,17 @@ async def get_feedback(project_id: int, file_id: int):
 
 
 
-# ───────────── 플젝 페이지 실시간 채팅 저장 API ───────────── #
+# ───────────── 플젝 페이지 라이브 채팅 저장 API ───────────── #
 # 프로젝트 id 받아오는 데서 오류가 나는 듯
 active_livechat_connections: dict[str, list[WebSocket]] = {}
+all_alarm_connections: list[WebSocket] = []  # 전체알림용 추가
 
+# 프로젝트별 라이브채팅
+# main.py의 websocket_livechat 함수 수정
 @app.websocket("/ws/livechat/{project_id}")
 async def websocket_livechat(websocket: WebSocket, project_id: str):
     await websocket.accept()
 
-    # 연결 관리
     if project_id not in active_livechat_connections:
         active_livechat_connections[project_id] = []
     active_livechat_connections[project_id].append(websocket)
@@ -1120,62 +1121,74 @@ async def websocket_livechat(websocket: WebSocket, project_id: str):
             parsed = json.loads(data)
 
             now = datetime.now(ZoneInfo("Asia/Seoul")).isoformat()
+            outline = await ProjectOutline.objects.get_or_none(id=project_id)
+            project_name = outline.name if outline else "프로젝트"
+
+            # 프로젝트 정보 가져오기
+            project_info = await ProjectInfo.objects.select_related("project").get_or_none(project=project_id)
+            project_members = []
+            if project_info:
+                project_members = (project_info.proposer or []) + (project_info.worker or [])
+
             message = {
+                "type": "chat",
                 "sender_id": parsed["sender_id"],
                 "sender_name": parsed["sender_name"],
                 "text": parsed["text"],
-                "time": now
+                "time": now,
+                "project_name": project_name,
+                "project_id": project_id,
+                "project_members": project_members  # 프로젝트 멤버 추가
             }
 
             json_msg = json.dumps(message)
+
+            # Redis에 저장
             await r.rpush(f"livechat:{project_id}", json_msg)
 
-            # 모든 연결된 유저에게 전송
+            # 전체 알림에 전송 (프로젝트 멤버 정보 포함)
+            for conn in all_alarm_connections:
+                await conn.send_text(json_msg)
+
+            # 현재 방 참여자에게도 전송
             for conn in active_livechat_connections[project_id]:
                 await conn.send_text(json_msg)
-            
 
     except WebSocketDisconnect:
         active_livechat_connections[project_id].remove(websocket)
-        
+
+
+
+# Navigation 전용 전체 알림용 WebSocket
+@app.websocket("/ws/livechat/notification")
+async def websocket_all_alarm(websocket: WebSocket):
+    await websocket.accept()
+    all_alarm_connections.append(websocket)
+
+    try:
+        while True:
+            await websocket.receive_text()  # 단순 유지용 (ping-pong)
+    except WebSocketDisconnect:
+        all_alarm_connections.remove(websocket)
+
 
 @app.get("/livechat/{project_id}")
 async def get_live_chat(project_id: str):
     raw = await r.lrange(f"livechat:{project_id}", 0, -1)
     return [json.loads(m) for m in raw]
 
+########### 채팅 페이지 #############
 
-    
-# ───────────── 피드백 팝업 페이지 채팅 저장 API ───────────── #
-@app.post("/feedbackchat/send")
-async def send_feedback_chat_message(msg: FeedbackChatMessage):
-    redis_key = f"chat:feedback:{msg.feedback_id}"
-    message_data = {
-        "sender_id": msg.sender_id,
-        "sender_name": msg.sender_name,
-        "text": msg.text,
-        "time": msg.time.isoformat()
-    }
-    r.rpush(redis_key, json.dumps(message_data))
-    return {"message": "피드백 채팅 메시지 저장 완료"}
+# ---------- WebSocket 연결 관리 ---------- #
+room_connections: dict[str, list[WebSocket]] = {}
 
-# 채팅 불러오기 API
-@app.get("/feedbackchat/{feedback_id}")
-async def get_feedback_chat_messages(feedback_id: str):
-    redis_key = f"chat:feedback:{feedback_id}"
-    messages = r.lrange(redis_key, 0, -1)
-    return [json.loads(m) for m in messages]
-
-# ───────────── 채팅 페이지 웹소켓켓 API ───────────── #
-active_connections: dict[str, list[WebSocket]] = {}
-
-@app.websocket("/ws/chat/{project_id}")
-async def websocket_chat(websocket: WebSocket, project_id: str):
+@app.websocket("/ws/chat-room/{room_id}")
+async def websocket_chat_room(websocket: WebSocket, room_id: str):
     await websocket.accept()
 
-    if project_id not in active_connections:
-        active_connections[project_id] = []
-    active_connections[project_id].append(websocket)
+    if room_id not in room_connections:
+        room_connections[room_id] = []
+    room_connections[room_id].append(websocket)
 
     try:
         while True:
@@ -1192,33 +1205,214 @@ async def websocket_chat(websocket: WebSocket, project_id: str):
 
             json_msg = json.dumps(message)
 
-            await r.rpush(f"chat:project:{project_id}", json_msg)
+            await ChatRoomMessage.objects.create(
+                room_id=room_id,
+                sender_id=parsed["sender_id"],
+                sender_name=parsed["sender_name"],
+                text=parsed["text"],  # db.py의 필드명과 일치
+            )
+            await ChatStore.save_message(room_id, message)
 
-            # 현재 연결된 유저에게 브로드캐스트
-            for conn in active_connections.get(project_id, []):
-                await conn.send_text(json_msg)
+            disconnected_connections = []
+            for conn in room_connections.get(room_id, []):
+                try:
+                    await conn.send_text(json_msg)
+                except WebSocketDisconnect:
+                    disconnected_connections.append(conn)
+                except Exception as e:
+                    # 기타 연결 오류도 처리
+                    disconnected_connections.append(conn)
+            
+            # 연결 해제된 WebSocket들을 목록에서 제거
+            for conn in disconnected_connections:
+                if conn in room_connections[room_id]:
+                    room_connections[room_id].remove(conn)
 
     except WebSocketDisconnect:
-        active_connections[project_id].remove(websocket)
+        # ✅ 수정: 연결 해제 시 안전하게 제거
+        if websocket in room_connections.get(room_id, []):
+            room_connections[room_id].remove(websocket)
+        # 빈 방의 연결 목록 정리
+        if room_id in room_connections and len(room_connections[room_id]) == 0:
+            del room_connections[room_id]
+    except Exception as e:
+        # 기타 예외 처리
+        if websocket in room_connections.get(room_id, []):
+            room_connections[room_id].remove(websocket)
 
-# ───────────── 채팅 페이지 채팅 저장 API ───────────── #
-@app.post("/chat/send")
-async def send_chat_message(msg: ChatMessage):
-    time_now = datetime.now(ZoneInfo("Asia/Seoul"))
-    data = json.dumps({
-        "sender_id": msg.sender_id,
-        "sender_name": msg.sender_name,
-        "text": msg.text,
-        "time": time_now.isoformat()
-    })
-    await r.rpush(f"chat:project:{msg.project_id}", data)
-    return {"message": "저장됨"}
+# ---------- 채팅방 API 엔드포인트 ---------- #
+@app.get("/chat-rooms/{room_id}/messages")
+async def get_chat_room_messages(room_id: str, current_user = Depends(get_current_user)):
+    try:
+        # ✅ 수정: 채팅방 존재 및 권한 확인 강화
+        room = await ChatRoom.objects.get_or_none(id=str(room_id))
+        if not room:
+            raise HTTPException(status_code=404, detail="채팅방을 찾을 수 없습니다.")
+        
+        if current_user.id not in room.members:
+            raise HTTPException(status_code=403, detail="채팅방 접근 권한이 없습니다.")
+        
+        # ✅ 수정: ChatMessage → ChatRoomMessage 사용
+        messages = await ChatRoomMessage.objects.filter(
+            room_id=room_id
+        ).order_by("created_at").all()
+        
+        return [
+            {
+                "id": msg.id,
+                "text": msg.text,
+                "sender_id": msg.sender_id,
+                "sender_name": msg.sender_name,
+                "created_at": msg.created_at.isoformat()
+            }
+            for msg in messages
+        ]
+        
+    except HTTPException:
+        # HTTPException은 그대로 전파
+        raise
+    except Exception as e:
+        # ✅ 수정: 로그 추가로 디버깅 개선
+        print(f"메시지 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="메시지 조회에 실패했습니다.")
+ #유저조회#   
+@app.get("/users-forchatpage/{user_id}")
+async def get_user_basic_info(user_id: str):
+    user = await User.objects.get_or_none(id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email
+    }
 
-@app.get("/chat/{project_id}")
-async def get_chat(project_id: str):
-    raw = await r.lrange(f"chat:project:{project_id}", 0, -1)
-    return [json.loads(m) for m in raw]
+# ---------- 채팅방 목록 조회 API 추가 ---------- #
+@app.get("/chat-rooms")
+async def get_user_chat_rooms(current_user = Depends(get_current_user)):
+    try:
+        rooms = await ChatRoom.objects.all()
+        rooms = [room for room in rooms if current_user.id in room.members]
+        
+        room_list = []
+        for room in rooms:
+            last_message = await ChatRoomMessage.objects.filter(
+                room_id=room.id
+            ).order_by("-created_at").first()
+            
+            room_list.append({
+                "id": room.id,
+                "name": room.name,
+                "lastMessage": last_message.text if last_message else "메시지가 없습니다.",
+                "time": last_message.created_at.strftime("%m월 %d일") if last_message else room.created_at.strftime("%m월 %d일"),
+                "members": room.members
+            })
+        
+        return room_list
+        
+    except Exception as e:
+        print(f"채팅방 목록 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="채팅방 목록 조회에 실패했습니다.")
+    
 
+@app.get("/users/all")
+async def get_all_users(current_user = Depends(get_current_user)):
+    """모든 사용자 목록 조회 (현재 사용자 제외)"""
+    try:
+        users = await User.objects.all()
+        return {
+            "users": [
+                {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email
+                }
+                for user in users if user.id != current_user.id
+            ]
+        }
+    except Exception as e:
+        print(f"사용자 목록 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="사용자 목록 조회 실패")
+
+
+
+# ---------- 채팅방 생성 API ---------- #
+@app.post("/chat-rooms")
+async def create_chat_room(room_data: ChatRoomCreateRequest, current_user = Depends(get_current_user)):
+    try:
+        member_ids = room_data.member_ids
+        room_name = room_data.name or "새 채팅방"
+        
+        # 현재 사용자를 멤버에 추가 (중복 제거)
+        if current_user.id not in member_ids:
+            member_ids.append(current_user.id)
+        member_ids = list(set(member_ids))
+
+        new_room = await ChatRoom.objects.create(
+            name=room_name,
+            members=member_ids,
+        )
+        
+        welcome_message = await ChatRoomMessage.objects.create(
+            room_id=new_room.id,
+            sender_id="system",
+            sender_name="시스템",
+            text=f"{current_user.name}님이 채팅방을 생성했습니다.",
+        )
+        
+        return {
+            "id": new_room.id,
+            "name": new_room.name,
+            "lastMessage": "새 채팅방이 생성되었습니다.",
+            "time": "방금 전",
+            "members": member_ids
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"채팅방 생성 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="채팅방 생성에 실패했습니다.")
+
+
+# ---------- 채팅방 나가기 API 추가 ---------- #
+@app.delete("/chat-rooms/{room_id}/leave")
+async def leave_chat_room(room_id: str, current_user = Depends(get_current_user)):
+    """채팅방 나가기"""
+    try:
+        room = await ChatRoom.objects.get_or_none(id=str(room_id))
+        if not room:
+            raise HTTPException(status_code=404, detail="채팅방을 찾을 수 없습니다.")
+        
+        if current_user.id not in room.members:
+            raise HTTPException(status_code=400, detail="이미 채팅방에 참여하고 있지 않습니다.")
+        
+        # 멤버 목록에서 현재 사용자 제거
+        updated_members = [member for member in room.members if member != current_user.id]
+        
+        if len(updated_members) == 0:
+            # 마지막 멤버가 나가면 채팅방 삭제
+            await room.delete()
+            return {"message": "채팅방이 삭제되었습니다."}
+        else:
+            # 멤버 목록 업데이트
+            await room.update(members=updated_members)
+            
+            # 나가기 메시지 추가
+            await ChatRoomMessage.objects.create(
+                room_id=room_id,
+                sender_id="system",
+                sender_name="시스템",
+                text=f"{current_user.name}님이 채팅방을 나갔습니다.",
+            )
+            
+            return {"message": "채팅방에서 나갔습니다."}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"채팅방 나가기 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="채팅방 나가기에 실패했습니다.")
 
 #========================================================#
 # ───────────── 진행도 업데이트 ───────────── #
@@ -1341,6 +1535,7 @@ async def get_user_profile(user_id: str):
     return {"profile": profile_dict, "profile_image_url": presigned_url}
 
 
+
 #배열로바꾸기
 def arrayChange (value):
     if not value:
@@ -1356,6 +1551,7 @@ def arrayChange (value):
     except Exception:
         # 쉼표 기준 분할
         return [v.strip() for v in value.split(",") if v.strip()]
+
 @app.put("/users/{user_id}/profile")
 async def update_user_profile(
     user_id: str,
@@ -1425,10 +1621,59 @@ async def update_user_profile(
     
     return response_data
 
-calendar_router = APIRouter()
+#========================================================#
+# ─────────────            캘린더           ───────────── #
+#========================================================#
+
+async def get_user_participated_projects(user_id: str):
+    """사용자가 참여한 프로젝트 목록 조회"""
+    try:
+        projects = await ProjectInfo.objects.select_related("project").all()
+        
+        user_projects = []
+        for project in projects:
+            proposer_list = project.proposer or []
+            worker_list = project.worker or []
+            
+            if user_id in proposer_list or user_id in worker_list:
+                user_projects.append(project)
+        
+        return user_projects
+        
+    except Exception as e:
+        print(f"데이터베이스 조회 오류: {str(e)}")
+        return []
+
+@app.get("/my-projects/participants")
+async def get_my_projects_participants(current_user = Depends(get_current_user)):
+    try:
+        user_id = current_user.id
+        projects = await get_user_participated_projects(user_id)
+        
+        user_projects = []
+        for project in projects:
+            my_role = "proposer" if user_id in (project.proposer or []) else "worker"
+            participant_count = len(set((project.proposer or []) + (project.worker or [])))
+            
+            user_projects.append({
+                "project_id": str(project.id),
+                "project_name": project.project.name,
+                "my_role": my_role,
+                "participant_count": participant_count
+            })
+        
+        return user_projects
+        
+    except Exception as e:
+        print(f"프로젝트 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="프로젝트 목록 조회 실패")
+
+# 캘린더 라우터 - 하나로 통합
+calendar_router = APIRouter(tags=["calendar"])
 
 @calendar_router.post("/")
 async def create_calendar_event(data: CalendarCreate):
+    """캘린더 이벤트 생성"""
     key = f"calendar:{data.user_id}"
     now = datetime.now().isoformat()
 
@@ -1440,31 +1685,109 @@ async def create_calendar_event(data: CalendarCreate):
     event_data["end"] = event_data["end"].isoformat()
 
     await r.rpush(key, json.dumps(event_data))
-    return {"message": "이벤트 저장 완료"}
+    return {"message": "이벤트 저장 완료", "created_at": now}
 
-@calendar_router.get("/{user_id}")  # /calendar/{user_id}
-async def get_calendar_events(user_id: str):
+@calendar_router.get("/{user_id}")
+async def get_calendar_events(
+    user_id: str,
+    project_id: Optional[str] = Query(None, description="특정 프로젝트 필터링")
+):
+    """캘린더 이벤트 조회"""
     key = f"calendar:{user_id}"
     raw_events = await r.lrange(key, 0, -1)
-    return [json.loads(e) for e in raw_events]
+    events = [json.loads(e) for e in raw_events]
+    
+    # 프로젝트 필터링
+    if project_id and project_id != 'all':
+        events = [event for event in events if event.get('in_project') == project_id]
+    
+    return events
 
-# 라우터 등록
-app.include_router(calendar_router, prefix="/calendar")
+@calendar_router.put("/")
+async def update_calendar_event(data: dict = Body(...)):
+    """캘린더 이벤트 수정"""
+    user_id = data.get("user_id")
+    original_created_at = data.get("original_created_at")
+    
+    if not user_id or not original_created_at:
+        raise HTTPException(status_code=400, detail="user_id와 original_created_at이 필요합니다")
+    
+    key = f"calendar:{user_id}"
+    raw_events = await r.lrange(key, 0, -1)
+    
+    # 기존 이벤트 찾기 및 삭제
+    event_found = False
+    for idx, raw in enumerate(raw_events):
+        event = json.loads(raw)
+        if event.get("created_at") == original_created_at:
+            await r.lrem(key, 1, raw)
+            event_found = True
+            break
+    
+    if not event_found:
+        raise HTTPException(status_code=404, detail="수정할 이벤트를 찾을 수 없습니다")
+    
+    # 새 이벤트 데이터 생성
+    new_event = {
+        "text": data.get("text"),
+        "start": data.get("start"),
+        "end": data.get("end"),
+        "color": data.get("color", "#3174ad"),
+        "in_project": data.get("in_project"),
+        "user_id": user_id,
+        "is_repeat": False,
+        "created_at": datetime.now().isoformat()
+    }
+    
+    # 새 이벤트 저장
+    await r.rpush(key, json.dumps(new_event))
+    
+    return {"message": "이벤트 수정 완료", "new_created_at": new_event["created_at"]}
 
-# ───────────── 캘린더 이벤트 삭제제 API ───────────── #
-@calendar_router.delete("")
-async def delete_calendar_event(data: CalendarDelete):
+@calendar_router.delete("/")
+async def delete_calendar_event(data: CalendarDelete = Body(...)):
+    """캘린더 이벤트 삭제"""
     key = f"calendar:{data.user_id}"
     raw_events = await r.lrange(key, 0, -1)
 
-    # 삭제 타겟 찾기
     for idx, raw in enumerate(raw_events):
         event = json.loads(raw)
-        if event.get("created_at") == data.created_at.isoformat():
+        # created_at 비교 시 ISO 형식으로 통일
+        event_created_at = event.get("created_at")
+        input_created_at = data.created_at.isoformat() if hasattr(data.created_at, 'isoformat') else str(data.created_at)
+        
+        if event_created_at == input_created_at:
             await r.lrem(key, 1, raw)
             return {"message": "이벤트 삭제 완료"}
 
-    return {"message": "삭제할 이벤트를 찾을 수 없습니다."}
+    return {"message": "삭제할 이벤트를 찾을 수 없습니다.", "debug_info": f"Looking for: {input_created_at}"}
+
+# 라우터 등록 - prefix는 한 곳에서만
+app.include_router(calendar_router, prefix="/calendar")
+
+######## 파일 업로드 추적 위한 api (알림팝업에 씀)#######
+@app.websocket("/ws/fileupload")
+async def websocket_file_upload(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        data = await websocket.receive_text()
+        msg = json.loads(data)
+
+        # 여기에 반드시 포함
+        msg_to_send = {
+            "type": "upload",
+            "time": datetime.now(ZoneInfo("Asia/Seoul")).isoformat(),
+            "file_name": msg.get("file_name", "파일명없음"),
+            "project_name": msg.get("project_name", "프로젝트없음"),
+            "uploader": msg.get("uploader", "업로더없음")
+        }
+
+        for conn in all_alarm_connections:
+            await conn.send_text(json.dumps(msg_to_send))
+    except:
+        pass
+    finally:
+        await websocket.close()
 
 
 

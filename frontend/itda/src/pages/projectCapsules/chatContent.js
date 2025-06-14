@@ -1,124 +1,297 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../../css/chat.css';
+import pencilIcon from '../../icons/pencilIcon.png';
+import sendIcon from '../../icons/sendIcon.png';
+import { jwtDecode } from "jwt-decode";
 
 const ChatContent = () => {
-    const [messages, setMessages] = useState([
-        { id: 1, text: "안녕!", sender: "other", name: "유저1", profile: "/smileSo.jpg", time: "10:01 AM" },
-        { id: 2, text: "안녕! 반가워", sender: "me", name: "나", time: "10:02 AM" },
-        { id: 3, text: "테스트다 크하하하하하 요아정말고 요거트아이스크림 수혈?을 먹었는데 아 너무 달다 진짜로로", sender: "other", name: "유저1", profile: "/smileSo.jpg", time: "10:02 AM" },
-        { id: 4, text: "물어보지 않았도다리어카세트라이앵글자수채우기너무힘둘다나혼자만레벨업 넷플에 나온 거 보는데 꽤 재밌음", sender: "me", name: "나", time: "10:03 AM" },
-    ]);
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [search, setSearch] = useState("");
-    const [rooms, setRooms] = useState([
-        { id: 1, name: "프론트엔드 개발자 모임", lastMessage: "안녕ㅇㅇ아너를처음본순간부터좋아했어고백하고싶었는데바보같이...", time: "오전 9:30" },
-        { id: 2, name: "데이터 분석 스터디", lastMessage: "이제 누가 개발해주냐.", time: "어제" },
-        { id: 3, name: "React 프로젝트", lastMessage: "컴포넌트 구조 짰어요", time: "수요일" },
-        { id: 4, name: "테스트1 프로젝트", lastMessage: "컴포넌트 구조 짰어요", time: "수요일" },
-        { id: 5, name: "테스트2 프로젝트", lastMessage: "컴포넌트 구조 짰어요", time: "수요일" },
-        { id: 6, name: "테스트3 프로젝트", lastMessage: "컴포넌트 구조 짰어요", time: "수요일" },
+    const [rooms, setRooms] = useState([]);
+    const [showCreateRoom, setShowCreateRoom] = useState(false);
+    const [projectMembers, setProjectMembers] = useState([]);
+    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [newRoomName, setNewRoomName] = useState("");
+    const [currentRoomId, setCurrentRoomId] = useState(null);
+    const [userId, setUserId] = useState("");
+    const [userName, setUserName] = useState("");
+    const messagesEndRef = useRef(null);
+    const wsRef = useRef(null);
 
-    ]);
-    const messagesEndRef = useRef(null); // 스크롤 이동을 위한 ref
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        if (token) {
+            const decoded = jwtDecode(token);
+            setUserId(decoded.sub);
 
-    const userId = "user1"; // 실제 사용자 ID
-    const projectId = "abc123"; // 실제 선택한 프로젝트 ID
+            const fetchUserName = async () => {
+                try {
+                    const res = await fetch(`http://localhost:8008/users-forchatpage/${decoded.sub}`);
+                    const data = await res.json();
+                    setUserName(data.name);
 
-    // 새 메시지가 추가될 때 자동으로 스크롤을 최하단으로 이동
+                } catch {
+                    setUserName("알수없음");
+                }
+            };
+            fetchUserName();
+        }
+    }, []);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
-    
+
     const filteredRooms = rooms.filter(room =>
         room.name.toLowerCase().includes(search.toLowerCase())
     );
 
     useEffect(() => {
-        const fetchMessages = async () => {
-            const res = await fetch(`http://localhost:8008/chat/${projectId}`);
+        if (!userId) return;
+        fetchRooms();
+    }, [userId]);
+
+    const fetchRooms = async () => {
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            const res = await fetch("http://localhost:8008/chat-rooms", {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const data = await res.json();
+            const roomList = Array.isArray(data) ? data : (data.rooms || []);
+            setRooms(roomList);
+            if (roomList.length > 0 && !currentRoomId) {
+                setCurrentRoomId(roomList[0].id);
+            }
+        } catch (error) {
+            console.error('채팅방 목록 로드 실패:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (!currentRoomId || !userId) return;
+        fetchMessages();
+    }, [currentRoomId, userId]);
+
+    const fetchMessages = async () => {
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            const res = await fetch(`http://localhost:8008/chat-rooms/${currentRoomId}/messages`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
             const data = await res.json();
             const formatted = data.map((msg, idx) => ({
-                id: idx + 1,
+                id: msg.id || idx + 1,
                 text: msg.text,
                 sender: msg.sender_id === userId ? "me" : "other",
                 name: msg.sender_name,
                 profile: "/smileSo.jpg",
-                time: new Date(msg.time).toLocaleTimeString([], {
+                time: new Date(msg.created_at).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: true
                 }),
             }));
             setMessages(formatted);
+        } catch (err) {
+            console.error('메시지 불러오기 실패:', err);
+        }
+    };
+
+    useEffect(() => {
+        if (!currentRoomId || !userId) return;
+
+        if (wsRef.current) wsRef.current.close();
+        const ws = new WebSocket(`ws://localhost:8008/ws/chat-room/${currentRoomId}`);
+        wsRef.current = ws;
+
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            const newMessage = {
+                id: Date.now() + Math.random(),
+                text: msg.text,
+                sender: msg.sender_id === userId ? "me" : "other",
+                name: msg.sender_name,
+                profile: "/smileSo.jpg",
+                time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+            };
+            setMessages(prev => [...prev, newMessage]);
         };
-        fetchMessages();
-    }, [projectId]);
+
+        ws.onclose = () => console.log("WebSocket Closed");
+        return () => { if (ws.readyState === WebSocket.OPEN) ws.close(); };
+    }, [currentRoomId, userId]);
+
+    useEffect(() => {
+        if (showCreateRoom) fetchProjectMembers();
+    }, [showCreateRoom]);
+
+    const fetchProjectMembers = async () => {
+        const dummyMembers = [
+            { id: 'demo_user1', name: '데모 사용자 1', email: 'demo1@example.com' },
+            { id: 'demo_user2', name: '데모 사용자 2', email: 'demo2@example.com' }
+        ];
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            const res = await fetch('http://localhost:8008/users/all', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            if (!res.ok) { setProjectMembers(dummyMembers); return; }
+            const data = await res.json();
+            const realMembers = data.users || [];
+            const allMembers = [...dummyMembers, ...realMembers];
+            const uniqueMembers = allMembers.filter((member, index, self) =>
+                index === self.findIndex(m => m.id === member.id));
+            setProjectMembers(uniqueMembers);
+        } catch {
+            setProjectMembers(dummyMembers);
+        }
+    };
 
     const sendMessage = async () => {
         if (!input.trim()) return;
-
+        const messageText = input;
         const newMessage = {
             id: messages.length + 1,
-            text: input,
+            text: messageText,
             sender: "me",
-            name: "나",
+            name: userName,  // ✅ 내 이름으로 수정됨
             profile: "/smileSo.jpg",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
         };
-
-        // UI 먼저 반영
         setMessages(prev => [...prev, newMessage]);
         setInput("");
 
-        // 서버에 전송
-        await fetch("http://localhost:8008/chat/send", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                project_id: projectId,
-                sender_id: userId,
-                sender_name: "나",
-                text: input,
-                time: new Date().toISOString()
-            })
-        });
+        try {
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                const wsMessage = {
+                    sender_id: userId,
+                    sender_name: userName,  // ✅ 내가 보낼때 이름도 제대로 보냄
+                    text: messageText,
+                    time: new Date().toISOString()
+                };
+                wsRef.current.send(JSON.stringify(wsMessage));
+            }
+        } catch (error) {
+            console.error('메시지 전송 실패:', error);
+        }
     };
 
+    const createChatRoom = async () => {
+        if (selectedMembers.length === 0 && !window.confirm('혼자 대화방을 만드시겠습니까?')) return;
+
+        try {
+            const accessToken = localStorage.getItem("access_token");
+
+            // ✅ 새: 이름 자동 생성 로직
+            let finalRoomName = newRoomName.trim();
+            if (!finalRoomName) {
+                const names = selectedMembers.map(member => member.name);
+                finalRoomName = names.join(", ");
+            }
+
+            const res = await fetch('http://localhost:8008/chat-rooms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    name: finalRoomName,
+                    member_ids: selectedMembers.map(m => m.id)
+                })
+            });
+
+            if (res.ok) {
+                await fetchRooms();
+                setShowCreateRoom(false);
+                setSelectedMembers([]);
+                setNewRoomName("");
+                alert('채팅방이 생성되었습니다!');
+            } else {
+                const errorData = await res.json();
+                alert(`채팅방 생성 실패: ${errorData.detail || '알 수 없는 오류'}`);
+            }
+        } catch {
+            alert('네트워크 오류가 발생했습니다.');
+        }
+    };
 
 
     return (
         <div className="chatPage">
             <div className="chatList">
-                <div className="title">메시지 목록</div>
+                <div className="title">
+                    메시지 목록
+                    <button className="createRoomBtn" onClick={() => setShowCreateRoom(true)}>+</button>
+                </div>
                 <div className="chatSearchContainer">
-                    <img src="/SearchIcon.png" alt="검색 아이콘" className="searchIcon" />
-                    <input
-                        type="text"
-                        className="chatSearchInput"
-                        placeholder="채팅방 검색"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+                    <img src="/SearchIcon.png" alt="검색" className="searchIcon" />
+                    <input type="text" className="chatSearchInput" placeholder="채팅방 검색"
+                        value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
                 <div className="chatRoomList">
                     {filteredRooms.map(room => (
-                        <div key={room.id} className="chatRoomItem">
+                        <div key={room.id}
+                            className={`chatRoomItem ${currentRoomId === room.id ? 'active' : ''}`}
+                            onClick={() => setCurrentRoomId(room.id)}>
                             <div className="chatRoomName">{room.name}</div>
                             <div className="chatRoomLastMessage">{room.lastMessage}</div>
                             <div className="chatRoomTime">{room.time}</div>
                         </div>
                     ))}
-                </div>            
+                </div>
             </div>
 
+            {showCreateRoom && (
+                <div className="createRoomModal">
+                    <div className="modalContent">
+                        <h3>새 채팅방 만들기</h3>
+                        <input type="text" placeholder="채팅방 이름 (선택사항)" value={newRoomName}
+                            onChange={(e) => setNewRoomName(e.target.value)} className="roomNameInput" />
+                        <h4>참여자 선택:</h4>
+                        <div className="memberList">
+                            {projectMembers.length === 0 ? (
+                                <div className="noMembers">참여자를 불러오는 중...</div>
+                            ) : (
+                                projectMembers.map(member => (
+                                    <div key={member.id}
+                                        className={`memberItem ${selectedMembers.find(m => m.id === member.id) ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            if (selectedMembers.find(m => m.id === member.id)) {
+                                                setSelectedMembers(prev => prev.filter(m => m.id !== member.id));
+                                            } else {
+                                                setSelectedMembers(prev => [...prev, member]);
+                                            }
+                                        }}>
+                                        <input type="checkbox"
+                                            checked={selectedMembers.find(m => m.id === member.id) ? true : false}
+                                            readOnly />
+                                        <span>{member.name} ({member.email})
+                                            {member.id.startsWith('demo_') && <span className="demoTag"> [데모]</span>}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <div className="modalButtons">
+                            <button onClick={createChatRoom} className="createBtn"
+                                disabled={selectedMembers.length === 0}>채팅방 만들기</button>
+                            <button onClick={() => {
+                                setShowCreateRoom(false);
+                                setSelectedMembers([]);
+                                setNewRoomName("");
+                            }} className="cancelBtn">취소</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="chatContent">
-                {/* 채팅 메시지 영역 */}
                 <div className="chatMessages">
                     {messages.map(({ id, text, sender, name, profile, time }) => (
                         <div key={id} className={`chatMessage ${sender}`}>
-                            {/* 상대방 메시지: 프로필 왼쪽 배치 */}
                             {sender === "other" && <img src={profile} alt="프로필" className="profileImg" />}
                             <div className="chatTextContainer">
                                 <span className="chatName">{name}</span>
@@ -127,23 +300,14 @@ const ChatContent = () => {
                             </div>
                         </div>
                     ))}
-                    <div ref={messagesEndRef} /> {/* 스크롤 이동을 위한 요소 */}
+                    <div ref={messagesEndRef} />
                 </div>
 
-                {/* 입력창 영역 */}
                 <div className="chatInput">
-                    <img src="pencilIcon.png" alt="입력" className="pencilIcon" />
-                    <input 
-                        type="text" 
-                        value={input} 
-                        onChange={(e) => setInput(e.target.value)} 
-                        onKeyDown={(e) => e.key === "Enter" && sendMessage()} // 엔터 키로 전송
-                        placeholder="메시지를 입력하세요..."
-                    />
-                    {/* 전송 버튼 */}
-                    <button onClick={sendMessage}>
-                        <img src="sendIcon.png" alt="전송" />
-                    </button>
+                    <img src={pencilIcon} alt="입력" className="pencilIcon" />
+                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="메시지를 입력하세요..." />
+                    <button onClick={sendMessage}><img src={sendIcon} alt="전송" /></button>
                 </div>
             </div>
         </div>

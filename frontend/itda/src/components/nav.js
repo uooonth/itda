@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../css/nav.css';
 import { NavLink, useLocation,useNavigate  } from 'react-router-dom'; 
 import smileIcon from '../icons/smile.svg';
@@ -13,25 +13,15 @@ import starIcon from '../icons/star.svg';
 import uploadIcon from '../icons/upload.svg';
 import timerIcon from '../icons/timer.svg';
 import Picker from 'emoji-picker-react';
-function Navigation({ isLoggedIn ,username}) {
 
-
-
-    /*-------------------------------------------------------------*/
-    /*-----------------------     로긴     ---------------------*/
-    /*-------------------------------------------------------------*/
-  console.log("isLoggedIn", isLoggedIn);
-  console.log("username", username);
+function Navigation({ isLoggedIn, username }) {
   const location = useLocation();
-    //팝업 끄고 켜기 상태
+
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showAlarmPopup, setShowAlarmPopup] = useState(false);
-    //팝업 끄고 켜기  함수
-  const toggleProfilePopup = () => setShowProfilePopup(!showProfilePopup);
-  const toggleAlarmPopup = () => setShowAlarmPopup(!showAlarmPopup);
-    //이모지
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🥰' });
+
     // 유저 아이디
   const [userProfile, setUserProfile] = useState(null);
   function handleEmojiSelect(emojiObject) {
@@ -39,19 +29,91 @@ function Navigation({ isLoggedIn ,username}) {
       setShowEmojiPicker(false); // 이모지 선택 후 선택 창 닫기
   }
 
+  const [notifications, setNotifications] = useState([]);
 
-
-
-    /*-------------------------------------------------------------*/
-    /*-----------------------     로구아웃     ---------------------*/
-    /*-------------------------------------------------------------*/
-
-    const handleLogout = () => {
-      localStorage.removeItem("access_token");  
-      window.location.href = "/";      
+  const toggleProfilePopup = () => setShowProfilePopup(!showProfilePopup);
+  const toggleAlarmPopup = () => setShowAlarmPopup(!showAlarmPopup);
+  const handleEmojiSelect = (emojiObject) => {
+    setSelectedEmoji(emojiObject);
+    setShowEmojiPicker(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    window.location.href = "/";
+  };
 
+  // 🔥 실시간 WebSocket 알림 추가
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8008/ws/livechat/notification");
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      let notification;
+
+      if (msg.type === "join") {
+        notification = {
+          id: Date.now(),
+          type: "join",
+          time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          projectName: msg.project_name,
+          joinedUser: msg.joined_user
+        };
+      } else if (msg.type === "chat") {
+        notification = {
+          id: Date.now(),
+          type: "chat",
+          time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          projectName: msg.project_name
+        };
+      } else if (msg.type === "upload") {
+        notification = {
+          id: Date.now(),
+          type: "upload",
+          time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          fileName: msg.file_name,
+          projectName: msg.project_name,
+          uploader: msg.uploader
+        };
+      }
+
+      setNotifications(prev => [notification, ...prev]);
+    };
+
+
+    ws.onclose = () => console.log("WebSocket closed");
+    return () => ws.close();
+  }, []);
+
+    useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8008/ws/livechat/notification");
+
+    ws.onopen = () => console.log("✅ WebSocket 연결 성공");
+    ws.onerror = (error) => console.error("❌ WebSocket 오류:", error);
+    ws.onclose = () => console.log("❌ WebSocket 연결 종료");
+
+    ws.onmessage = (event) => {
+      console.log("📦 수신된 원본 메시지:", event.data);
+      try {
+        const msg = JSON.parse(event.data);
+        console.log("🧪 파싱 성공 메시지:", msg);
+      } catch (e) {
+        console.error("💥 JSON 파싱 실패:", e);
+      }
+    };
+
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
+      const ws = new WebSocket("ws://127.0.0.1:8008/ws/livechat/notification");
+
+      ws.onopen = () => console.log("✅ WebSocket 연결 성공");
+      ws.onerror = (error) => console.error("❌ WebSocket 에러:", error);
+      ws.onclose = () => console.log("❌ WebSocket 닫힘");
+      
+      return () => ws.close();
+  }, []);
 
     /*-------------------------------------------------------------*/
     /*-----------------------     스마일팝     ---------------------*/
