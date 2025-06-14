@@ -1,403 +1,1467 @@
+/* ========================================================= */
+/* =============    Global Fonts & Variables   ============= */
+/* ========================================================= */
 @font-face {
-    font-weight: 300;
-    font-family: "Pretendard-Light";
-    src: url("./fonts/Pretendard-Light.otf") format("truetype");
+  font-weight: 300;
+  font-family: "Pretendard-Light";
+  src: url("./fonts/Pretendard-Light.otf") format("truetype");
 }
 @font-face {
-    font-weight: 400;
-    font-family: "Pretendard-Regular";
-    src: url("./fonts/Pretendard-Regular.otf") format("truetype");
+  font-weight: 400;
+  font-family: "Pretendard-Regular";
+  src: url("./fonts/Pretendard-Regular.otf") format("truetype");
 }
 @font-face {
-    font-weight: 500;
-    font-family: "Pretendard-Medium";
-    src: url("./fonts/Pretendard-Medium.otf") format("truetype");
+  font-weight: 500;
+  font-family: "Pretendard-Medium";
+  src: url("./fonts/Pretendard-Medium.otf") format("truetype");
 }
 @font-face {
-    font-weight: 600;
-    font-family: "Pretendard-SemiBold";
-    src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
+  font-weight: 600;
+  font-family: "Pretendard-SemiBold";
+  src: url("./fonts/Pretendard-SemiBold.otf") format("truetype");
 }
 @font-face {
-    font-weight: 700;
-    font-family: "Pretendard-Bold";
-    src: url("./fonts/Pretendard-Bold.otf") format("truetype");
+  font-weight: 700;
+  font-family: "Pretendard-Bold";
+  src: url("./fonts/Pretendard-Bold.otf") format("truetype");
 }
 @font-face {
-    font-weight: 800;
-    font-family: "Pretendard-ExtraBold";
-    src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
+  font-weight: 800;
+  font-family: "Pretendard-ExtraBold";
+  src: url("./fonts/Pretendard-ExtraBold.otf") format("truetype");
 }
 
-/* ======================================== */
-/* ============= 메인 포맷 ================= */
-/* ======================================== */
-.profile{
-    position:absolute;
-    min-height:100vh;
-    width: 100%;
-    padding-top:7.21vw;
-    padding-left: 5.28vw;
-    padding-right:5.28vw;
-    overflow: hidden;
+html {
+  background-color: #f5f5f545;
 }
 
-.profile .header{
-    font-family: 'pretendard-Bold';
-    font-size: 1.69rem;
+
+.disabled-tab {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}/* CSS 파일에 추가 */
+.content {
+  scroll-behavior: auto !important;
 }
+
+html, body {
+  scroll-behavior: auto !important;
+}
+
+/* 타임라인 컨테이너 스크롤 방지 */
+.vis-timeline {
+  overflow-y: hidden !important;
+}
+
+
+
+/* ========================================================= */
+/* =============    Profile.js Main Layout   =============== */
+/* ========================================================= */
+.profile {
+  position: absolute;
+  min-height: 100vh;
+  width: 100%;
+  padding-top: 7.21vw;
+  padding-left: 5.28vw;
+  padding-right: 5.28vw;
+  overflow: hidden;
+}
+
+.profile .header {
+  font-family: 'pretendard-Bold';
+  font-size: 2rem;
+}
+
 .profile .tab {
-    all: unset;
-    display: flex;
-    margin-top:4vh;
-    position: relative; 
-    border-bottom: 3px solid #E6E6E6; 
+  all: unset;
+  display: flex;
+  margin-top: 4vh;
+  position: relative; 
+  border-bottom: 3px solid #E6E6E6; 
 }
 
 .profile .tab .tab-item {
-    font-family: 'Pretendard-semiBold';
-    font-size: 1rem;
-    color: #6B705C;
-    cursor: pointer;
-    padding-left: 30px;
-    padding-right: 30px;
-    padding-bottom: 0.5vw; 
-    position: relative; 
+  font-family: 'Pretendard-semiBold';
+  font-size: 1rem;
+  color: #6B705C;
+  cursor: pointer;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-bottom: 0.5vw; 
+  position: relative; 
 }
 
 .profile .tab .tab-item.active_tab_profile::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    border-radius: 20px;
-    bottom: -3.5px;
-    width: 100%;
-    height: 4px;
-    background-color: #6B705C; 
+  content: "";
+  position: absolute;
+  left: 0;
+  border-radius: 20px;
+  bottom: -3.5px;
+  width: 100%;
+  height: 4px;
+  background-color: #6B705C; 
 }
 
-
-
-
+/* ========================================================= */
+/* =============    ProfileCom.js Components   ============= */
+/* ========================================================= */
 
 .contentss {
-    margin-top:5vh
-  }
-  
-  .profile_top {
-    display: flex;
-    margin-bottom: 60px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 40px;
-
-  }
-  
-  .profile_top .img {
-    width: 200px;
-    height: 200px;
-    background-color: #f1f1f1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    margin-right: 40px;
-  }
-  
-  .profile_top .info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-  }
-  
-  .profile_top .info .name {
-    font-family: 'pretendard-Bold';
-    font-size:2rem;
-    margin-bottom: 5px;
-  }
-  
-  .profile_top .info .role{
-    color:#6C6C6C;
-    font-size: 1.2rem;
-    margin-bottom: 1vh;
-    font-family: 'pretendard-Regular';
-  }
-  .profile_top .info .email,
-  .profile_top .info .grad {
-    font-size: 0.8rem;
-    font-family: 'pretendard-Regular';
-
-  }
-  .project-container{
-    display: -webkit-inline-box;
-    overflow-x: auto;
-    margin-bottom: 150px;
-  }
-  /* 스크롤바 스타일링 (선택) */
-.project-container::-webkit-scrollbar {
-  width: auto;
-  height: 5px;
+  margin-top: 5vh;
+}
+.edit-profile-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
 }
 
-.project-container::-webkit-scrollbar-thumb {
-  background-color: #888;
+.profile_top {
+  position: relative;
+}
+
+/* 편집 모드 입력 필드 스타일 */
+.edit-mode-input {
+  border: 2px solid #667eea;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: inherit;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.edit-mode-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+/* 프로필 이미지 호버 효과 */
+.profile-image-container:hover .image-overlay {
+  opacity: 1 !important;
+}
+
+/* 인라인 편집 텍스트 스타일 */
+.inline-edit-text:hover {
+  background-color: #f0f0f0 !important;
+  border-color: #e0e0e0 !important;
+}
+
+.inline-edit-text:hover::after {
+  content: " ✏️";
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* 자동완성 드롭다운 스타일 */
+.autocomplete-dropdown {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.autocomplete-item:hover {
+  background-color: #f3f4f6;
+}
+
+/* Profile Top Section */
+.profile_top {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 40px;
+}
+
+.profile_top .img {
+  width: 200px !important;
+  height: 200px;
+  background-color: #f1f1f1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  margin-right: 40px;
+}
+
+.img > img {
+  width: 200px;  
+  height: 200px;
+  border-radius: 50%; 
+  overflow: hidden; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border: 2px solid #ddd;
+}
+
+.profile_top .info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile_top .info .name {
+  font-family: 'pretendard-Bold';
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+.profile_top .info .role {
+  color: #6C6C6C;
+  font-size: 1.2rem;
+  margin-bottom: 1vh;
+  font-family: 'pretendard-Regular';
+}
+
+.profile_top .info .email,
+.profile_top .info .grad {
+  font-size: 0.8rem;
+  font-family: 'pretendard-Regular';
+}
+
+/* Profile Description Section */
+.profile_explain {
+  margin-bottom: 100px;
+}
+
+.profile_explain .content {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  font-family: 'pretendard-Regular';
+  color: #6C6C6C;
+  max-width: 80vw;
+  padding: 0;
+}
+
+.profile_explain .tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.profile_explain .tags .tag {
+  width: 8vw;
+  height: 4vh;
+  background-color: #595959;
+  border-radius: 40px;
+  font-family: 'pretendard-Regular';
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+}
+
+.profile_explain .tags .plus {
+  width: 6vw;
+  height: 4vh;
+  background-color: #000;
+  color: #fff;
+  border-radius: 40px;
+  font-family: 'pretendard-Regular';
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* Section Titles */
+.semiTitle .title {
+  font-size: 1.8rem;
+  font-family: 'pretendard-Bold';
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.semiTitle .title:after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #e4e4e4;
+}
+
+.add-project-btn {
+  background-color: transparent;
+  border: none;
+  font-family: 'pretendard-Bold';
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* ========================================================= */
+/* =============    Project Components   =================== */
+/* ========================================================= */
+.project-container {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+  overflow-y: auto;
+  gap: 20px;
+  margin-bottom: 150px;
+}
+.profile_upload .project_ {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+  display: flex
+;
+  flex-direction: column;
+}
+.project-container::-webkit-scrollbar {
+  width: 8px;
+}
+.profile_upload .title {
+  display: flex;
+  justify-content: space-between;
+}
+.project-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
   border-radius: 4px;
 }
 
-.project-container::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+.project-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
 }
-  .profile_explain {
-    margin-bottom: 150px;
-  }
-  
-  .profile_explain .content {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    margin-bottom: 30px;
-    font-family: 'pretendard-Regular';
-    color:#6C6C6C;
-    max-width:80vw;
-    padding: 0;
-  }
-  
-  .profile_explain .tags {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-  
-  .profile_explain .tags .tag {
-    width: 8vw;
-    height: 4vh;
-    background-color: #f1f1f1;
-    border-radius: 40px;
-    font-family: 'pretendard-Regular';
-    font-size:1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 500;
-  }
-  
-  .profile_explain .tags .plus {
-    width: 6vw;
-    height: 4vh;
-    background-color: #000;
-    color: #fff;
-    border-radius: 40px;
-    font-family: 'pretendard-Regular';
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  
-  
-  
-  .semiTitle .title {
-    font-size: 1.35rem;
-    font-family: 'pretendard-Bold';
-    margin-bottom: 30px;
-    position: relative;
-  }
-  
-  .semiTitle .title:after {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background-color: #e4e4e4;
-  }
-  
-  .profile_project .project_,
-  .profile_upload .project_ {
-    margin-top: 10px;
-  }
-  .profile_project .project_ {
-    width: calc(50%);
-    box-sizing: border-box;
-    vertical-align: top;
-    margin-right: 50px;
-    margin-bottom: 110px;
-    align-items: end;
-  }
-  
-  .profile_project {
-    flex-wrap: wrap;
-  }
-  
-  .project_ .info {
-    margin-right: 40px;
-    margin-bottom: 10px;
 
-  }
-  
-  .project_ .info .date {
-    display: inline-block;
-    margin-bottom: 10px;
-    font-size: 0.85rem;
-    color: #909090;
-    font-family: 'pretendard-Regular';
-  }
-  
-  .project_ .info .lineProfile {
-    margin: 0 8px;
-  }
-  
-  .project_ .info .cooper {
-    font-size: 0.8rem;
-    font-family: 'pretendard-semiBold';
-  }
-  
-  .project_ .project_name {
-    flex: 1;
-  }
-  
-  .project_ .project_name .name {
-    font-size: 1.25rem;
-    font-family: 'pretendard-extraBold';
-    margin-bottom:1vh;
-  }
-  
-  .project_ .project_name .role,
-  .project_ .project_name .explain {
-    font-size: 0.8rem;
-    color: #666;
-    font-family: 'pretendard-semiBold';
-  }
-  
-  .profile_stack .project_ {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 150px;
-    margin-top: 30px;
-  }
-  
-  .profile_stack .stack {
-    width: calc(33.33% - 100px);
-    height: 126px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    background-color: rgba(255, 255, 255, 0.01);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    padding: 0 40px;
-    justify-content: space-around;
-    box-sizing: border-box;
-  }
-  
-  .profile_stack .stack .stack_img {
-    width: 60px;
-    height: 60px;
-    background-color: #f1f1f1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 8px;
-    margin-right: 20px;
-  }
-  
-  .profile_stack .stack .stack_name {
-    font-size: 1.75rem;
-    font-family: 'pretendard-semiBold';
-
-  }
-  .project_ .project_name .picture {
-    width: 55%;
-    border-radius: 8px;
-    background-color: #f1f1f1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-    
-
-
-
-/* ========================================= */
-/* =============    검색   ================== */
-/* ========================================= */
-  
-  html{
-    background-color: #f5f5f545;
-  }
-  .searchBox2{
-    border:1px solid #E6E6E6;
-  }
- .friendList{
+.profile_project {
+  flex-wrap: wrap;
   margin-bottom: 150px;
- }
-  .object{
-    display: flex;
-    border-bottom: 1px solid #E6E6E6;
-    justify-content: space-between;
-    align-content: center;
-    align-items: center;
-  }
-  .friendList .object .Friend_content{
-    display: flex;
-    align-items: center;
-    padding: 20px 0;
-  }
+}
 
-  .friendList .title{
-    font-family: 'pretendard-Bold';
-    font-size: 1.35rem;
-    padding-top:1vh;
-    padding-bottom: 1vh;
-  }
+.profile_project .title {
+  display: flex;
+  justify-content: space-between;
+}
+
+.profile_project .project_,
+.profile_upload .project_ {
+  margin-top: 10px;
+}
+
+.profile_project .project_ {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.project_ .info {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+  margin-top: 10px;
+  padding-bottom: 10px;
+  padding-right: 20px;
+  margin-bottom: 10px;
+}
+
+.project_ .info .datesDivider {
+  display: flex;
+}
+
+.project_ .info .date {
+  font-size: 0.75rem;
+  color: #909090;
+  margin-bottom: 4px;
+}
+
+.project_ .info .cooper {
+  font-size: 0.7rem;
+  color: #747474;
+  font-family: 'pretendard-semiBold';
+}
+
+.project_ .info .lineProfile {
+  margin: 0 8px;
+}
+
+.project_ .project_name {
+  flex: 1;
+}
+
+.project_  .name {
+  font-size: 1.3rem;
+  font-family: 'pretendard-extraBold';
+  margin-bottom: 8px;
+  color: #2c3e50;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  padding-top:20px;
+
+}
+
+.project_ .project_name .role {
+  font-size: 0.75rem;
+  color: #666;
+  font-family: 'pretendard-semiBold';
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 60px;
+  border-top:1px solid #dfdfdf;
+  padding-top:20px;
+  margin-top:20px;
+
+
+}
+
+.project_ .project_name .picture {
+  width: 55%;
+  border-radius: 8px;
+  background-color: #f1f1f1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.no-projects {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-family: 'pretendard-Regular';
+}
+/* ========================================================= */
+/* =============    Tech Stack Components   ================ */
+/* ========================================================= */
+.profile_stack .project_ {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 30px;
+  margin-bottom: 15vh;
+  justify-content: flex-start;
+}
+.profile_stack .title{
+  display:flex;
+  justify-content: space-between;
+}
+.profile_stack .stack {
+  width: calc(33.33% - 20px);
+  min-width: 280px;
+  height: 140px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+
+.profile_stack .stack .stack_img {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  margin-right: 24px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+
+.profile_stack .stack .stack_name {
+  font-size: 1.4rem;
+  font-family: 'pretendard-SemiBold';
+  color: #1f2937;
+  letter-spacing: -0.02em;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+
+/* 기술스택 바 스타일 개선 */
+.tech-stack-bars {
+  margin-top: 40px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 200px;
+}
+
+.tech-stack-bars .tech-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.tech-stack-bars .tech-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+
+.tech-stack-bars .tech-name {
+  flex: 1;
+  font-family: 'pretendard-Medium';
+  color: #374151;
+}
+
+.tech-stack-bars .tech-level {
+  font-size: 13px;
+  color: #6b7280;
+  margin-left: 10px;
+  background: #f3f4f6;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-family: 'pretendard-Medium';
+  transition: all 0.2s ease;
+}
+
+
+/* 카테고리별 기술스택 개선 */
+.tech-stack-categorized {
+  margin-top: 40px;
+}
+
+.tech-stack-categorized .tech-category {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+
+.tech-stack-categorized .category-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 12px;
+  font-family: 'pretendard-Bold';
+  position: relative;
+  padding-left: 16px;
+}
+
+.tech-stack-categorized .category-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+}
+
+.tech-stack-categorized .category-items {
+  font-size: 15px;
+  color: #6b7280;
+  line-height: 1.6;
+  font-family: 'pretendard-Regular';
+  padding-left: 16px;
+}
+.teck-add-btn{
+  background: #505050;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
 
 
-  .friendList .object .Friend_content .profile_img{
-    width: 100px;
-    height: 100px;
-    background-color: #E6E6E6;
-    border-radius: 50%;
-    margin-right: 68px;
-    margin-left: 50px;
-
-  }
-  .friendList .object .Friend_content .info{
-    gap:500px;
-  }
 
 
-  .friendList .object .Friend_content .info .name{
-    font-family: 'pretendard-Bold';
-    font-size: 1.35rem;
-    margin-bottom: 10px;
-  }
 
-  .friendList .object .Friend_content .info .role{
-    font-family: 'Pretendard-Medium';
-    font-size: 0.85rem;
-    color: #6C6C6C;
-  }
 
-  .friendList .object .rightSides .button-addFriend{
-    font-family: 'Pretendard-Medium';
-    width: 160px;
-    height: 45px;
-    font-size: 0.85rem;
-    color: #ffffff;
-    border:none;
-    background-color: #000000;
-    border-radius: 10px;
+
+
+/* ========================================================= */
+/* =============    SearchCom.js Components   ============== */
+/* ========================================================= */
+.searchBox2 {
+  border: 1px solid #E6E6E6;
+}
+
+.friendList {
+  margin-bottom: 150px;
+}
+
+.friendList .title {
+  font-family: 'pretendard-Bold';
+  font-size: 1.35rem;
+  padding-top: 1vh;
+  padding-bottom: 1vh;
+}
+
+.object {
+  display: flex;
+  position: relative;
+  border-bottom: 1px solid #E6E6E6;
+  justify-content: space-between;
+  align-content: center;
+  align-items: center;
+}
+
+.friendList .object .Friend_content {
+  display: flex;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.friendList .object .Friend_content .profile_img {
+  width: 100px;
+  height: 100px;
+  background-color: #E6E6E6;
+  border-radius: 50%;
+  margin-right: 68px;
+  margin-left: 50px;
+}
+
+.friendList .object .Friend_content .profile_img > img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.friendList .object .Friend_content .info .name {
+  font-family: 'pretendard-Bold';
+  font-size: 1.35rem;
+  margin-bottom: 10px;
+}
+
+.friendList .object .Friend_content .info .role {
+  font-family: 'Pretendard-Medium';
+  font-size: 0.85rem;
+  color: #6C6C6C;
+}
+
+.friendList .object .rightSides .button-addFriend {
+  font-family: 'Pretendard-Medium';
+  width: 160px;
+  height: 45px;
+  font-size: 0.85rem;
+  color: #ffffff;
+  border: none;
+  background-color: #000000;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.button-addFriend.disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.deleteBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  color: rgb(0, 0, 0);
+  border-radius: 50%;
+  display: flex;
+  font-family: 'pretendard-Bold';
+  cursor: pointer;
+  font-size: 1rem;
+  z-index: 1;
+}
+
+/* ========================================================= */
+/* =============    Modal Common Styles   ================== */
+/* ========================================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.profile-content {
+  background: white;
+  border-radius: 12px;
+  width: 60vw;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.profile-header {
+  padding: 30px 40px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.profile-header .title {
+  font-family: 'pretendard-Bold';
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.close-btns {
+  background-color: transparent;
+  border: none;
+  font-family: 'pretendard-Bold';
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: rgb(0, 0, 0);
+  display: flex;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  background: #fafafa;
+  padding: 0 40px 40px 40px;
+}
+
+/* Modal Scrollbar */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ========================================================= */
+/* =============    ProjectAddModal.js   =================== */
+/* ========================================================= */
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-item {
+  background: white;
+  align-content: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.project-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-info h4 {
+  margin: 1vh 0 2vh 0vw;
+  padding-left: 1vw;
+  padding-bottom: 2vh;
+  border-bottom: 1px solid #e0e0e0;
+  color: #2c3e50;
+  text-align: start;
+  font-family: 'pretendard-Bold';
+  font-size: 1.2rem;
+  word-wrap: break-word;
+  line-height: 1.3;
+}
+
+.project-info p {
+  margin: 0 0 2vh 0;
+  color: #5a6c7d;
+  line-height: 1.5;
+  text-align: start;
+  font-size: 14px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.project-info p::-webkit-scrollbar {
+  width: 6px;
+}
+
+.project-info p::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.project-info p::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.profile-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.8rem;
+}
+
+.profile-detail div {
+  font-family: 'pretendard-semiBold';
+  font-size: 0.9rem;
+}
+
+.project-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  margin-top: 4px;
+}
+
+.add-btn, .hide-btn {
+  padding: 12px 24px;
+  width: 120px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+  .add-btn, .hide-btn{
+}
+
+.hide-btn {
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+  color: white;
+}
+
+
+.add-btn:disabled, .hide-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========================================================= */
+/* =============    projectAddPopup2.js   ================== */
+/* ========================================================= */
+
+.titleDivinder {
+  display: flex;
+  padding-bottom: 10px;
+  width: 100%;
+  margin: 1vh 0 2vh 0vw;
+  border-bottom: 1px solid #e0e0e0;
+  color: #2c3e50;
+  align-items: center;
+  font-family: 'pretendard-Bold';
+  font-size: 1.2rem;
+  word-wrap: break-word;
+  line-height: 1.3;
+  justify-content: space-between;
+}
+.per-modal-body{
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #6c757d;
+  flex: 1 1;
+  overflow-y: auto;
+  background: #fafafa;
+}
+.per-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.per-profile-content {
+  background: white;
+  border-radius: 12px;
+  min-width: 60vw;
+  height: 85vh; /* 높이 증가 */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.per-profile-header{
+  padding:30px 40px;
+  display:flex;
+  justify-content: space-between;
+}
+.per-profile-header .title{
+  font-family: 'pretendard-Bold';
+  font-size: 1.5rem;
+  margin:0;
+  
+}
+
+.per-profile-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.close-btns {
+  background-color: transparent;
+  border: none;
+  font-family: 'pretendard-Bold';
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: rgb(0, 0, 0);
+  display: flex;
+  padding:0;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+
+.per-add-work-section {
+  margin-bottom: 20px;
+  text-align: center;
+  padding: 20px;
+}
+
+.per-add-work-btn {
+  background: #505050;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* 개인작업물 이미지 영역 - ITDA와 동일한 구조 */
+.per-project-image {
+  flex-shrink: 0;
+  margin-right: 20px;
+}
+
+.per-project-image .project-thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.per-project-image .project-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.per-edit-btn, .per-delete-btn {
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-  }
+    font-weight: 600;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.per-edit-btn {
+  cursor: pointer;
+  background:transparent;
+}
 
 
+.per-delete-btn {
+  cursor: pointer;
+  background:transparent;
+}
 
 
+/* 폼 스타일링 - ITDA와 유사한 느낌 */
+.per-add-work-form {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.per-add-work-form h3 {
+  margin: 0 0 24px 0;
+  color: #2c3e50;
+  font-family: 'pretendard-Bold';
+  font-size: 1.3rem;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.per-form-group {
+  margin-bottom: 20px;
+}
+
+.per-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-family: 'pretendard-semiBold';
+  font-size: 0.95rem;
+}
+
+.per-form-group input, .per-form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  font-family: 'pretendard-Regular';
+}
+
+.per-form-group input:focus, .per-form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.per-form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.per-form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.per-form-row .per-form-group {
+  flex: 1;
+}
+
+.per-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.per-save-btn {
+  background: #20c997;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
 
+.per-cancel-btn {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
+.per-work-actions{
+  gap:30px;
+}
+
+.per-work-item{
+  background: white;
+  align-content: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.per-work-info{
+  width: 100%;
+}
+.per-work-info .per-work-title{
+  margin: 1vh 0 2vh 0vw;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #e0e0e0;
+  color: #2c3e50;
+  text-align: center;
+  font-family: 'pretendard-Bold';
+  font-size: 1.2rem;
+  word-wrap: break-word;
+  padding-bottom: 20px;
+  line-height: 1.3;
+}
+.per-work-title >div{
+  display: flex;
+  align-items: center;
+}
+.per-work-info .per-work-explain{
+  margin: 0 0 2vh 0;
+  color: #5a6c7d;
+  line-height: 1.5;
+  text-align: start;
+  font-size: 14px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-height: 80px;
+  overflow-y: auto;
+}
+.per-work-details{
+  display: flex  ;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  font-family: 'pretendard-regular';
+  font-size: 0.8rem;
+}
+
+
+.per-add-work-section{
+  text-align: end;
+  font-size: 16px;
+  
+  justify-content: end;
+  color: #6c757d;}
+
+
+/* 첨부파일 관련 스타일 */
+.no-attachment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 12px;
+  color: #999;
+  background-color: #f8f9fa;
+}
+
+.file-preview {
+  margin-top: 10px;
+  border: 1px solid #e5e8eb;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 200px;
+  position: relative;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: cover;
+}
+
+.remove-file-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(220, 53, 69, 0.8);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.existing-file {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e5e8eb;
+}
+
+.per-form-group input[type="file"] {
+  padding: 8px;
+  border: 2px dashed #e5e8eb;
+  border-radius: 8px;
+  background-color: #fafbfc;
+}
+
+.file-container {
+  position: relative;
+}
+
+.file-actions {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.download-btn, .preview-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+}
+
+
+.file-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+
+.clickable {
+  cursor: pointer;
+}
+
+.file-info {
+  text-align: center;
+  padding: 20px;
+}
+
+.file-icon-large {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.file-name {
+  font-size: 14px;
+  word-break: break-all;
+}
+
+/* 이미지 미리보기 모달 */
+.image-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.image-preview-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: hidden;
+}
+
+.image-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.close-preview-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.image-preview-body {
+  padding: 15px;
+  text-align: center;
+}
+
+.preview-image-large {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+
+.project-thumb-img {
+  max-width: 100%;
+  object-fit: cover;
+  width: 500px;
+  height: 300px;
+  border-radius: 8px;
+}
+.project-thumbnail{
+  width: 500px;
+  height: 300px;
+}
+
+
+.image-hover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+}
+
+.download-message {
+  text-align: center;
+  color: white;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.download-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.download-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.filename-text {
+  font-size: 12px;
+  opacity: 0.8;
+  word-break: break-all;
+  max-width: 120px;
+}
+
+.file-info-display {
+  text-align: center;
+  margin-top: 5px;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #666;
+}
+
+.image-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  font-size: 14px;
+  color: #666;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+}
+/* ========================================================= */
+/* =============    Loading States   ======================= */
+/* ========================================================= */
+.modal-body > div {
+  padding: 40px;
+  font-size: 16px;
+  color: #6c757d;
+}

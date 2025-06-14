@@ -1,8 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date, datetime
 from enum import Enum
-from typing import Optional, List
-
+from typing import Union, List, Optional
 class SalaryType(str, Enum):
     HOURLY = "시급"
     MONTHLY = "월급"
@@ -77,6 +76,16 @@ class ProjectOut(BaseModel):
     class Config:
         orm_mode = True
 
+class ScheduleUpdate(BaseModel):
+    start_day: Optional[str]
+    deadline: Optional[str]
+
+class AcceptRequest(BaseModel):
+    user_id: str
+
+class RejectRequest(BaseModel):
+    user_id: str    
+
 class ParticipationHistorySchema(BaseModel):
     company: str
     title: str
@@ -129,24 +138,21 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
 class TodoCreate(BaseModel):
     text: str
-    user_id: str
-    deadline: str
-    start_day: str
+    user_id: Union[str, List[str]]  # 단일 또는 다중 담당자 지원
+    deadline: Optional[str] = None
+    start_day: Optional[str] = None
     project_id: str
-    status: Optional[str] = "in_progress" 
+    status: str = "in_progress"
 
-    
-    
 class TodoResponse(BaseModel):
     id: str
     text: str
-    user_id: str
+    user_id: Union[str, List[str]]  # 단일 또는 다중 담당자 지원
     deadline: str
     start_day: str
-    project_id: Optional[str] = None
+    project_id: str
     status: str
 
 class UploadedFileCreate(BaseModel):

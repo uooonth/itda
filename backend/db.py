@@ -185,6 +185,7 @@ class UserProfile(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     user: User = ormar.ForeignKey(User, unique=True)  # 1:1 관계
+    roles : str = ormar.String(max_length=50, nullable=True)
     profile_image: str = ormar.String(max_length=255, nullable=True)
     tech_stack: list = ormar.JSON(nullable=True, default=[])
     tags: list = ormar.JSON(nullable=True, default=[])
@@ -196,7 +197,8 @@ class UserProfile(ormar.Model):
     birth: date = ormar.Date(nullable=True)
     portfolio_url: str = ormar.String(max_length=255, nullable=True)
     is_public: bool = ormar.Boolean(default=True)
-
+    pinned_projects: list = ormar.JSON(nullable=True, default=[])  
+#개인프로젝트
 class ParticipationHistory(ormar.Model):
     class Meta:
         tablename = "participation_histories"
@@ -210,7 +212,10 @@ class ParticipationHistory(ormar.Model):
     description: str = ormar.Text(nullable=True)
     start_date: date = ormar.Date()
     end_date: date = ormar.Date(nullable=True)
+    attachment_url: str = ormar.String(max_length=255, nullable=True)
 
+    
+#잇다프로젝트
 class ProjectParticipation(ormar.Model):
     class Meta:
         tablename = "project_participations"
@@ -222,7 +227,6 @@ class ProjectParticipation(ormar.Model):
     project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
     joined_at: date = ormar.Date()
     left_at: date = ormar.Date(nullable=True)
-
 #건들 ㄴㄴ
 ProjectFolderRef = ForwardRef("ProjectFolder")
 
@@ -254,6 +258,7 @@ class UploadedFile(ormar.Model):
     project: ProjectInfo = ormar.ForeignKey(ProjectInfo)
     folder: Optional[ProjectFolder] = ormar.ForeignKey(ProjectFolder, nullable=True) 
     uploaded_at: datetime = ormar.DateTime(default=datetime.utcnow)
+
 
 
 # ───────────── 테이블 생성 ───────────── #
