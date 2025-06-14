@@ -77,7 +77,6 @@ async def signup(request: Request):
     #################################################
     email_to_store = user.email if not existing_user else "placeholder@example.com"
 
-    # 1. User 생성
     new_user = await User.objects.create(
         id=user.id,
         name=user.name,
@@ -85,7 +84,6 @@ async def signup(request: Request):
         email=email_to_store
     )
 
-    # 2. UserProfile 기본값 생성
     await UserProfile.objects.create(
         user=new_user,
         profile_image=None,
@@ -244,8 +242,6 @@ async def create_project(
     if thumbnail:
         content = await thumbnail.read()
         filename = f"{uuid.uuid4().hex}_{thumbnail.filename}"
-        print("📂 썸네일:", thumbnail.filename)
-        print("📏 파일 크기:", len(content))
         save_path = f"static/uploads/{filename}"
         with open(save_path, "wb") as f:
             f.write(content)
@@ -291,6 +287,7 @@ async def get_project_detail(project_id: int):
 # 앱에 등록
 app.include_router(router)
 
+# 플젝 삭제
 @app.delete("/projects/{project_id}")
 async def delete_project(project_id: int, current_user: User = Depends(get_current_user)):
     project = await ProjectInfo.objects.get_or_none(id=project_id)
@@ -304,9 +301,12 @@ async def delete_project(project_id: int, current_user: User = Depends(get_curre
     
     await UploadedFile.objects.filter(project=project).delete()
 
+    await ProjectParticipation.objects.filter(project=project).delete()
+
     await project.delete()
     
     return {"detail": "삭제 성공"}
+
 
 
 #찜
