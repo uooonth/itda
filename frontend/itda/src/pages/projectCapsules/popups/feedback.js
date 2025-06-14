@@ -175,6 +175,7 @@ const FeedbackPopup = ({ onClose, projectId, onUploadComplete, onUpdate }) => {
         }
     }, [viewingFile, currentProjectId, fetchFeedbackMessages]);
 
+
     // 백엔드 FeedbackMessage 모델에 맞춘 메시지 전송 함수
     const handleSendMessage = async () => {
         if (!inputText.trim() || !viewingFile || !currentProjectId || !currentUser) {

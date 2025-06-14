@@ -399,19 +399,6 @@ async def accept_applicant(project_id: int, user_id: str):
         project.worker.append(user_id)
         await project.update()
 
-    #  알림 푸시예요! 지우지말아주세요!!
-    message = {
-        "type": "join", 
-        "project_name": project.project.name,
-        "joined_user": user.name,
-        "time": datetime.now(ZoneInfo("Asia/Seoul")).isoformat()
-    }
-
-    # 전체알림용 소켓에 broadcast
-    for conn in all_alarm_connections:
-        await conn.send_text(json.dumps(message))
-
-    return {"status": "accepted"}
 
 # 거절
 @router.post("/projects/{project_id}/reject")
@@ -1035,6 +1022,7 @@ active_livechat_connections: dict[str, list[WebSocket]] = {}
 all_alarm_connections: list[WebSocket] = []  # 전체알림용 추가
 
 # 프로젝트별 라이브채팅
+# main.py의 websocket_livechat 함수 수정
 @app.websocket("/ws/livechat/{project_id}")
 async def websocket_livechat(websocket: WebSocket, project_id: str):
     await websocket.accept()
@@ -1052,29 +1040,39 @@ async def websocket_livechat(websocket: WebSocket, project_id: str):
             outline = await ProjectOutline.objects.get_or_none(id=project_id)
             project_name = outline.name if outline else "프로젝트"
 
+            # 프로젝트 정보 가져오기
+            project_info = await ProjectInfo.objects.select_related("project").get_or_none(project=project_id)
+            project_members = []
+            if project_info:
+                project_members = (project_info.proposer or []) + (project_info.worker or [])
+
             message = {
                 "type": "chat",
                 "sender_id": parsed["sender_id"],
                 "sender_name": parsed["sender_name"],
                 "text": parsed["text"],
                 "time": now,
-                "project_name": project_name
+                "project_name": project_name,
+                "project_id": project_id,
+                "project_members": project_members  # 프로젝트 멤버 추가
             }
 
             json_msg = json.dumps(message)
 
+            # Redis에 저장
             await r.rpush(f"livechat:{project_id}", json_msg)
 
-            # ✅ 전체 알림에도 전송
+            # 전체 알림에 전송 (프로젝트 멤버 정보 포함)
             for conn in all_alarm_connections:
                 await conn.send_text(json_msg)
 
-            # ✅ 현재 방 참여자에게도 전송
+            # 현재 방 참여자에게도 전송
             for conn in active_livechat_connections[project_id]:
                 await conn.send_text(json_msg)
 
     except WebSocketDisconnect:
         active_livechat_connections[project_id].remove(websocket)
+
 
 
 # Navigation 전용 전체 알림용 WebSocket
@@ -1451,9 +1449,6 @@ async def get_user_profile(user_id: str):
     profile_dict = dict(profile)
     profile_dict.pop("profile_image", None)  # 원본 presigned URL은 반환하지 않음
     return {"profile": profile_dict, "profile_image_url": presigned_url}
-
-
-
 
 
 @app.put("/users/{user_id}/profile")

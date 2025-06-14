@@ -1119,14 +1119,17 @@ useEffect(() => {
 
 
    //=====================================================================//
-    // ------------------------   챗 WebSocket    ------------------------ //
+    // ------------------------   챗 WebSocket 안정화  ------------------------ //
     //=====================================================================//
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const wsRef = useRef(null);
     const messagesEndRef = useRef(null);
 
-    // JWT 파싱 함수
+    const [loginUserId, setLoginUserId] = useState(null);
+    const [loginUserName, setLoginUserName] = useState(null);
+
+    // JWT 파싱 함수 (최초 1회 파싱)
     const decodeJWT = (token) => {
         if (!token) return {};
         try {
@@ -1134,37 +1137,47 @@ useEffect(() => {
             return {
                 userId: payload.sub,
                 userName: payload.name || payload.sub
-            }
+            };
         } catch {
             return {};
         }
     };
 
-    const token = localStorage.getItem("access_token");
-    const { userId, userName } = decodeJWT(token);
-
-    // 최초 Redis에 저장된 이전 메시지 불러오기 (이전 채팅 불러오기)
     useEffect(() => {
-        if (!Pg_id) return;
+        const token = localStorage.getItem("access_token");
+        const { userId, userName } = decodeJWT(token);
+        setLoginUserId(userId);
+        setLoginUserName(userName);
+    }, []);
 
-        // 먼저 이전 메시지 한번 불러오기 (REST API 사용)
-        fetch(`http://localhost:8008/livechat/${Pg_id}`)
-            .then(res => res.json())
-            .then(data => {
+    // 최초 Redis에 저장된 이전 메시지 불러오기
+    useEffect(() => {
+        if (!Pg_id || !loginUserId) return;
+
+        const fetchPreviousMessages = async () => {
+            try {
+                const res = await fetch(`http://localhost:8008/livechat/${Pg_id}`);
+                if (!res.ok) throw new Error("이전 채팅 불러오기 실패");
+
+                const data = await res.json();
                 const loadedMessages = data.map(msg => ({
                     ...msg,
-                    sender: msg.sender_id === userId ? "me" : "other",
+                    sender: msg.sender_id === loginUserId ? "me" : "other",
                     name: msg.sender_name,
                     time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
                 }));
                 setMessages(loadedMessages);
-            });
+            } catch (err) {
+                console.error("이전 메시지 불러오기 에러:", err);
+            }
+        };
 
-    }, [Pg_id, userId]);
+        fetchPreviousMessages();
+    }, [Pg_id, loginUserId]);
 
-    // WebSocket 연결 (실시간 수신)
+    //  WebSocket 연결 (loginUserId 준비된 이후 연결)
     useEffect(() => {
-        if (!Pg_id) return;
+        if (!Pg_id || !loginUserId) return;
 
         const ws = new WebSocket(`ws://localhost:8008/ws/livechat/${Pg_id}`);
         wsRef.current = ws;
@@ -1173,7 +1186,7 @@ useEffect(() => {
             const msg = JSON.parse(event.data);
             const newMessage = {
                 ...msg,
-                sender: msg.sender_id === userId ? "me" : "other",
+                sender: msg.sender_id === loginUserId ? "me" : "other",
                 name: msg.sender_name,
                 time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
             };
@@ -1181,28 +1194,52 @@ useEffect(() => {
         };
 
         ws.onclose = () => console.log("WebSocket Closed");
+        ws.onerror = (err) => console.error("WebSocket Error:", err);
+
+        return () => {
+            ws.close();
+        };
+    }, [Pg_id, loginUserId]);
+
+    useEffect(() => {
+        const ws = new WebSocket("ws://localhost:8008/ws/livechat/notification");
+
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            console.log("📢 알림 도착:", msg);
+
+            // 여기는 일단 콘솔 찍히는지만 확인할 것
+            // 이후 여기서 팝업 띄우는 로직 추가 가능
+            alert(`🔔 새 알림: ${msg.type === "chat" ? "새로운 채팅이 도착했습니다!" : "파일이 업로드 되었습니다!"}`);
+        };
+
+        ws.onclose = () => console.log("알림 WebSocket Closed");
 
         return () => ws.close();
-    }, [Pg_id, userId]);
+    }, []);
 
-    // 메시지 전송
+
+    //  메시지 전송
     const sendMessage = () => {
-        if (!input.trim()) return;
+        if (!input.trim() || !loginUserId || !loginUserName) return;
+
         const wsMessage = {
-            sender_id: userId,
-            sender_name: userName,
+            sender_id: loginUserId,
+            sender_name: loginUserName,
             text: input,
         };
+
+        console.log("메시지 전송:", wsMessage);
         wsRef.current?.send(JSON.stringify(wsMessage));
         setInput('');
     };
 
-    // 스크롤 자동 내려가기
+    //  스크롤 자동 내려가기
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // ToggleNameDisplay 그대로 유지
+    //  이름 토글
     const ToggleNameDisplay = ({ name }) => {
         const [expanded, setExpanded] = useState(false);
         return (
@@ -1481,7 +1518,7 @@ useEffect(() => {
         )}
 
 
-        {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfoId} onUpdate={handleTodoUpdate} />}
+        {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfoId} onUpdate={handleTodoUpdate}/>}
         </div>
     );
 };
