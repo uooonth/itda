@@ -232,11 +232,6 @@ class UploadedFile(ormar.Model):
 
 
 
-
-
-
-
-
 # ───────────── 테이블 생성 ───────────── #
 engine = sqlalchemy.create_engine(settings.DATABASE_URL)
 metadata.create_all(engine)
