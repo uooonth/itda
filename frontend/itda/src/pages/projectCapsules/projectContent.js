@@ -8,6 +8,8 @@ import rechange from '../../icons/rechange.svg';
 import TodoEditModal from './popups/todoEdit';
 import TodoMorePopup from './popups/todoMore';
 import FeedbackPopup from './popups/feedback';
+import pencilIcon from '../../icons/pencilIcon.png';
+import sendIcon from '../../icons/sendIcon.png';
 /* timeline */ 
 import { Timeline,DataSet } from 'vis-timeline/standalone'
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
@@ -1116,15 +1118,95 @@ useEffect(() => {
       
 
 
-    //===================================================================== //
-    // ------------------------   챗    -----------------------//
-    //===================================================================== // 
+   //=====================================================================//
+    // ------------------------   챗 WebSocket    ------------------------ //
+    //=====================================================================//
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState('');
+    const wsRef = useRef(null);
+    const messagesEndRef = useRef(null);
+
+    // JWT 파싱 함수
+    const decodeJWT = (token) => {
+        if (!token) return {};
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return {
+                userId: payload.sub,
+                userName: payload.name || payload.sub
+            }
+        } catch {
+            return {};
+        }
+    };
+
+    const token = localStorage.getItem("access_token");
+    const { userId, userName } = decodeJWT(token);
+
+    // 최초 Redis에 저장된 이전 메시지 불러오기 (이전 채팅 불러오기)
+    useEffect(() => {
+        if (!Pg_id) return;
+
+        // 먼저 이전 메시지 한번 불러오기 (REST API 사용)
+        fetch(`http://localhost:8008/livechat/${Pg_id}`)
+            .then(res => res.json())
+            .then(data => {
+                const loadedMessages = data.map(msg => ({
+                    ...msg,
+                    sender: msg.sender_id === userId ? "me" : "other",
+                    name: msg.sender_name,
+                    time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                }));
+                setMessages(loadedMessages);
+            });
+
+    }, [Pg_id, userId]);
+
+    // WebSocket 연결 (실시간 수신)
+    useEffect(() => {
+        if (!Pg_id) return;
+
+        const ws = new WebSocket(`ws://localhost:8008/ws/livechat/${Pg_id}`);
+        wsRef.current = ws;
+
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            const newMessage = {
+                ...msg,
+                sender: msg.sender_id === userId ? "me" : "other",
+                name: msg.sender_name,
+                time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+            };
+            setMessages(prev => [...prev, newMessage]);
+        };
+
+        ws.onclose = () => console.log("WebSocket Closed");
+
+        return () => ws.close();
+    }, [Pg_id, userId]);
+
+    // 메시지 전송
+    const sendMessage = () => {
+        if (!input.trim()) return;
+        const wsMessage = {
+            sender_id: userId,
+            sender_name: userName,
+            text: input,
+        };
+        wsRef.current?.send(JSON.stringify(wsMessage));
+        setInput('');
+    };
+
+    // 스크롤 자동 내려가기
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // ToggleNameDisplay 그대로 유지
     const ToggleNameDisplay = ({ name }) => {
         const [expanded, setExpanded] = useState(false);
-
         return (
-            <div
-                className={`folderName ${expanded ? 'expanded' : ''}`}
+            <div className={`folderName ${expanded ? 'expanded' : ''}`}
                 onClick={() => setExpanded(!expanded)}
                 title={name}
             >
@@ -1132,63 +1214,6 @@ useEffect(() => {
             </div>
         );
     };
-
-
-
-    useEffect(() => {
-    const now = new Date();
-    const formattedTime = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-    });
-
-    const initialMessages = [
-        {
-        name: "침착맨",
-        text: "안녕하세요! 여기는 실시간 채팅방입니다.",
-        sender: "other",
-        time: formattedTime,
-        },
-        {
-        name: "나",
-        text: "안녕하세요~!",
-        sender: "me",
-        time: formattedTime,
-        },
-    ];
-
-    setMessages(initialMessages);
-    }, []);
-
-
-    const [messages, setMessages] = useState([]);
-    const [input, setInput] = useState('');
-    const messagesEndRef = useRef(null);
-
-    const sendMessage = () => {
-    if (!input.trim()) return;
-    const now = new Date();
-    const formattedTime = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-    });
-
-    const newMsg = {
-        name: "나",
-        text: input,
-        sender: "me",
-        time: formattedTime,
-    };
-    setMessages(prev => [...prev, newMsg]);
-    setInput('');
-    };
-
-    useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
 
 
     return (
@@ -1360,7 +1385,7 @@ useEffect(() => {
                         </div>
 
                         <div className="chatInputArea">
-                            <img src="pencilIcon.png" alt="입력" className="pencilIcon" />
+                            <img src={pencilIcon} alt="입력" className="pencilIcon" />
                             <input 
                                 type="text" 
                                 value={input} 
@@ -1370,7 +1395,7 @@ useEffect(() => {
                             />
                             {/* 전송 버튼 */}
                             <button onClick={sendMessage}>
-                                <img src="sendIcon.png" alt="전송" />
+                                <img src={sendIcon} alt="전송" />
                             </button>
                         </div>
                     </div>
@@ -1456,7 +1481,7 @@ useEffect(() => {
         )}
 
 
-        {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfoId}/>}
+        {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfoId} onUpdate={handleTodoUpdate} />}
         </div>
     );
 };

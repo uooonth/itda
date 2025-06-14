@@ -11,3 +11,5 @@ python-dotenv
 # npm install vis-timeline
 # npm install @lourenci/react-kanban --legacy-peer-deps
 # npm install react-big-calendar moment moment-timezone
+# npm install jwt-decode
+# yarn add react-markdown
