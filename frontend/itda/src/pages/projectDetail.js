@@ -19,6 +19,24 @@ export default function ProjectDetail() {
     const [showApplicantModal, setShowApplicantModal] = useState(false);
     const [applicants, setApplicants] = useState([]);
 
+    // ✅ 프로젝트 데이터 가져오는 함수 분리
+    const fetchProject = async () => {
+        try {
+            const projectRes = await axios.get(`http://localhost:8008/projects/${id}`);
+            const data = projectRes.data;
+            setProject(data);
+            setStarCount(data.starred_users?.length || 0);
+            if (token && currentUserId && data.starred_users?.includes(currentUserId)) {
+                setIsStarred(true);
+            } else {
+                setIsStarred(false);
+            }
+        } catch (err) {
+            console.error("프로젝트 상세 정보 가져오기 실패", err);
+            alert("프로젝트 정보를 불러오지 못했습니다.");
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             let userId = null;
@@ -35,24 +53,11 @@ export default function ProjectDetail() {
                 }
             }
 
-            try {
-                const projectRes = await axios.get(`http://localhost:8008/projects/${id}`);
-                const data = projectRes.data;
-                setProject(data);
-                setStarCount(data.starred_users?.length || 0);
-                if (token && userId && data.starred_users?.includes(userId)) {
-                    setIsStarred(true);
-                } else {
-                    setIsStarred(false);
-                }
-            } catch (err) {
-                console.error("프로젝트 상세 정보 가져오기 실패", err);
-                alert("프로젝트 정보를 불러오지 못했습니다.");
-            }
+            await fetchProject();  // ✅ 여기서도 사용
         };
 
         fetchData();
-    }, [id, token]);
+    }, [id, token, currentUserId]);
 
     const handleFetchApplicants = async () => {
         try {
@@ -128,7 +133,6 @@ export default function ProjectDetail() {
         }
     };
 
-
     if (!project) return <div>로딩 중...</div>;
 
     const isOwner = currentUserId && project.proposer?.[0] === currentUserId;
@@ -180,7 +184,7 @@ export default function ProjectDetail() {
 
             <div className="detail-heading-wrapper">
                 <h2 className="detail-heading">상세 내용</h2>
-            </div> 
+            </div>
 
             <section className="project-details">
                 <h2>{project.project.name}</h2>
@@ -210,8 +214,8 @@ export default function ProjectDetail() {
                     onClose={() => setShowApplicantModal(false)}
                     applicants={applicants}
                     projectId={id}
-                    onDecision={(status, userId) => {
-                        setApplicants((prev) => prev.filter((a) => a.user_id !== userId));
+                    onDecision={() => {
+                        handleFetchApplicants();  
                     }}
                 />
             )}

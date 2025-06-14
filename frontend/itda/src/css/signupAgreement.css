@@ -1,6 +1,7 @@
 .signupAgreement-content {
     margin-top: 20vh;
     text-align: center;
+    width: 100%;
 }
 
 .signup-title {
@@ -167,13 +168,11 @@
 }
 
 .button-group {
-    position: absolute;
     bottom: 50px;
     left: 50%;
-    transform: translateX(-50%);
-    display: flex;
     justify-content: center;
     gap: 10px;
+    position: flex;
 }
 
 .cancel-button,

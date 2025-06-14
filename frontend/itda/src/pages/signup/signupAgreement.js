@@ -117,12 +117,13 @@ export default function SignupAgreement() {
                         </div>
 
                     ))}
+                    <div className="button-group">
+                        <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
+                        <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}>다음</button>
+                    </div>
                 </div>
 
-                <div className="button-group">
-                    <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                    <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}>다음</button>
-                </div>
+
 
                 {showCancelModal && (
                     <div className="modal">
