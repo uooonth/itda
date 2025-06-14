@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../css/project.css';
-import { useLocation } from 'react-router-dom';
+import { useLocation,useNavigate  } from 'react-router-dom';
 
 
 /* 메뉴별 컴포넌트  */
@@ -17,9 +17,9 @@ import chat from '../icons/chat_project.svg';
 
 
 function Project({ isLoggedIn,username }) {
-    console.log("Project", username);
     const location = useLocation();
-    //페이지 토글 상태
+    const navigate = useNavigate();
+    //페이지 토글
     const [show_Home, setShowHome] = useState(true);
     const [show_project, setShowProject] = useState(false);
     const [show_chat, setShowChat] = useState(false);
@@ -52,6 +52,9 @@ function Project({ isLoggedIn,username }) {
         setShowChat(tab === 'chat');
         setShowCalendar(tab === 'calendar');
         setActiveTab(tab);
+        if (tab === 'home') {
+            navigate('/project', { replace: true });
+        }
 
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active_tab'));
         document.querySelector(`.tab-${tab}`).classList.add('active_tab');

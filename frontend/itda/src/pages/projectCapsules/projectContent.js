@@ -1,365 +1,325 @@
-import React,{useState,useEffect,useMemo,useRef} from 'react';
-import { useParams,useLocation  } from 'react-router-dom';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import Picker from 'emoji-picker-react';
+import { Timeline, DataSet } from 'vis-timeline/standalone';
+import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
+import moment from 'moment';
+
+// DnD Kit
+import { DndContext, closestCenter, useDroppable } from '@dnd-kit/core';
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Icons
 import Edit from '../../icons/edit.svg';
 import leftBtn from '../../icons/left.svg';
 import rightBtn from '../../icons/righ.svg';
 import rechange from '../../icons/rechange.svg';
-import TodoEditModal from './popups/todoEdit';
-import TodoMorePopup from './popups/todoMore';
-import FeedbackPopup from './popups/feedback';
-/* timeline */ 
-import { Timeline,DataSet } from 'vis-timeline/standalone'
-import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
-
-/* css */
-import '../../css/feedbackpopup.css';
-
-import moment from 'moment'
-
-
-
-import { DndContext, closestCenter ,useDroppable} from '@dnd-kit/core';
-import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import EditIcon from '../../icons/pencil.svg'; 
 import DeleteIcon from '../../icons/trash.svg'; 
 
+// Components
+import TodoEditModal from './popups/todoEdit';
+import TodoMorePopup from './popups/todoMore';
+import FeedbackPopup from './popups/feedback';
+
+// CSS
+import '../../css/feedbackpopup.css';
 
 const ProjectContent = () => {
-    const location = useLocation();
-    const { username } = location.state || {};
-    const [projectName,setProjectName]=useState(null);
-
-
-    //===================================================================== //
-    //---------------------------프로젝트정보 불러오기-------------------------//
-    //===================================================================== // 
     const { Pg_id } = useParams(); 
 
-    useEffect(() => {
-        const fetchProjectInfo = async () => {
-            const response = await fetch(`http://localhost:8008/project/name/${Pg_id}`);
-            const data = await response.json();
-            setProjectInfo(data);
+
+    const location = useLocation();
+    const { username } = location.state || {};
+
+    // ⭐ 스크롤 초기화 - 컴포넌트 최상위에서 호출
+    useLayoutEffect(() => {
+        const scrollToTop = () => {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
         };
-        fetchProjectInfo();
-    }, [Pg_id]);
+        
+        scrollToTop();
+        
+        // 여러 번 시도하여 확실히 초기화
+        const timeouts = [0, 50, 150, 300, 500].map(delay => 
+            setTimeout(scrollToTop, delay)
+        );
+        
+        return () => timeouts.forEach(clearTimeout);
+    }, [Pg_id, location.pathname]);
+
+    /* ========================================================= */
+    /* =============    프로젝트 기본 정보 관리    ================ */
+    /* ========================================================= */
+    const [projectName, setProjectName] = useState(null);
     const [projectInfo, setProjectInfo] = useState(null);
     const [projectData, setProjectData] = useState(null);
+    const [projectInfoId, setProjectInfoId] = useState(null);
 
-
+    // 프로젝트 정보 불러오기
     useEffect(() => {
-        const token = localStorage.getItem('access_token');
-        const fetchProject= async () =>  {
-            try{
-                const response = await fetch(`http://127.0.0.1:8008/project/${Pg_id}`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                
-                if (!response.ok) {
-                    console.log("플젝불러오기단계실패")
-                }
-                const data = await response.json();
-                setProjectData(data);
-            }catch (error) {
-                console.error(error.message);
+        if (!Pg_id) return;
+
+        const fetchProjectData = async () => {
+            try {
+                const [infoResponse, dataResponse, projectsResponse] = await Promise.all([
+                    fetch(`http://localhost:8008/project/name/${Pg_id}`),
+                    fetch(`http://127.0.0.1:8008/project/${Pg_id}`, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+                    }),
+                    fetch("http://localhost:8008/getProjects")
+                ]);
+
+                const [infoData, dataData, projectsData] = await Promise.all([
+                    infoResponse.json(),
+                    dataResponse.json(),
+                    projectsResponse.json()
+                ]);
+
+                setProjectInfo(infoData);
+                setProjectData(dataData);
+                setProjectName(dataData?.project?.name || '');
+
+                // 프로젝트 int형 ID 추출
+                const match = projectsData.find(p => p.project.id === Pg_id);
+                setProjectInfoId(match?.id || null);
+
+            } catch (error) {
+                console.error('프로젝트 데이터 로딩 실패:', error);
             }
         };
-        fetchProject();
+
+        fetchProjectData();
+        fetchTodos();
+        updateTodoCounts();
     }, [Pg_id]);
-    console.log(projectData)
+    // 프로젝트 아이디가 없다면
 
-    useEffect(() => {
-        setProjectName(projectData?.project?.name || '');
-      }, [projectData]);
-    //===================================================================== //
-    // ------------------------  공지 불러오기(redis)  -----------------------//
-    //===================================================================== // 
 
+    /* ========================================================= */
+    /* =================    공지사항 관리    ==================== */
+    /* ========================================================= */
     const [notice, setNotice] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [tempContent, setTempContent] = useState(''); 
+    const [tempContent, setTempContent] = useState('');
 
+    // 이모지 관리
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🚩' });
+
+    // 공지사항 불러오기
     useEffect(() => {
+        if (!Pg_id) return;
+
         const fetchNotice = async () => {
             setIsLoading(true);
             try {
                 const response = await fetch(`http://127.0.0.1:8008/project/${Pg_id}/notice`);
-                if (!response.ok) {
-                    setTempContent('');
+                if (response.ok) {
+                    const data = await response.json();
+                    setNotice(data.content);
+                } else {
+                    setNotice('');
                 }
-                const data = await response.json();
-                console.log(data,"잘불러오지는데??????????????????????????????????????????????")
-                setNotice(data.content);
                 setError(null);
             } catch (err) {
                 setError(err.message);
-                console.log("ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ어디선가나는에러")
                 setNotice('');
             } finally {
                 setIsLoading(false);
             }
         };
+
         fetchNotice();
     }, [Pg_id]);
+
     const handleEditClick = () => {
-        if (notice === null || notice === undefined) {
-            setTempContent('');
-        } else {
-            setTempContent(notice);
-        }        setIsEditing(true);
+        setTempContent(notice || '');
+        setIsEditing(true);
     };
-    const handleInputChange = (e) => {
-        setTempContent(e.target.value);
-    };
-    
+
     const handleSaveClick = async () => {
         try {
             const response = await fetch(`http://127.0.0.1:8008/project/${Pg_id}/notice`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ content: tempContent }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({})); // JSON 파싱 실패 방지
-                console.error("서버 응답 오류:", errorData);
-                throw new Error("공지사항 수정에 실패했습니다.");
+            if (response.ok) {
+                setNotice(tempContent);
+                setIsEditing(false);
+                alert("공지사항이 수정되었습니다.");
             } else {
-                const result = await response.json().catch(() => null);
-                console.log("공지사항 수정 응답:", result);
+                throw new Error("공지사항 수정에 실패했습니다.");
             }
-
-            setNotice(tempContent);
-            setIsEditing(false);   
-            alert("공지사항이 수정되었습니다.");
         } catch (error) {
             console.error(error.message);
             alert("공지사항 수정 중 오류가 발생했습니다.");
         }
     };
+
     const handleCancelClick = () => {
         setIsEditing(false);
     };
 
-    //이모지
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🚩' });
-    
-    function handleEmojiSelect(emojiObject) {
+    const handleEmojiSelect = (emojiObject) => {
         setSelectedEmoji(emojiObject);
-        setShowEmojiPicker(false); 
-    }    
-    
-    
+        setShowEmojiPicker(false);
+    };
+
+    /* ========================================================= */
+    /* =================    캘린더 관리    ===================== */
+    /* ========================================================= */
     const today = new Date();
+    const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
+    const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
 
-
-    const currentLastDaysOfYearArr = getLastDaysOfYear(today.getFullYear());
-    function getLastDaysOfYear(year) {
-        return Array.from({ length: 12 }, (_, month) => {
-            return new Date(year, month + 1, 0).getDate();
-        });
+    function getCurrentWeek() {
+        const today = new Date();
+        const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const week = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(firstDayOfWeek);
+            date.setDate(firstDayOfWeek.getDate() + i);
+            week.push(date);
+        }
+        return week;
     }
 
+    function getCurrentMonth() {
+        return new Date().getMonth();
+    }
 
-    //===================================================================== //
-    // ------------------------      todoStatus     ------------------------//
-    //===================================================================== // 
+    const handleLeftWeek = () => {
+        const newWeek = [];
+        const firstDayOfCurrentWeek = new Date(currentWeek[0]);
+
+        for (let i = 0; i < 7; i++) {
+            const prevDay = new Date(firstDayOfCurrentWeek);
+            prevDay.setDate(firstDayOfCurrentWeek.getDate() - 7 + i);
+            newWeek.push(prevDay);
+        }
+
+        setCurrentMonth(newWeek[0].getMonth());
+        setCurrentWeek(newWeek);
+    };
+
+    const handleRightWeek = () => {
+        const newWeek = [];
+        const lastDayOfCurrentWeek = new Date(currentWeek[6]);
+
+        for (let i = 0; i < 7; i++) {
+            const nextDay = new Date(lastDayOfCurrentWeek);
+            nextDay.setDate(lastDayOfCurrentWeek.getDate() + 1 + i);
+            newWeek.push(nextDay);
+        }
+
+        setCurrentMonth(newWeek[0].getMonth());
+        setCurrentWeek(newWeek);
+    };
+
+    /* ========================================================= */
+    /* =================    Todo 상태 관리    ================== */
+    /* ========================================================= */
     const [inProgressCount, setInProgressCount] = useState(0);
     const [completedCount, setCompletedCount] = useState(0);
     const [waitingFeedbackCount, setWaitingFeedbackCount] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
-    
+
     const updateTodoCounts = async () => {
-      if (!Pg_id) return;
-    
-      try {
-        const [inProgressRes, completedRes, feedbackRes] = await Promise.all([
-          fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/in_progress`),
-          fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/completed`),
-          fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/waiting_feedback`)
-        ]);
-        
-        const inProgressData = await inProgressRes.json();
-        const completedData = await completedRes.json();
-        const feedbackData = await feedbackRes.json();
-        console.log(inProgressData,"ㄹ더랴러데ㅓ랻레")
-        const inProgressLen = inProgressData.todos.length;
-        const completedLen = completedData.todos.length;
-        const feedbackLen = feedbackData.todos.length;
-        console.log(inProgressLen,completedLen,feedbackLen,"길이가왜그럴까????????????????")
-        setInProgressCount(inProgressLen);
-        setCompletedCount(completedLen);
-        setWaitingFeedbackCount(feedbackLen);
-        setTotalCount(inProgressLen + completedLen + feedbackLen);
-      } catch (err) {
-        console.error("Error fetching todo counts:", err);
-      }
+        if (!Pg_id) return;
+
+        try {
+            const [inProgressRes, completedRes, feedbackRes] = await Promise.all([
+                fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/in_progress`),
+                fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/completed`),
+                fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/waiting_feedback`)
+            ]);
+
+            const [inProgressData, completedData, feedbackData] = await Promise.all([
+                inProgressRes.json(),
+                completedRes.json(),
+                feedbackRes.json()
+            ]);
+
+            const inProgressLen = inProgressData.todos.length;
+            const completedLen = completedData.todos.length;
+            const feedbackLen = feedbackData.todos.length;
+
+            setInProgressCount(inProgressLen);
+            setCompletedCount(completedLen);
+            setWaitingFeedbackCount(feedbackLen);
+            setTotalCount(inProgressLen + completedLen + feedbackLen);
+        } catch (err) {
+            console.error("Todo 카운트 조회 실패:", err);
+        }
     };
-    
-    useEffect(() => {
-      if (Pg_id) {
-        fetchTodos();
 
-        updateTodoCounts();
-      }
-    }, [Pg_id]);
-    
-
-
-
-
-
-
-
-
-    //===================================================================== //
-    // ------------------------      캘린더         ------------------------//
-    //===================================================================== // 
-    const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
-    const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
-    const currentYear = today.getFullYear();
-  
-    function getCurrentWeek() {
-      const today = new Date();
-      const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay())); // 이번 주 일요일
-      const week = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(firstDayOfWeek);
-        date.setDate(firstDayOfWeek.getDate() + i);
-        week.push(date);
-      }
-      return week;
-    }
-  
-    function getCurrentMonth() {
-      return new Date().getMonth();
-    }
-  
-    function getLastDate(year, month) {
-      return new Date(year, month + 1, 0).getDate();
-    }
-  
-    const handleLeftWeek = () => {
-      const newWeek = [];
-      const firstDayOfCurrentWeek = new Date(currentWeek[0]); // 현재 주의 첫 날
-  
-      // 7일 전으로 이동
-      for (let i = 0; i < 7; i++) {
-        const prevDay = new Date(firstDayOfCurrentWeek);
-        prevDay.setDate(firstDayOfCurrentWeek.getDate() - 7 + i); // 7일 전부터 하루씩 추가
-        newWeek.push(prevDay);
-      }
-  
-      // 월 업데이트
-      setCurrentMonth(newWeek[0].getMonth());
-      setCurrentWeek(newWeek);
-    };
-  
-    const handleRightWeek = () => {
-      const newWeek = [];
-      const lastDayOfCurrentWeek = new Date(currentWeek[6]); // 현재 주의 마지막 날
-  
-      // 7일 후로 이동
-      for (let i = 0; i < 7; i++) {
-        const nextDay = new Date(lastDayOfCurrentWeek);
-        nextDay.setDate(lastDayOfCurrentWeek.getDate() + 1 + i); // 다음 주 첫 날부터 하루씩 추가
-        newWeek.push(nextDay);
-      }
-  
-      // 월 업데이트
-      setCurrentMonth(newWeek[0].getMonth());
-      setCurrentWeek(newWeek);
-    };
-    //===================================================================== //
-    // ------------------------      투두 칸반       ------------------------//
-    //===================================================================== // 
+    /* ========================================================= */
+    /* =================    Todo 칸반 관리    ================== */
+    /* ========================================================= */
     const [showDetail, setShowDetail] = useState({ open: false, status: null });
     const [todos, setTodos] = useState({
         inProgress: [],
         completed: [],
         feedbackPending: [],
     });
-    
     const [editingId, setEditingId] = useState(null);
-    const [editContent, setEditContent] = useState('');
-    const [editDueDate, setEditDueDate] = useState('');
-    // 전체 할 일 개수 계산
-    const totalTodosCount = todos.inProgress.length + todos.completed.length + todos.feedbackPending.length;
     const [localEditContent, setLocalEditContent] = useState('');
     const [localEditDueDate, setLocalEditDueDate] = useState('');
-    const handleEdit = (id, content, dueDate) => {
-        setEditingId(id);
-        setLocalEditContent(content);
-        setLocalEditDueDate(dueDate);
-    };
-    // 투두 데이터 가져오기
+
+    const totalTodosCount = todos.inProgress.length + todos.completed.length + todos.feedbackPending.length;
+
+    // Todo 데이터 가져오기
     const fetchTodos = async () => {
-        console.log("얘실행은됨?")
+        if (!Pg_id) return;
+
         try {
             const response = await fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos`);
             const data = await response.json();
-            console.log(data,"펫치투두데이터가져온겁확인이나해보자")
-            const inProgress = [];
-            const completed = [];
-            const feedbackPending = [];
-    
-            for (const todo of data) {
+
+            const categorizedTodos = {
+                inProgress: [],
+                completed: [],
+                feedbackPending: []
+            };
+
+            data.forEach(todo => {
                 const base = {
                     id: todo.id,
                     content: todo.text,
                     dueDate: todo.deadline,
                     completed: todo.status === 'completed',
                 };
-    
+
                 switch (todo.status) {
                     case 'in_progress':
-                        inProgress.push(base);
+                        categorizedTodos.inProgress.push(base);
                         break;
                     case 'completed':
-                        completed.push(base);
+                        categorizedTodos.completed.push(base);
                         break;
                     case 'waiting_feedback':
-                        feedbackPending.push(base);
+                        categorizedTodos.feedbackPending.push(base);
                         break;
                     default:
                         console.warn(`Unknown status "${todo.status}" for todo ID: ${todo.id}`);
                 }
-            }
-    
-            setTodos({ inProgress, completed, feedbackPending });
+            });
+
+            setTodos(categorizedTodos);
             updateTodoCounts();
         } catch (error) {
             console.error("Todo 목록 불러오기 오류:", error);
         }
     };
-    //마감일 자동 complete옮기기
-    useEffect(() => {
-        const today = new Date();
-        const updatedTodos = { ...todos };
-        Object.keys(updatedTodos).forEach((status) => {
-            updatedTodos[status].forEach((item) => {
-                const due = new Date(item.dueDate);
-                if (due < today && status !== 'completed') {
-                    const itemToMove = updatedTodos[status].splice(
-                        updatedTodos[status].findIndex((i) => i.id === item.id),
-                        1
-                    )[0];
-                    updatedTodos.completed.push({ ...itemToMove, completed: true });
-                }
-            });
-        });
-        setTodos(updatedTodos);
-    }, []);
+
     const calculateDDay = (dueDate) => {
         const today = new Date();
         const due = new Date(dueDate);
@@ -367,41 +327,46 @@ const ProjectContent = () => {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays >= 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
     };
+
+    const handleEdit = (id, content, dueDate) => {
+        setEditingId(id);
+        setLocalEditContent(content);
+        setLocalEditDueDate(dueDate);
+    };
+
     const handleDragEnd = async (event) => {
         const { active, over } = event;
-    
         if (!active || !over || active.id === over.id) return;
-    
+
         const activeId = active.id;
         const overStatus = over?.data?.current?.status || over?.id;
-    
+
         const newStatusMap = {
             inProgress: "in_progress",
             completed: "completed",
             feedbackPending: "waiting_feedback",
         };
-        
+
         const newStatus = newStatusMap[overStatus];
-        if (!newStatus) {
-            console.warn("ㅉㅉㅉㅉㅉ", overStatus);
-            return;
-        }
-    
+        if (!newStatus) return;
+
         try {
             const res = await fetch(`http://127.0.0.1:8008/todos/${activeId}/status?status=${newStatus}`, {
                 method: "POST"
             });
-            if (!res.ok) throw new Error("ㅉㅉ");
-    
-            await fetchTodos();
-            updateTodoCounts();
+            
+            if (res.ok) {
+                await fetchTodos();
+                updateTodoCounts();
+            }
         } catch (err) {
-            console.error(err);
+            console.error("Todo 상태 변경 실패:", err);
         }
     };
-    // 체크박스 todo
+
     const handleCheck = (id, status) => {
-        if (!todos[status]) return; // status가 유효하지 않으면 종료
+        if (!todos[status]) return;
+        
         setTodos((prevTodos) => ({
             ...prevTodos,
             [status]: prevTodos[status].map((item) =>
@@ -409,10 +374,10 @@ const ProjectContent = () => {
             ),
         }));
     };
-    // 수정 todo
+
     const saveEdit = async (id, status) => {
         if (!todos[status]) return;
-    
+
         const updatedData = {
             text: localEditContent,
             user_id: username,
@@ -422,25 +387,25 @@ const ProjectContent = () => {
             start_day: '2025-04-01',
             project_id: Pg_id,
         };
-    
+
         try {
             const response = await fetch(`http://127.0.0.1:8008/todos/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedData),
             });
-    
-            if (!response.ok) throw new Error("세이브에딧함수 ㅉㅉㅉㅉ");
-    
-            setTodos((prevTodos) => ({
-                ...prevTodos,
-                [status]: prevTodos[status].map((item) =>
-                    item.id === id ? { ...item, content: localEditContent, dueDate: updatedData.deadline } : item
-                ),
-            }));
-            setEditingId(null);
+
+            if (response.ok) {
+                setTodos((prevTodos) => ({
+                    ...prevTodos,
+                    [status]: prevTodos[status].map((item) =>
+                        item.id === id ? { ...item, content: localEditContent, dueDate: updatedData.deadline } : item
+                    ),
+                }));
+                setEditingId(null);
+            }
         } catch (error) {
-            console.error("세이브에딧ㅉㅉㅉㅉㅉ", error);
+            console.error("Todo 수정 실패:", error);
         }
     };
     const handleDelete = async (id, status) => {
@@ -451,31 +416,41 @@ const ProjectContent = () => {
                 method: "DELETE",
             });
     
-            if (!response.ok) throw new Error("삭제 실패");
-    
-            await fetchTodos();
-            updateTodoCounts();
+            if (response.ok) {
+                await fetchTodos();
+                updateTodoCounts();
+            }
         } catch (error) {
-            console.error("핸들딜릿ㅉㅉㅉㅈ:", error);
+            console.error("Todo 삭제 실패:", error);
         }
     };
+    const handleDeleteWithModal = (id, status) => {
+        setModal_realMsg('정말 삭제하시겠습니까?');
+        setPendingAction(() => () => handleDelete(id, status));
+        setShowCancelModal(true);
+    };
+    
+    // Sortable Item 컴포넌트
     const SortableItem = ({ id, content, dueDate, status, completed }) => {
         const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-            id,  data: { status }, handle: '.drag-handle',
+            id, data: { status }, handle: '.drag-handle',
         });
         const inputRef = useRef(null);
+
         const style = {
             transform: CSS.Transform.toString(transform),
-            transition: transform ? 'transform 0.1s ease' : 'transform 0.3s ease-out', 
+            transition: transform ? 'transform 0.1s ease' : 'transform 0.3s ease-out',
             width: '100%',
             boxSizing: 'border-box',
             opacity: transform ? 0.7 : 1,
         };
+
         useEffect(() => {
             if (editingId === id && inputRef.current) {
                 inputRef.current.focus();
             }
         }, [editingId]);
+
         return (
             <div ref={setNodeRef} style={style} className="todo-item">
                 {editingId === id ? (
@@ -485,19 +460,26 @@ const ProjectContent = () => {
                             type="text"
                             value={localEditContent}
                             onChange={(e) => setLocalEditContent(e.target.value)}
+                            placeholder="할 일 내용을 입력하세요"
                         />
                         <input
                             type="date"
                             value={localEditDueDate}
                             onChange={(e) => setLocalEditDueDate(e.target.value)}
                         />
-                        <button onClick={() => saveEdit(id, status)}>저장</button>
+                        <div className="edit-buttons">
+                            <button onClick={() => saveEdit(id, status)}>저장</button>
+                            <button onClick={() => setEditingId(null)}>취소</button>
+                        </div>
                     </div>
                 ) : (
                     <>
                         <div className="todo-content">
                             <span className="drag-handle" {...attributes} {...listeners}>≡</span>
-                            <div style={{ textDecoration: completed ? 'line-through' : 'none' }}>
+                            <div 
+                                style={{ textDecoration: completed ? 'line-through' : 'none' }}
+                                onClick={() => handleEdit(id, content, dueDate)} // 클릭으로 편집 모드 진입
+                            >
                                 {content}
                             </div>
                             <span className="due-date">{calculateDDay(dueDate)}</span>
@@ -506,10 +488,16 @@ const ProjectContent = () => {
                             <span>{dueDate}까지</span>
                             <div className="icons">
                                 <img
+                                    src={EditIcon}
+                                    alt="edit"
+                                    className="icon edit"
+                                    onClick={() => handleEdit(id, content, dueDate)}
+                                />
+                                <img
                                     src={DeleteIcon}
                                     alt="delete"
                                     className="icon trash"
-                                    onClick={() => handleDelete(id, status)}
+                                    onClick={() => handleDeleteWithModal(id, status)} // 모달로 변경
                                 />
                                 <div
                                     className={`checkBox ${completed ? 'checked' : ''}`}
@@ -519,22 +507,24 @@ const ProjectContent = () => {
                         </div>
                     </>
                 )}
+
             </div>
         );
     };
+
+    // Todo Column 컴포넌트
     const TodoColumn = ({ title, items, status, onDetail }) => {
         const { setNodeRef } = useDroppable({
             id: status,
             data: { status },
         });
-    
+
         return (
             <div ref={setNodeRef} className={`todo-column ${status}`}>
                 <div className="column-header">
                     <h2>{title}</h2>
                     <span>{`${items.length}/${totalTodosCount}`}</span>
-                    <img   src={EditIcon}   alt="edit"  className="icon"    onClick={onDetail}/>
-
+                    <img src={EditIcon} alt="edit" className="icon" onClick={onDetail} />
                 </div>
                 <SortableContext
                     id={status}
@@ -555,7 +545,7 @@ const ProjectContent = () => {
             </div>
         );
     };
-    
+
 
 
     //===================================================================== //
@@ -565,14 +555,28 @@ const ProjectContent = () => {
     const [timelineItems, setTimelineItems] = useState(new DataSet([]));
     const [groups, setGroups] = useState(new DataSet([]));
     const [todoProgress, setTodoProgress] = useState({});
+    const [modal_realMsg, setModal_realMsg] = useState('');
+    const [pendingAction, setPendingAction] = useState(null);
+    const [pendingMove, setPendingMove] = useState(null);
+
     const [todoEditModal, setTodoEditModal] = useState({
         isOpen: false,
         todoId: null
-    });    const [selectedTodoId, setSelectedTodoId] = useState(null);
+    });
+    const [selectedTodoId, setSelectedTodoId] = useState(null);
     const timelineRef = useRef(null);
     const groupColors = {};
 
-// 컬러 설정 
+    // 그룹 모두보기 핸들러
+    const handleShowAllGroups = () => {
+        const updatedGroups = groups.get().map(group => ({
+            ...group,
+            visible: true
+        }));
+        groups.update(updatedGroups);
+    };
+
+    // 컬러 설정 
     const colorClasses = [
         'color-white'
     ];  
@@ -599,137 +603,145 @@ const ProjectContent = () => {
     useEffect(() => {
         fetchTimelineTodos();
       }, [Pg_id]);
-      
 // 2. 각 투두의 user_id의 프로필 이미지 매핑 + timeline 아이템 생성
-useEffect(() => {
-    if (!timelineTodos.length) return;
-    
-    const fetchProfilesAndSetItems = async () => {
-        const uniqueUsers = [...new Set(timelineTodos.map(todo => todo.user_id))];
-        const userProfileMap = {};
+    useEffect(() => {
+        if (!timelineTodos.length) return;
         
-        // 프로필 이미지 먼저 가져오기
-        await Promise.all(
-            uniqueUsers.map(async (userId) => {
-                try {
-                    const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
-                    if (!res.ok) {
-                        console.error(`Failed to fetch profile for user ${userId}. Status: ${res.status}`);
-                        userProfileMap[userId] = '/default_profile.png'; // 실패 시 기본 이미지
-                        return; // 다음 사용자로 넘어감
-                    }
-                    const data = await res.json(); 
-                    if (data && data.profile_image_url) {
-                        userProfileMap[userId] = data.profile_image_url;
-                    } else {
-                        console.warn(`Profile image URL not found or is empty for user ${userId}. Response data:`, data);
-                        userProfileMap[userId] = '/default_profile.png';
-                    }
-                } catch (error) {
-                    console.error(`Error fetching or parsing profile for user ${userId}:`, error);
-                    userProfileMap[userId] = '/default_profile.png';
+        const fetchProfilesAndSetItems = async () => {
+            // 모든 담당자 ID 수집 (배열 형태로 처리)
+            const allUserIds = new Set();
+            timelineTodos.forEach(todo => {
+                if (Array.isArray(todo.user_id)) {
+                    todo.user_id.forEach(userId => allUserIds.add(userId));
+                } else if (todo.user_id) {
+                    allUserIds.add(todo.user_id);
                 }
-            })
-        );
-    
-        // (2) 그룹 생성
-        const groupData = uniqueUsers.map((user, idx) => ({
-            id: user,
-            content: user,
-            value: idx + 1,
-            className: 'groupStyle',
-        }));
-        setGroups(new DataSet(groupData));
-
-        // (3) timelineItems 생성 (profile_image 매핑)
-        const mappedItems = timelineTodos
-            .filter(todo => todo.deadline)
-            .map(todo => {
-                const start = new Date(todo.start_day || todo.deadline);
-                const end = new Date(todo.deadline);
-                end.setDate(end.getDate());
-                return {
-                    id: todo.id,
-                    start,
-                    end,
-                    group: todo.user_id,
-                    content: todo.text,
-                    className: `item-common ${getGroupColorClass(todo.user_id)}`,
-                    editable: true,
-                    profile_image_url: userProfileMap[todo.user_id], 
-                };
-            });
-        setTimelineItems(new DataSet(mappedItems));
-        };
-        fetchProfilesAndSetItems();
-    }, [timelineTodos]);
-    const moveTimeoutRef = useRef(null);
-    const [pendingMove, setPendingMove] = useState(null);
-
-
-// 3. 각 투두 진행도 가져오기
-    const fetchTodoProgress = async (todoIds) => {
-        try {
-            const progressData = {};
-            const progressPromises = todoIds.map(async (todoId) => {
-            const response = await fetch(`http://localhost:8008/todos/${todoId}/progress`);
-                if (response.ok) {
-                    const data = await response.json();
-                    return { todoId, progress: data.progress };
-                }
-                console.log("000프로그레스데이터어어어어어ㅓㅇ")
-
-                return { todoId, progress: 0 };
             });
             
-            const results = await Promise.all(progressPromises);
-            results.forEach(({ todoId, progress }) => {
-                progressData[todoId] = progress;
-            });
-            setTodoProgress(progressData);
-        } catch (error) {
-            console.error('진행도 데이터 ㅉㅉ :', error);
-        }
-    };
+            const uniqueUsers = Array.from(allUserIds);
+            const userProfileMap = {};
+            
+            // 프로필 이미지 먼저 가져오기
+            await Promise.all(
+                uniqueUsers.map(async (userId) => {
+                    try {
+                        const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
+                        if (!res.ok) {
+                            console.error(`Failed to fetch profile for user ${userId}. Status: ${res.status}`);
+                            userProfileMap[userId] = '/default_profile.png';
+                            return;
+                        }
+                        const data = await res.json(); 
+                        if (data && data.profile_image_url) {
+                            userProfileMap[userId] = data.profile_image_url;
+                        } else {
+                            console.warn(`Profile image URL not found for user ${userId}`);
+                            userProfileMap[userId] = '/default_profile.png';
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching profile for user ${userId}:`, error);
+                        userProfileMap[userId] = '/default_profile.png';
+                    }
+                })
+            );
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (projectInfoId) {
-                await fetchTodos();
-                if (todos.length > 0) {
-                    const todoIds = todos.map(todo => todo.id);
-                    await fetchTodoProgress(todoIds);
-                }
-            }
+            // 내가 포함된 할 일만 필터링
+            const myTodos = timelineTodos.filter(todo => {
+                const assignees = Array.isArray(todo.user_id) ? todo.user_id : [todo.user_id];
+                return assignees.includes(username);
+            });
+
+            // 그룹 생성 (내가 포함된 할 일의 모든 담당자)
+            const groupUsers = new Set();
+            myTodos.forEach(todo => {
+                const assignees = Array.isArray(todo.user_id) ? todo.user_id : [todo.user_id];
+                assignees.forEach(userId => groupUsers.add(userId));
+            });
+
+            const groupData = Array.from(groupUsers).map((user, idx) => ({
+                id: user,
+                content: user,
+                value: idx + 1,
+                className: 'groupStyle',
+            }));
+            setGroups(new DataSet(groupData));
+
+            // MODIFIED: 각 담당자별로 별도의 타임라인 아이템 생성
+            const mappedItems = [];
+            myTodos
+                .filter(todo => todo.deadline)
+                .forEach(todo => {
+                    const start = new Date(todo.start_day || todo.deadline);
+                    const end = new Date(todo.deadline);
+                    end.setDate(end.getDate());
+                    
+                    // 담당자 배열 처리
+                    const assignees = Array.isArray(todo.user_id) ? todo.user_id : [todo.user_id];
+                    
+                    // 모든 담당자의 프로필 이미지 수집
+                    const assigneeProfiles = assignees.map(userId => ({
+                        userId,
+                        profileUrl: userProfileMap[userId] || '/default_profile.png'
+                    }));
+
+                    // 각 담당자별로 별도의 아이템 생성
+                    assignees.forEach((assignee, index) => {
+                        mappedItems.push({
+                            id: `${todo.id}_${assignee}`, // 고유 ID 생성
+                            original_id: todo.id, // 원본 할 일 ID 보존
+                            start,
+                            end,
+                            group: assignee, // 각 담당자를 그룹으로 설정
+                            content: todo.text,
+                            className: `item-common ${getGroupColorClass(assignee)}`,
+                            editable: true,
+                            assignee_profiles: assigneeProfiles, // 모든 담당자 프로필 정보
+                            assignees: assignees, // 담당자 ID 목록
+                            todo_data: todo // 원본 할 일 데이터 보존
+                        });
+                    });
+                });
+            
+            setTimelineItems(new DataSet(mappedItems));
         };
         
-        fetchData();
-    }, [Pg_id]);
-
-// todos가 변경될 때마다 실행
-useEffect(() => {
-    const allIds = [
-        ...todos.inProgress.map(todo => todo.id),
-        ...todos.completed.map(todo => todo.id),
-        ...todos.feedbackPending.map(todo => todo.id)
-    ];
-    if (allIds.length > 0) {
-        fetchTodoProgress(allIds);
-    }
-}, [todos]);
-
-
-
-
-// 4. 타임라인 옵션 렌더링
+        fetchProfilesAndSetItems();
+    }, [timelineTodos, username]);
+// 3. 진행도 데이터 가져오기 (추가)
     useEffect(() => {
-        if (!timelineRef.current || !timelineItems || groups.length === 0) return;
+        const fetchProgress = async () => {
+            const progressData = {};
+            for (const todo of timelineTodos) {
+                try {
+                    const res = await fetch(`http://localhost:8008/todos/${todo.id}/progress`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        progressData[todo.id] = data.progress || 0;
+                    }
+                } catch (error) {
+                    console.error(`진행도 가져오기 실패 (${todo.id}):`, error);
+                    progressData[todo.id] = 0;
+                }
+            }
+            setTodoProgress(progressData);
+        };
+
+        if (timelineTodos.length > 0) {
+            fetchProgress();
+        }
+    }, [timelineTodos]);
+
+// 4. 타임라인 옵션 렌더링 (수정된 부분)
+    useEffect(() => {
+        if (!timelineRef.current) return;
+        if (timelineItems.length === 0 || groups.length === 0) return;
+        
         const today = new Date();
         const options = {
             groupOrder: 'content',
             editable: {
-                updateTime: true,   // 아이템 위치(날짜) 이동 가능
-                updateGroup: false, // 그룹 이동은 금지하려면 false
+                updateTime: true,
+                updateGroup: false,
                 overrideItems: false,
                 add: false,
             },
@@ -739,10 +751,7 @@ useEffect(() => {
             zoomKey: 'ctrlKey',
             itemsAlwaysDraggable: false,
             stack: true,
-            throttleRedraw: 15,
-            border:'none',
             groupHeightMode: 'auto',
-
             start: new Date(today.getTime() - 1000 * 60 * 60 * 24 * 2), 
             end: new Date(today.getTime() + 1000 * 60 * 60 * 24 * 2),   
             groupTemplate: (group) => {
@@ -753,6 +762,7 @@ useEffect(() => {
                 container.style.justifyContent = 'space-between';
                 container.style.padding = '5px';
                 container.style.minHeight = group.minHeight || '180px'; 
+                
                 const label = document.createElement('span');
                 label.innerHTML = group.content;
                 container.appendChild(label);
@@ -777,29 +787,34 @@ useEffect(() => {
             },
             timeAxis: { scale: 'day', step: 1 },
             format: {
-                minorLabels: { day: 'M월 D  일' },
+                minorLabels: { day: 'M월 D일' },
                 majorLabels: { day: '' },
             },
             zoomMin: 1000 * 60 * 60 * 24 * 5, 
             zoomMax: 1000 * 60 * 60 * 24 * 30,  
-              dataAttributes: ['id'],
+            dataAttributes: ['id'],
             
-            //타임라인아이템 속 들어갈 내용 
-            template: function (item) {console.log(item,"템플릿아이템이여기까지오긴하니?")
-                const progress = todoProgress[item.id] || 0;
-                const profileImageUrl = item.profile_image_url || '/default_profile.png';
+            // 타임라인 아이템 템플릿
+            template: function (item) {
+                // FIXED: original_id를 사용하여 진행도 가져오기
+                const progress = todoProgress[item.original_id] || 0;
+                
+                // 담당자 프로필 이미지들 생성
+                let profileImagesHtml = '';
+                if (item.assignee_profiles && item.assignee_profiles.length > 0) {
+                    profileImagesHtml = item.assignee_profiles.map(profile => 
+                        `<img src="${profile.profileUrl}" class="timeline-avatar" data-user="${profile.userId}" title="${profile.userId}"/>`
+                    ).join('');
+                }
+                
                 const html = '<div class="timeline-card">' +
-                    '<div class="timeline-divider"></div>' +
+                    '<div class="timeline-divider" data-progress="' + progress + '"></div>' +
                     '<div class="timeline-title">' + item.content + '</div>' +
-                    `<img src="${profileImageUrl}" class="timeline-avatar" data-user="${item.user_id || ''}" data-group="${item.group}"/>` +
+                    '<div class="timeline-avatars">' + profileImagesHtml + '</div>' +
                     '</div>';
                 return html;
-            }
-            
-            ,
-            
+            },
 
-            //아이템 이동 설정 
             onMove: (item, callback) => {
                 const dontShowExpire = localStorage.getItem('dontShowMoveModal');
                 if (dontShowExpire && Date.now() < Number(dontShowExpire)) {
@@ -809,50 +824,32 @@ useEffect(() => {
                 setPendingMove({ item, callback });
                 setShowCancelModal(true);
             },
-
-            
         };
+        console.log('todoProgress', todoProgress);
+
         const timeline = new Timeline(timelineRef.current, timelineItems, groups, options);          
-        let currentTodayStr = moment().startOf('day').format('YYYY-MM-DD');
+        
         timeline.on('doubleClick', (properties) => {
             if (properties.item) {
+                const item = timelineItems.get(properties.item);
                 setTodoEditModal({
                     isOpen: true,
-                    todoId: properties.item
+                    todoId: item.original_id || item.id // 원본 ID 사용
                 });
             }
         });
 
+        // 타임라인 렌더링 후 스타일 적용
         setTimeout(() => {
             const itemContents = timelineRef.current.querySelectorAll('.vis-item-content');
             itemContents.forEach(content => {
-                if (!content.querySelector('.timeline-divider')) {
-                    let timelineCard = content.querySelector('.vis-item-content');
-                    if (!timelineCard) {
-                        timelineCard = document.createElement('div');
-                        timelineCard.className = 'timeline-card';
-                        timelineCard.style.cssText = `
-                            display: flex;
-                            align-items: center;
-                            width: 100%;
-                            height: 100%;
-                            gap: 8px;
-                            padding: 5px;
-                            box-sizing: border-box;
-                        `;
-                        content.appendChild(timelineCard);
-                    }
-                    const images = document.querySelectorAll('.vis-item-content img');
-                    images.forEach(img => {
-                        img.style.width = '32px';
-                        img.style.height = '32px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '50%';
-                    });
+                const divider = content.querySelector('.timeline-divider');
+                if (divider) {
+                    // 기존에 progressContainer가 있으면 제거
+                    const existing = divider.querySelector('.progress-bar-fill');
+                    if (existing) divider.removeChild(existing.parentElement);
         
-                    // timeline-divider 생성
-                    const divider = document.createElement('div');
-                    divider.className = 'timeline-divider';
+                    const progress = parseInt(divider.getAttribute('data-progress')) || 0;
                     divider.style.cssText = `
                         width: 100px;
                         height: 50.5px;
@@ -868,36 +865,29 @@ useEffect(() => {
                         justify-content: center;
                     `;
                     
-                    // 해당 아이템의 todo ID 찾기 (vis-item에서 data 속성으로 가져오기)
-                    const visItem = content.closest('.vis-item');
-                    const itemId = visItem ? visItem.getAttribute('data-id') : null;
-                    const progress = itemId ? (todoProgress[itemId] || 0) : 0;
-                    
-                    // 진행도 바 컨테이너
+                    // 진행도 바 설정
                     const progressContainer = document.createElement('div');
                     progressContainer.style.cssText = `
-                    width: 100%;
-                    height: 100%;
-                    position: relative;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                `;
-                    // 진행도 바 채우기
+                        width: 100%;
+                        height: 100%;
+                        position: relative;
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: flex-start;
+                    `;
+        
                     const progressFill = document.createElement('div');
                     progressFill.className = 'progress-bar-fill';
                     progressFill.style.cssText = `
-                    height: 100%;
-                    width: ${progress}%;
-                    background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
-                    transition: width 0.3s ease-in-out;
-                    border-radius: 3px 0 0 3px;
-                    position: relative;
-                `;
-                
-                    
-                    // 진행도 텍스트
+                        height: 100%;
+                        width: ${progress}%;
+                        background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+                        transition: width 0.3s ease-in-out;
+                        border-radius: 3px 0 0 3px;
+                        position: relative;
+                    `;
+        
                     const progressText = document.createElement('span');
                     progressText.className = 'progress-text';
                     progressText.textContent = `${progress}%`;
@@ -914,63 +904,52 @@ useEffect(() => {
                         z-index: 2;
                         pointer-events: none;
                     `;
-                    
-                    // 요소들 조립
+        
                     progressContainer.appendChild(progressFill);
                     divider.appendChild(progressContainer);
-                    divider.appendChild(progressText); 
-                    
-
-
-                    // 기존 내용 정리하고 새로운 구조로 재구성
-                    timelineCard.innerHTML = '';
-                    timelineCard.appendChild(divider);
+                    divider.appendChild(progressText);
                 }
-                
             });
         }, 100);
+        
+        
+        // 프로필 이미지 오류 처리
+        setTimeout(() => {
+            const images = timelineRef.current.querySelectorAll('.timeline-avatar');
+            images.forEach(img => {
+                img.onerror = async function(e) {
+                    const userId = e.target.dataset.user;
+                    try {
+                        const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            e.target.src = data.profile_image_url || '/default_profile.png';
+                        } else {
+                            e.target.src = '/default_profile.png';
+                        }
+                    } catch {
+                        e.target.src = '/default_profile.png';
+                    }
+                };
+            });
+        }, 200);
 
-        setInterval(() => {
-            const nowStr = moment().startOf('day').format('YYYY-MM-DD');
-            if (nowStr !== currentTodayStr) {
-                currentTodayStr = nowStr;
-            }
-        }, 1000 * 60 * 60); 
-        const images = timelineRef.current.querySelectorAll('.timeline-avatar');
-        images.forEach(img => {
-          img.onerror = async function(e) {
-            const userId = e.target.dataset.user;
-            console.log(userId)
-            try {
-              const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
-              if (res.ok) {
-                const data = await res.json();
-                e.target.src = (Array.isArray(data) && data.length > 0 && data[1].profile_image_url) ? data[1].profile_image_url : '/default_profile.png';
-              } else {
-                e.target.src = '/default_profile.png';
-              }
-            } catch {
-              e.target.src = '/default_profile.png';
-            }
-          };
+        timeline.on('ready', () => {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            }, 100);
         });
-      
+
         return () => timeline.destroy();
-    }, [timelineItems, groups,todoProgress])
-// 그룹 모두보기 핸들러
-    const handleShowAllGroups = () => {
-        const updatedGroups = groups.get().map(group => ({
-            ...group,
-            visible: true
-        }));
-        groups.update(updatedGroups);
-    };
+    }, [timelineItems, groups, todoProgress, username]);
+
+
 
 
 //옮길때 경고 모달
     const [showCancelModal, setShowCancelModal] = useState(false);
-
-
     const [dontShowAgain, setDontShowAgain] = useState(false);
     const handleDontShowAgainChange = (e) => {
         setDontShowAgain(e.target.checked);
@@ -982,23 +961,24 @@ useEffect(() => {
         }
     };
     
-
     const handleConfirm = async () => {
         setShowCancelModal(false);
+        if (pendingAction) {
+            await pendingAction();
+            setPendingAction(null);
+        }
         if (!pendingMove) return;
         await handleMoveConfirm(pendingMove.item, pendingMove.callback);
         setPendingMove(null);
     };
-    
-    
     const handleCancel = () => {
         setShowCancelModal(false);
+        setPendingAction(null);
         if (pendingMove && pendingMove.callback) {
             pendingMove.callback(null); 
         }
         setPendingMove(null);
     };
-
     const handleMoveConfirm = async (item, callback) => {
         try {
             const startDate = new Date(item.start);
@@ -1010,7 +990,9 @@ useEffect(() => {
                 deadline: endDate.toISOString().split("T")[0]
             };
     
-            const res = await fetch(`http://localhost:8008/todos/${item.id}/schedule`, {
+            // FIXED: original_id 사용
+            const todoId = item.original_id || item.id;
+            const res = await fetch(`http://localhost:8008/todos/${todoId}/schedule`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updates)
@@ -1023,81 +1005,57 @@ useEffect(() => {
             } else {
                 timelineItems.update(item);
                 callback(item);
+                handleShowAllGroups()
             }
         } catch (err) {
             console.error("서버 에러:", err);
             callback(null);
         }
     };
-       
-    
-
     const handleTodoEditClose = () => {
         setTodoEditModal({
             isOpen: false,
             todoId: null
         });
     };
-
     const handleTodoUpdate = () => {
         fetchTodos();
         fetchTimelineTodos();
     };
 
-
-    //===================================================================== //
-    // ------------------------    피드백 미리보기    -----------------------//
-    //===================================================================== // 
-    const [shouldRefresh, setShouldRefresh] = useState(false);
+    /* ========================================================= */
+    /* =================    피드백 관리    ===================== */
+    /* ========================================================= */
     const [folders, setFolders] = useState([]);
     const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
-    const [projectList, setProjectList] = useState([]);
-    const [projectInfoId, setProjectInfoId] = useState(null);
+    const [shouldRefresh, setShouldRefresh] = useState(false);
 
-    //우리가원하는건 ind 아이디. project.id가아니기땜에 부모 id를 찾는함수
     useEffect(() => {
-        const fetchProjects = async () => {
-          const res = await fetch("http://localhost:8008/getProjects");
-          const data = await res.json();
-          setProjectList(data);
-      
-          // 프로젝트 리스트가 도착한 직후, Pg_id로 int형 id 추출
-          const match = data.find(p => p.project.id === Pg_id);
-          setProjectInfoId(match?.id || null);
-        };
-      
-        fetchProjects();
-      }, [Pg_id]);
-
-      useEffect(() => {
         if (!projectInfoId) return;
-      
+
         const fetchFiles = async () => {
-          try {
-            const response = await fetch(`http://localhost:8008/projects/${projectInfoId}/files`);
-            if (!response.ok) throw new Error("파일 로딩 실패");
-      
-            const data = await response.json();
-      
-            const mappedFiles = data.map(file => ({
-              name: file.name,
-              createdAt: new Date(file.uploaded_at).toLocaleString(),
-              type: 'file',
-              image: 'fileIcon.png',
-              s3Url: file.s3_url,
-              size: file.size ?? 0
-            }));
-      
-            setFolders(mappedFiles);
-          } catch (err) {
-            console.error("작업물 파일 불러오기 실패:", err);
-          }
+            try {
+                const response = await fetch(`http://localhost:8008/projects/${projectInfoId}/files`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const mappedFiles = data.map(file => ({
+                        name: file.name,
+                        createdAt: new Date(file.uploaded_at).toLocaleString(),
+                        type: 'file',
+                        image: 'fileIcon.png',
+                        s3Url: file.s3_url,
+                        size: file.size ?? 0
+                    }));
+                    setFolders(mappedFiles);
+                }
+            } catch (err) {
+                console.error("작업물 파일 불러오기 실패:", err);
+            }
         };
-      
+
         fetchFiles();
         setShouldRefresh(false);
-      }, [projectInfoId, shouldRefresh]);
-    
+    }, [projectInfoId, shouldRefresh]);
 
     const handleMoreClick = () => {
         setShowFeedbackPopup(true);
@@ -1105,20 +1063,10 @@ useEffect(() => {
 
     const handleClosePopup = () => {
         setShowFeedbackPopup(false);
-        setShouldRefresh(true); 
+        setShouldRefresh(true);
     };
-    const [showMore, setShowMore] = useState(false);
 
-    const [refreshKey, setRefreshKey] = useState(0);
-    const handleUpdate = () => {
-        setRefreshKey(prev => prev + 1); 
-      };
-      
-
-
-    //===================================================================== //
-    // ------------------------   챗    -----------------------//
-    //===================================================================== // 
+    // 파일명 토글 표시 컴포넌트
     const ToggleNameDisplay = ({ name }) => {
         const [expanded, setExpanded] = useState(false);
 
@@ -1133,73 +1081,107 @@ useEffect(() => {
         );
     };
 
-
-
-    useEffect(() => {
-    const now = new Date();
-    const formattedTime = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-    });
-
-    const initialMessages = [
-        {
-        name: "침착맨",
-        text: "안녕하세요! 여기는 실시간 채팅방입니다.",
-        sender: "other",
-        time: formattedTime,
-        },
-        {
-        name: "나",
-        text: "안녕하세요~!",
-        sender: "me",
-        time: formattedTime,
-        },
-    ];
-
-    setMessages(initialMessages);
-    }, []);
-
-
+    /* ========================================================= */
+    /* =================    실시간 채팅    ==================== */
+    /* ========================================================= */
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const messagesEndRef = useRef(null);
 
-    const sendMessage = () => {
-    if (!input.trim()) return;
-    const now = new Date();
-    const formattedTime = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-    });
+    useEffect(() => {
+        const now = new Date();
+        const formattedTime = now.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        });
 
-    const newMsg = {
-        name: "나",
-        text: input,
-        sender: "me",
-        time: formattedTime,
-    };
-    setMessages(prev => [...prev, newMsg]);
-    setInput('');
+        const initialMessages = [
+            {
+                name: "침착맨",
+                text: "안녕하세요! 여기는 실시간 채팅방입니다.",
+                sender: "other",
+                time: formattedTime,
+            },
+            {
+                name: "나",
+                text: "안녕하세요~!",
+                sender: "me",
+                time: formattedTime,
+            },
+        ];
+
+        setMessages(initialMessages);
+    }, []);
+
+    const sendMessage = () => {
+        if (!input.trim()) return;
+        
+        const now = new Date();
+        const formattedTime = now.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        });
+
+        const newMsg = {
+            name: "나",
+            text: input,
+            sender: "me",
+            time: formattedTime,
+        };
+        
+        setMessages(prev => [...prev, newMsg]);
+        setInput('');
     };
 
     useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
 
 
+    //플젝아이디없을때
+    if (!Pg_id) {
+        return (
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '60vh',
+                textAlign: 'center',
+                color: '#666'
+            }}>
+                <h2 style={{ marginBottom: '20px', color: '#333' }}>
+                    📋 프로젝트를 선택해주세요
+                </h2>
+                <p style={{ fontSize: '16px', lineHeight: '1.5' }}>
+                    대시보드에서 프로젝트를 선택하면<br />
+                    프로젝트 관리 기능을 사용할 수 있습니다.
+                </p>
+            </div>
+        );
+    }
+
+
+
+
+
+    /* ========================================================= */
+    /* =================    메인 렌더링    ==================== */
+    /* ========================================================= */
     return (
         <div className="content">
             <div className="contentTitle">{projectName}</div>
             <div className="projectContent">
-                <div className="gonji  box1">
+                {/* 공지사항 */}
+                <div className="gonji box1">
                     <div className="gonjiIcon" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-                      {selectedEmoji.emoji}
+                        {selectedEmoji.emoji}
                     </div>
                     {showEmojiPicker && <Picker onEmojiClick={handleEmojiSelect} />}
+                    
                     {isLoading ? (
                         <div className="gonjiText">불러오는 중...</div>
                     ) : error ? (
@@ -1209,18 +1191,19 @@ useEffect(() => {
                             <input 
                                 className="editInput"
                                 value={tempContent}
-                                onChange={handleInputChange}
+                                onChange={(e) => setTempContent(e.target.value)}
+                                placeholder='현재 수정하는 공지는 모두가 볼 수 있습니다.'
                             />
+                            <div>
                             <button className="saveBtn" onClick={handleSaveClick}>저장</button>
-                            <button className="cancelBtn" onClick={handleCancelClick}>취소</button>
+                            <button className="cancelBtn" onClick={handleCancelClick}>취소</button></div>
                         </div>
                     ) : (
-                        <div className="gonjiText">
-                            {notice}
-                        </div>
-                    )}
+                        <>
 
-                    <div className="gonjiEdit">
+                        <div className="gonjiText">{notice}</div>
+
+                        <div className="gonjiEdit">
                         <img 
                             src={Edit} 
                             alt="edit" 
@@ -1228,13 +1211,24 @@ useEffect(() => {
                             style={{ cursor: 'pointer', opacity: 0.8 }}
                         />
                     </div>
+
+                    </>
+                    )}
+
+
                 </div>
+
+                {/* 캘린더 */}
                 <div className="calendar box1">
                     <div className="calendarTop">
-                    <div className="date">{currentMonth+1}월</div>
+                        <div className="date">{currentMonth + 1}월</div>
                         <div className="temp">
-                            <div className="moveBtn left" onClick={handleLeftWeek}><img src={leftBtn} alt="leftBtn" /></div>
-                            <div className="moveBtn right" onClick={handleRightWeek}><img src={rightBtn} alt="rightBtn" /></div>
+                            <div className="moveBtn left" onClick={handleLeftWeek}>
+                                <img src={leftBtn} alt="leftBtn" />
+                            </div>
+                            <div className="moveBtn right" onClick={handleRightWeek}>
+                                <img src={rightBtn} alt="rightBtn" />
+                            </div>
                         </div>
                     </div>
                     <div className="calendarMid">
@@ -1262,12 +1256,15 @@ useEffect(() => {
                                 }`}
                             >
                                 {date !== '_' ? date.getDate() : ''}
-                                {date !== '_' && date.toDateString() === today.toDateString() && <div className="calendarTodayDot">●</div>}
+                                {date !== '_' && date.toDateString() === today.toDateString() && 
+                                    <div className="calendarTodayDot">●</div>
+                                }
                             </div>
                         ))}
                     </div>
-
                 </div>
+
+                {/* Todo 상태 */}
                 <div className="todoStatus box1">
                     <div className="object">
                         <div className="objectCount">{inProgressCount}</div>
@@ -1282,16 +1279,23 @@ useEffect(() => {
                         <div className="objectTitle">피드백 대기</div>
                     </div>
                     <div className="object">
-                        <div className="objectCount">{inProgressCount + completedCount + waitingFeedbackCount}</div>
+                        <div className="objectCount">{totalCount}</div>
                         <div className="objectTitle">전체 할 일</div>
                     </div>
                 </div>
+
+                {/* 타임라인 */}
                 <div className="timeLine">
-                    <div className="title">타임라인 <img onClick={handleShowAllGroups} id="showAllGroup" src={rechange}></img>
+                    <div className="title">
+                        타임라인 
+                        <img onClick={handleShowAllGroups} id="showAllGroup" src={rechange} alt="모두보기" />
                     </div>
                     <div style={{ height: '475px', overflowY: 'auto' }}>
-                    <div ref={timelineRef} className="vis-timeline-container" /></div>
+                        <div ref={timelineRef} className="vis-timeline-container" />
+                    </div>
                 </div>
+
+                {/* Todo 칸반 */}
                 <div className="todoList">
                     <div className="top">
                         <div className="title">할 일 목록</div>
@@ -1320,43 +1324,40 @@ useEffect(() => {
                             </div>
                         </DndContext>
                     </div>
-
                 </div>
+
+                {/* 실시간 채팅 */}
                 <div className="liveChat">
                     <div className="title">실시간 채팅</div>
                     <div className="content box1">
                         <div className="chatMessages">
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`chatMessageWrapper ${msg.sender}`}>
-
-                                    {/* other - 왼쪽 프로필, 오른쪽 말풍선 */}
                                     {msg.sender === 'other' && (
-                                    <div className="chatRow">
-                                        <div className="chatProfileDot other" />
-                                        <div>
-                                        <div className="chatMeta">
-                                            <span className="chatName">{msg.name}</span>
-                                            <span className="chatTimeLeft">{msg.time}</span>
+                                        <div className="chatRow">
+                                            <div className="chatProfileDot other" />
+                                            <div>
+                                                <div className="chatMeta">
+                                                    <span className="chatName">{msg.name}</span>
+                                                    <span className="chatTimeLeft">{msg.time}</span>
+                                                </div>
+                                                <div className="chatBubble other">{msg.text}</div>
+                                            </div>
                                         </div>
-                                        <div className="chatBubble other">{msg.text}</div>
-                                        </div>
-                                    </div>
                                     )}
                                     
                                     {msg.sender === 'me' && (
                                         <div className="chatRow me">
                                             <div className="chatBubbleTimeGroup">
-                                            <div className="chatBubble me">{msg.text}</div>
-                                            <div className="chatTimeRight">{msg.time}</div>                                            
+                                                <div className="chatBubble me">{msg.text}</div>
+                                                <div className="chatTimeRight">{msg.time}</div>
                                             </div>
                                             <div className="chatProfileDot me" />
                                         </div>
-                                        )}
-                                    </div>
-                                ))}
-
-
-                        <div ref={messagesEndRef} />
+                                    )}
+                                </div>
+                            ))}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         <div className="chatInputArea">
@@ -1365,10 +1366,9 @@ useEffect(() => {
                                 type="text" 
                                 value={input} 
                                 onChange={(e) => setInput(e.target.value)} 
-                                onKeyDown={(e) => e.key === "Enter" && sendMessage()} // 엔터 키로 전송
+                                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                                 placeholder="메시지를 입력하세요..."
                             />
-                            {/* 전송 버튼 */}
                             <button onClick={sendMessage}>
                                 <img src="sendIcon.png" alt="전송" />
                             </button>
@@ -1376,87 +1376,78 @@ useEffect(() => {
                     </div>
                 </div>
 
+                {/* 작업물 피드백 */}
                 <div className="feedback">
                     <div className="top">
                         <div className="title">작업물 피드백</div>
                         <div className="more" onClick={handleMoreClick}>더보기</div>
                     </div>
-
-
-
                     <div className="content-feedback box1">
-                    <div className="folderPreview">
-    {folders.slice(0, 6).map((folder, index) => {
-        const isFile = folder.type === 'file';
-
-        return (
-            <div key={index} className={`folderPreSee ${folder.type}PreSee`}>
-                <div className="folderDate">{folder.createdAt}</div>
-
-                {isFile ? (
-                    <div className="fileItem">
-                        <img src="/fileIcon.png" className="folderIcon" alt="File Icon" />
-                        <ToggleNameDisplay name={folder.name} />
+                        <div className="folderPreview">
+                            {folders.slice(0, 6).map((folder, index) => (
+                                <div key={index} className={`folderPreSee ${folder.type}PreSee`}>
+                                    <div className="folderDate">{folder.createdAt}</div>
+                                    <div className="fileItem">
+                                        <img src="/fileIcon.png" className="folderIcon" alt="File Icon" />
+                                        <ToggleNameDisplay name={folder.name} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                ) : (
-                    <div className="folderItem">
-                        <img src="/folderIcon.png" className="folderIcon" alt="Folder Icon" />
-                        <ToggleNameDisplay name={folder.name} />
-                    </div>
-                )}
-            </div>
-        );
-    })}
-</div>
-
-</div>
-
-
-
-                    
                 </div>
             </div>
-        {showCancelModal && (
-            <>
-                <div className="modal_overlay"></div> {/* 오버레이 */}
-                <div className="modal_Pc">
-                    <div className="modal_emoji">😶</div>
-                    <div className="modal_realMsg">정말 일정을 옮기시겠습니까?</div>
-                    <div className="modal-buttons_Pc">
-                        <button onClick={handleCancel}>취소</button>
-                        <button onClick={handleConfirm}>네</button>
-                    </div>
-                    <label className="modal_dontShow">
-                        <input
-                            type="checkbox"
-                            checked={dontShowAgain}
-                            onChange={handleDontShowAgainChange}
-                        />
-                        다시 보지 않기 (24시간)
-                    </label>
-                </div>
-            </>
-        )}
 
-        <TodoEditModal
-            isOpen={todoEditModal.isOpen}
-            onClose={handleTodoEditClose}
-            todoId={todoEditModal.todoId}
-            onUpdate={handleTodoUpdate}
-            projectId={Pg_id}
-        />
-        {showDetail.open && (
-            <TodoMorePopup
-            status={showDetail.status}
-            projectId={Pg_id}
-            todos={todos}
-            onClose={() => setShowDetail({ open: false, status: null })}
-            onUpdate={handleTodoUpdate}
+            {/* 모달들 */}
+            {showCancelModal && (
+                <>
+                    <div className="modal_overlay"></div>
+                    <div className="modal_Pc">
+                        <div className="modal_emoji">😶</div>
+                        <div className="modal_realMsg">
+                            {modal_realMsg || '정말 일정을 옮기시겠습니까?'}
+                        </div>
+                        <div className="modal-buttons_Pc">
+                            <button onClick={handleCancel}>취소</button>
+                            <button onClick={handleConfirm}>네</button>
+                        </div>
+                        <label className="modal_dontShow">
+                            <input
+                                type="checkbox"
+                                checked={dontShowAgain}
+                                onChange={handleDontShowAgainChange}
+                            />
+                            다시 보지 않기 (24시간)
+                        </label>
+                    </div>
+                </>
+            )}
+
+            <TodoEditModal
+                isOpen={todoEditModal.isOpen}
+                onClose={handleTodoEditClose}
+                todoId={todoEditModal.todoId}
+                onUpdate={handleTodoUpdate}
+                projectId={Pg_id}
             />
-        )}
 
+            {showDetail.open && (
+                <TodoMorePopup
+                    status={showDetail.status}
+                    projectId={Pg_id}
+                    todos={todos}
+                    onClose={() => setShowDetail({ open: false, status: null })}
+                    onUpdate={handleTodoUpdate}
+                />
+            )}
 
-        {showFeedbackPopup && <FeedbackPopup onClose={handleClosePopup} username={username} projectId = {projectInfoId}/>}
+            {showFeedbackPopup && (
+                <FeedbackPopup 
+                    onClose={handleClosePopup} 
+                    username={username} 
+                    projectId={projectInfoId}
+                />
+            )}
         </div>
     );
 };
