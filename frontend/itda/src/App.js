@@ -17,7 +17,6 @@ import ProjectForm from './pages/projectCreate/projectForm';
 import ProjectComplete from './pages/projectCreate/projectComplete';
 
 import ProjectContent from './pages/projectCapsules/projectContent';
-
 // component 요소
 import "./App.css";
 
@@ -64,8 +63,9 @@ function App() {
           <Project isLoggedIn={isLoggedIn} username={username} initialTab="project">
             <ProjectContent />
           </Project>
-        } />        
-        <Route path="/profile" element={<Profile />} />
+        } />     
+        <Route path="/profile/:viewUsername" element={<Profile isLoggedIn={isLoggedIn} username={username} />} />   
+        <Route path="/profile" element={<Profile isLoggedIn={isLoggedIn}  username={username} />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUsername={setUsername} />} />
         <Route path="/signupAgreement" element={<SignupAgreement />} />
         <Route path="/signupForm" element={<SignupForm />} />
