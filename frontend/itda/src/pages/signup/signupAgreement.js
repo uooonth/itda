@@ -6,11 +6,16 @@ export default function SignupAgreement() {
     const navigate = useNavigate();
     const [agreements, setAgreements] = useState({
         all: false,
-        terms: false, 
+        terms: false,
         privacy: false,
-        marketing: false, 
+        marketing: false,
     });
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [toggle, setToggle] = useState({
+        terms: false,
+        privacy: false,
+        marketing: false,
+    });
 
     const handleAllCheck = () => {
         const newChecked = !agreements.all;
@@ -24,9 +29,12 @@ export default function SignupAgreement() {
 
     const handleSingleCheck = (key) => {
         const newAgreements = { ...agreements, [key]: !agreements[key] };
-
         newAgreements.all = newAgreements.terms && newAgreements.privacy && newAgreements.marketing;
         setAgreements(newAgreements);
+    };
+
+    const toggleSection = (key) => {
+        setToggle(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
     const isNextEnabled = agreements.terms && agreements.privacy && agreements.marketing;
@@ -36,6 +44,7 @@ export default function SignupAgreement() {
             <div className="navigation">
                 <div className="logo">itda</div>
             </div>
+
             <div className="signupAgreement-content">
                 <h2 className="signup-title">회원가입</h2>
 
@@ -70,36 +79,51 @@ export default function SignupAgreement() {
                 </div>
 
                 <h4>* 필수 약관에 동의하셔야 회원가입이 가능합니다.</h4>
-                
+
                 <div className="agreement">
                     <div className="agreement-line" />
-                    <label>
-                        <input type="checkbox" checked={agreements.all} onChange={handleAllCheck} />
-                        전체 약관 동의
-                    </label>
+                    <div className="agreement-item">
+                        <div className="agreement-item-label">
+                            <label>
+                                <input type="checkbox" checked={agreements.all} onChange={handleAllCheck} />
+                                전체 약관 동의
+                            </label>
+                        </div>
+                    </div>
+
                     <div className="agreement-line" />
-                    <label>
-                        <input type="checkbox" checked={agreements.terms} onChange={() => handleSingleCheck("terms")} />
-                        회원 서비스 이용약관 (필수)
-                    </label>
-                    <div className="agreement-line" />
-                    <label>
-                        <input type="checkbox" checked={agreements.privacy} onChange={() => handleSingleCheck("privacy")} />
-                        개인정보 수집 및 이용 동의 (필수)
-                    </label>
-                    <div className="agreement-line" />
-                    <label>
-                        <input type="checkbox" name="agree_marketing" checked={agreements.marketing} onChange={() => handleSingleCheck("marketing")} />
-                        마케팅 수신 동의 (필수)
-                    </label>
-                    <div className="agreement-line" />
+
+                    {["terms", "privacy", "marketing"].map((key) => (
+                        <div className="agreement-item" key={key}>
+                            <div className="agreement-item-label">
+                                <div className="agreement-item-label-left">
+                                    <input type="checkbox" checked={agreements[key]} onChange={() => handleSingleCheck(key)} />
+                                    <span>
+                                        {key === "terms" && "회원 서비스 이용약관 (필수)"}
+                                        {key === "privacy" && "개인정보 수집 및 이용 동의 (필수)"}
+                                        {key === "marketing" && "마케팅 수신 동의 (필수)"}
+                                    </span>
+                                </div>
+                                <button className="toggle-button" onClick={() => toggleSection(key)}>
+                                    {toggle[key] ? "▲" : "▼"}
+                                </button>
+                            </div>
+                            {toggle[key] && (
+                                <div className="agreement-detail">
+                                    <p>{key} 약관 내용입니다. ...</p>
+                                </div>
+                            )}
+                            <div className="agreement-line" />
+                        </div>
+
+                    ))}
+                    <div className="button-group">
+                        <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
+                        <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}>다음</button>
+                    </div>
                 </div>
 
-                <div className="button-group">
-                    <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
-                    <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}
-                    >다음</button>
-                </div>
+
 
                 {showCancelModal && (
                     <div className="modal">
