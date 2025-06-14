@@ -8,7 +8,7 @@ import base64
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, FeedbackChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete, AcceptRequest, RejectRequest
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path,HTTPException
@@ -81,7 +81,6 @@ async def signup(request: Request):
     #################################################
     email_to_store = user.email if not existing_user else "placeholder2@example.com"
 
-    # 1. User 생성
     new_user = await User.objects.create(
         id=user.id,
         name=user.name,
@@ -89,7 +88,6 @@ async def signup(request: Request):
         email=email_to_store
     )
 
-    # 2. UserProfile 기본값 생성
     await UserProfile.objects.create(
         user=new_user,
         profile_image=None,
@@ -249,8 +247,6 @@ async def create_project(
     if thumbnail:
         content = await thumbnail.read()
         filename = f"{uuid.uuid4().hex}_{thumbnail.filename}"
-        print("📂 썸네일:", thumbnail.filename)
-        print("📏 파일 크기:", len(content))
         save_path = f"static/uploads/{filename}"
         with open(save_path, "wb") as f:
             f.write(content)
@@ -296,6 +292,7 @@ async def get_project_detail(project_id: int):
 # 앱에 등록
 app.include_router(router)
 
+# 플젝 삭제
 @app.delete("/projects/{project_id}")
 async def delete_project(project_id: int, current_user: User = Depends(get_current_user)):
     project = await ProjectInfo.objects.get_or_none(id=project_id)
@@ -307,12 +304,17 @@ async def delete_project(project_id: int, current_user: User = Depends(get_curre
     
     await ApplyForm.objects.filter(project=project).delete()
     
-    # 프로젝트 삭제
+    await UploadedFile.objects.filter(project=project).delete()
+
+    await ProjectParticipation.objects.filter(project=project).delete()
+
     await project.delete()
     
     return {"detail": "삭제 성공"}
 
 
+
+#찜
 @app.post("/projects/{project_id}/star")
 async def toggle_star(
     project_id: int,
@@ -340,6 +342,7 @@ async def toggle_star(
         "starCount": len(starred)
     }
     
+#신청
 @router.post("/apply/{project_id}")
 async def apply_to_project(
     project_id: int,
@@ -386,21 +389,19 @@ async def apply_to_project(
 
     return {"message": "지원이 성공적으로 완료되었습니다."}
 
-# 수락
-@router.post("/projects/{project_id}/accept")
-async def accept_applicant(project_id: int, user_id: str):
+#수락 
+@router.post("/{project_id}/accept")
+async def accept_applicant(project_id: int, req: AcceptRequest):
+    user_id = req.user_id
     project = await ProjectInfo.objects.get(id=project_id)
     user = await User.objects.get(id=user_id)
     user_profile = await UserProfile.objects.get(user=user)
 
-    # 참여기록 추가
     await ProjectParticipation.objects.create(
         user_profile=user_profile,
         project=project,
         joined_at=date.today()
     )
-
-    # ApplyForm 삭제
     await ApplyForm.objects.filter(user=user, project=project).delete()
     
     if user_id not in project.worker:
@@ -410,8 +411,10 @@ async def accept_applicant(project_id: int, user_id: str):
     return {"status": "accepted"}
 
 # 거절
-@router.post("/projects/{project_id}/reject")
-async def reject_applicant(project_id: int, user_id: str):
+@router.post("/{project_id}/reject")
+async def reject_applicant(project_id: int, req: RejectRequest):
+    user_id = req.user_id
+
     project = await ProjectInfo.objects.get(id=project_id)
     user = await User.objects.get(id=user_id)
 
@@ -419,12 +422,18 @@ async def reject_applicant(project_id: int, user_id: str):
 
     return {"status": "rejected"}
 
+
 @router.get("/{project_id}/applicants")
 async def get_applicants(project_id: int):
+    project = await ProjectInfo.objects.get(id=project_id)
+    worker_ids = project.worker
+
     apply_forms = await ApplyForm.objects.select_related("user").filter(project__id=project_id).all()
 
     result = []
     for form in apply_forms:
+        if form.user.id in worker_ids:
+            continue  # 승인된 사람 제외시키기
         result.append({
             "user_id": form.user.id,
             "name": form.user.name,
@@ -435,6 +444,8 @@ async def get_applicants(project_id: int):
         })
 
     return result
+
+
 app.include_router(router, prefix="/projects")
 
 # ───────────── 플젝 탭 API ───────────── #

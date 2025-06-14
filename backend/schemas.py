@@ -79,8 +79,12 @@ class ProjectOut(BaseModel):
 class ScheduleUpdate(BaseModel):
     start_day: Optional[str]
     deadline: Optional[str]
-    
-    
+
+class AcceptRequest(BaseModel):
+    user_id: str
+
+class RejectRequest(BaseModel):
+    user_id: str    
 
 class ParticipationHistorySchema(BaseModel):
     company: str
