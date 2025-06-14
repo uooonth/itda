@@ -270,3 +270,47 @@
     background-color: rgba(216, 216, 216, 0.4);
     margin: 2.222vw 0;
 }
+
+
+.projects-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.projects-list .content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.projects-list .content:hover {
+    background-color: #f5f5f5;
+}
+
+.projects-list .content span {
+    flex: 1;
+    text-align: left;
+    font-size: 14px;
+    color: #333;
+}
+
+.projects-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.projects-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.projects-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.projects-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
