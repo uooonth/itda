@@ -22,6 +22,11 @@ import DeleteIcon from '../../icons/trash.svg';
 import TodoEditModal from './popups/todoEdit';
 import TodoMorePopup from './popups/todoMore';
 import FeedbackPopup from './popups/feedback';
+import pencilIcon from '../../icons/pencilIcon.png';
+import sendIcon from '../../icons/sendIcon.png';
+/* timeline */ 
+import { Timeline,DataSet } from 'vis-timeline/standalone'
+import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 
 // CSS
 import '../../css/feedbackpopup.css';
@@ -1066,13 +1071,140 @@ const ProjectContent = () => {
         setShouldRefresh(true);
     };
 
+
+   //=====================================================================//
+    // ------------------------   챗 WebSocket 안정화  ------------------------ //
+    //=====================================================================//
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState('');
+    const wsRef = useRef(null);
+    const messagesEndRef = useRef(null);
+
     // 파일명 토글 표시 컴포넌트
     const ToggleNameDisplay = ({ name }) => {
         const [expanded, setExpanded] = useState(false);
 
+
+    const [loginUserId, setLoginUserId] = useState(null);
+    const [loginUserName, setLoginUserName] = useState(null);
+
+    // JWT 파싱 함수 (최초 1회 파싱)
+    const decodeJWT = (token) => {
+        if (!token) return {};
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return {
+                userId: payload.sub,
+                userName: payload.name || payload.sub
+            };
+        } catch {
+            return {};
+        }
+    };
+
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        const { userId, userName } = decodeJWT(token);
+        setLoginUserId(userId);
+        setLoginUserName(userName);
+    }, []);
+
+    // 최초 Redis에 저장된 이전 메시지 불러오기
+    useEffect(() => {
+        if (!Pg_id || !loginUserId) return;
+
+        const fetchPreviousMessages = async () => {
+            try {
+                const res = await fetch(`http://localhost:8008/livechat/${Pg_id}`);
+                if (!res.ok) throw new Error("이전 채팅 불러오기 실패");
+
+
+                const data = await res.json();
+                const loadedMessages = data.map(msg => ({
+                    ...msg,
+                    sender: msg.sender_id === loginUserId ? "me" : "other",
+                    name: msg.sender_name,
+                    time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                }));
+                setMessages(loadedMessages);
+            } catch (err) {
+                console.error("이전 메시지 불러오기 에러:", err);
+            }
+        };
+
+        fetchPreviousMessages();
+    }, [Pg_id, loginUserId]);
+
+    //  WebSocket 연결 (loginUserId 준비된 이후 연결)
+    useEffect(() => {
+        if (!Pg_id || !loginUserId) return;
+
+        const ws = new WebSocket(`ws://localhost:8008/ws/livechat/${Pg_id}`);
+        wsRef.current = ws;
+
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            const newMessage = {
+                ...msg,
+                sender: msg.sender_id === loginUserId ? "me" : "other",
+                name: msg.sender_name,
+                time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+            };
+            setMessages(prev => [...prev, newMessage]);
+        };
+
+        ws.onclose = () => console.log("WebSocket Closed");
+        ws.onerror = (err) => console.error("WebSocket Error:", err);
+
+        return () => {
+            ws.close();
+        };
+    }, [Pg_id, loginUserId]);
+
+    useEffect(() => {
+        const ws = new WebSocket("ws://localhost:8008/ws/livechat/notification");
+
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            console.log("📢 알림 도착:", msg);
+
+            // 여기는 일단 콘솔 찍히는지만 확인할 것
+            // 이후 여기서 팝업 띄우는 로직 추가 가능
+            alert(`🔔 새 알림: ${msg.type === "chat" ? "새로운 채팅이 도착했습니다!" : "파일이 업로드 되었습니다!"}`);
+        };
+
+        ws.onclose = () => console.log("알림 WebSocket Closed");
+
+        return () => ws.close();
+    }, []);
+
+
+
+    //  메시지 전송
+    const sendMessage = () => {
+        if (!input.trim() || !loginUserId || !loginUserName) return;
+
+        const wsMessage = {
+            sender_id: loginUserId,
+            sender_name: loginUserName,
+            text: input,
+        };
+
+        console.log("메시지 전송:", wsMessage);
+        wsRef.current?.send(JSON.stringify(wsMessage));
+        setInput('');
+    };
+
+    //  스크롤 자동 내려가기
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    //  이름 토글
+    const ToggleNameDisplay = ({ name }) => {
+        const [expanded, setExpanded] = useState(false);
         return (
-            <div
-                className={`folderName ${expanded ? 'expanded' : ''}`}
+            <div className={`folderName ${expanded ? 'expanded' : ''}`}
                 onClick={() => setExpanded(!expanded)}
                 title={name}
             >
@@ -1080,65 +1212,6 @@ const ProjectContent = () => {
             </div>
         );
     };
-
-    /* ========================================================= */
-    /* =================    실시간 채팅    ==================== */
-    /* ========================================================= */
-    const [messages, setMessages] = useState([]);
-    const [input, setInput] = useState('');
-    const messagesEndRef = useRef(null);
-
-    useEffect(() => {
-        const now = new Date();
-        const formattedTime = now.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        });
-
-        const initialMessages = [
-            {
-                name: "침착맨",
-                text: "안녕하세요! 여기는 실시간 채팅방입니다.",
-                sender: "other",
-                time: formattedTime,
-            },
-            {
-                name: "나",
-                text: "안녕하세요~!",
-                sender: "me",
-                time: formattedTime,
-            },
-        ];
-
-        setMessages(initialMessages);
-    }, []);
-
-    const sendMessage = () => {
-        if (!input.trim()) return;
-        
-        const now = new Date();
-        const formattedTime = now.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        });
-
-        const newMsg = {
-            name: "나",
-            text: input,
-            sender: "me",
-            time: formattedTime,
-        };
-        
-        setMessages(prev => [...prev, newMsg]);
-        setInput('');
-    };
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
 
 
     //플젝아이디없을때
@@ -1361,7 +1434,7 @@ const ProjectContent = () => {
                         </div>
 
                         <div className="chatInputArea">
-                            <img src="pencilIcon.png" alt="입력" className="pencilIcon" />
+                            <img src={pencilIcon} alt="입력" className="pencilIcon" />
                             <input 
                                 type="text" 
                                 value={input} 
@@ -1370,7 +1443,7 @@ const ProjectContent = () => {
                                 placeholder="메시지를 입력하세요..."
                             />
                             <button onClick={sendMessage}>
-                                <img src="sendIcon.png" alt="전송" />
+                                <img src={sendIcon} alt="전송" />
                             </button>
                         </div>
                     </div>
@@ -1446,6 +1519,7 @@ const ProjectContent = () => {
                     onClose={handleClosePopup} 
                     username={username} 
                     projectId={projectInfoId}
+                    onUpdate={handleTodoUpdate}
                 />
             )}
         </div>

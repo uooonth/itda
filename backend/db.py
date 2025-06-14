@@ -1,11 +1,13 @@
 from __future__ import annotations
 import databases
 import ormar
+import uuid
 import sqlalchemy
 from datetime import date, datetime
 from enum import Enum
 from pydantic import BaseModel
 from backend.config import settings
+from zoneinfo import ZoneInfo
 
 from typing import Optional, ForwardRef, List
 
@@ -146,6 +148,33 @@ class Chat(ormar.Model):
     receiver: str = ormar.String(max_length=30)
     message: str = ormar.Text()
     timestamp: datetime = ormar.DateTime(default=datetime.utcnow)
+
+class ChatRoom(ormar.Model):
+    class Meta:
+        tablename = "chat_rooms"
+        metadata = metadata
+        database = database
+        
+    id: str = ormar.String(primary_key=True, max_length=36, default=lambda: str(uuid.uuid4()))
+    name: str = ormar.String(max_length=255)
+    created_at = ormar.DateTime(default=lambda: datetime.now(ZoneInfo("Asia/Seoul")))
+    created_at: datetime = ormar.DateTime(default=datetime.utcnow)
+    is_group_chat: bool = ormar.Boolean(default=True)
+    members: List[str] = ormar.JSON(default=[])
+
+class ChatRoomMessage(ormar.Model):
+    class Meta:
+        tablename = "chat_room_messages"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    # ✅ max_length 추가
+    room_id: str = ormar.String(max_length=36)  # UUID와 일치
+    sender_id: str = ormar.String(max_length=100)
+    sender_name: str = ormar.String(max_length=100)
+    text: str = ormar.Text()
+    created_at: datetime = ormar.DateTime(default=datetime.utcnow)
 
 
 class UserProfile(ormar.Model):
