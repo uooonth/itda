@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import ReactDOM from "react-dom"; 
+import ReactDOM from "react-dom";
 import "../css/ApplyDecisionModal.css";
 import { useNavigate } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
+import axios from "axios";
 
 export default function ApplyDecisionModal({ open, onClose, applicants = [], projectId, onDecision }) {
   const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
 
   if (!open) return null;
 
@@ -16,11 +18,17 @@ export default function ApplyDecisionModal({ open, onClose, applicants = [], pro
 
   const handleAccept = async (user_id) => {
     try {
-      await fetch(`/api/projects/${projectId}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id }),
-      });
+      await axios.post(
+        `http://localhost:8008/projects/${projectId}/accept`,
+        { user_id },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       onDecision("accepted", user_id);
     } catch (err) {
       console.error(err);
@@ -30,11 +38,17 @@ export default function ApplyDecisionModal({ open, onClose, applicants = [], pro
 
   const handleReject = async (user_id) => {
     try {
-      await fetch(`/api/projects/${projectId}/reject`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id }),
-      });
+      await axios.post(
+        `http://localhost:8008/projects/${projectId}/reject`,
+        { user_id },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       onDecision("rejected", user_id);
     } catch (err) {
       console.error(err);
@@ -74,6 +88,11 @@ export default function ApplyDecisionModal({ open, onClose, applicants = [], pro
                   <p><strong>이메일:</strong> {applicant.email}</p>
                   <p><strong>소개:</strong> {applicant.introduce}</p>
                   <p><strong>연락처:</strong> {applicant.contact}</p>
+                  {applicant.file && (
+                    <p>
+                      <strong>첨부파일:</strong> <a className="file-link" href={applicant.file} target="_blank" rel="noopener noreferrer">다운로드</a>
+                    </p>
+                  )}
                 </div>
               )}
             </li>
@@ -81,6 +100,6 @@ export default function ApplyDecisionModal({ open, onClose, applicants = [], pro
         </ul>
       </div>
     </>,
-    document.body  
+    document.body
   );
 }

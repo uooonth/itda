@@ -149,6 +149,6 @@
   font-size: 14px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  resize: none; /* 추가 */
+  resize: none; 
 }
 
