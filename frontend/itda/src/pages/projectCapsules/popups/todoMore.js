@@ -32,7 +32,6 @@ const getStatusFontColor = (status) => {
   }
 };
 
-// 스타일 컴포넌트들은 동일...
 const Container = styled.div`
   position: fixed;
   top: 0;
@@ -58,9 +57,7 @@ const Content = styled.div`
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-    border-bottom: 14px solid  ${props => props.$color};
-
-
+  border-bottom: 14px solid  ${props => props.$color};
 `;
 
 const Header = styled.div`
@@ -307,8 +304,6 @@ const ButtonGroup = styled.div`
   justify-content: flex-end;
   margin-top: 8px;
 `;
-
-
 const SaveButton = styled.button`
   background-color: #22c55e;
   color: white;
@@ -322,7 +317,6 @@ const SaveButton = styled.button`
     background-color: #16a34a;
   }
 `;
-
 const CancelButton = styled.button`
   background-color: #6b7280;
   color: white;
@@ -340,14 +334,16 @@ const CancelButton = styled.button`
 const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [editedAssignee, setEditedAssignee] = useState("");
+  // MODIFIED: 담당자를 배열로 관리하기 위해 초기값을 빈 배열로 변경
+  const [editedAssignee, setEditedAssignee] = useState([]);
   const [editedDueDate, setEditedDueDate] = useState("");
   const [workers, setWorkers] = useState([]);
-  const [newTodo, setNewTodo] = useState({ text: "", assigneeId: "", dueDate: "",  startDate: "" });
+  // MODIFIED: 새 할 일의 담당자(assigneeId)를 배열로 관리
+  const [newTodo, setNewTodo] = useState({ text: "", assigneeId: [], dueDate: "",  startDate: "" });
   const [isAdding, setIsAdding] = useState(false);
   const [todosWithUsers, setTodosWithUsers] = useState([]);
+  const [editedStartDate, setEditedStartDate] = useState("");
 
-  // status 매핑 함수 수정
   const mapStatusToFrontend = (backendStatus) => {
     switch (backendStatus) {
       case "in_progress":
@@ -360,7 +356,6 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
         return backendStatus;
     }
   };
-
   const mapStatusToBackend = (frontendStatus) => {
     switch (frontendStatus) {
       case "inProgress":
@@ -377,16 +372,14 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 프로젝트 정보 (workers)
         const projectRes = await axios.get(`http://localhost:8008/project/${projectId}`);
-        setWorkers(projectRes.data.worker || []);
         const workerArr = Array.isArray(projectRes.data.worker)
         ? projectRes.data.worker
         : projectRes.data.worker
           ? [projectRes.data.worker]
           : [];
-      setWorkers(workerArr);
-        // 전체 todos (user 정보 포함)
+        setWorkers(workerArr);
+        
         const todosRes = await axios.get(`http://localhost:8008/projects/${projectId}/todos`);
         const allTodos = todosRes.data;
         
@@ -404,22 +397,22 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
   
   const handleEdit = (todo) => {
     setEditingId(todo.id);
-    setEditedAssignee(todo.user_id || ""); // user_id로 변경
+    // MODIFIED: user_id가 배열이 아니면 배열로 감싸서 상태 설정
+    setEditedAssignee(Array.isArray(todo.user_id) ? todo.user_id : (todo.user_id ? [todo.user_id] : []));
     setEditedDueDate(todo.deadline || "");
     setEditedStartDate(todo.start_day || "");
   };
-  const [editedStartDate, setEditedStartDate] = useState("");
 
   const handleSave = async (id) => {
     try {
       await axios.put(`http://localhost:8008/todos/${id}`, {
+        // MODIFIED: 수정된 담당자 배열을 전송
         user_id: editedAssignee,
         deadline: editedDueDate,
-        start_day: editedStartDate, // 시작일 추가
+        start_day: editedStartDate,
       });
       setEditingId(null);
       
-      // 데이터 새로고침
       const todosRes = await axios.get(`http://localhost:8008/projects/${projectId}/todos`);
       setTodosWithUsers(todosRes.data);
       
@@ -435,7 +428,8 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
 
   const handleAddClick = () => {
     setIsAdding(true);
-    setNewTodo({ text: "", assigneeId: "", dueDate: "",startDate: new Date().toISOString().split('T')[0] });
+    // MODIFIED: 새 할 일의 담당자 ID를 빈 배열로 초기화
+    setNewTodo({ text: "", assigneeId: [], dueDate: "",startDate: new Date().toISOString().split('T')[0] });
   };
 
   const handleAddTodo = async () => {
@@ -447,16 +441,17 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
     try {
         await axios.post(`http://localhost:8008/todos`, {
           text: newTodo.text,
-          user_id: newTodo.assigneeId || null,
+          // MODIFIED: 선택된 담당자 ID 배열을 전송
+          user_id: newTodo.assigneeId,
           deadline: newTodo.dueDate,
-          start_day: newTodo.startDate, // 시작일 추가
+          start_day: newTodo.startDate,
           project_id: projectId,
-          status: "in_progress", // 백엔드 형식으로 전송
+          status: "in_progress",
         });
-      setNewTodo({ text: "", assigneeId: "", dueDate: "" });
+      // MODIFIED: 새 할 일 상태 초기화 시 담당자 ID를 빈 배열로 설정
+      setNewTodo({ text: "", assigneeId: [], dueDate: "", startDate: "" });
       setIsAdding(false);
       
-      // 데이터 새로고침
       const todosRes = await axios.get(`http://localhost:8008/projects/${projectId}/todos`);
       setTodosWithUsers(todosRes.data);
       
@@ -469,7 +464,6 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
     }
   };
 
-  // 필터링된 todos - 백엔드 status와 프론트엔드 status 매핑
   const filteredTodos = todosWithUsers.filter(todo => {
     const mappedStatus = mapStatusToFrontend(todo.status);
     return mappedStatus === status;
@@ -525,12 +519,16 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
             </FormRow>
             
             <FormRow>
-            <FormLabel>담당자</FormLabel>
+            <FormLabel>담당자 (다중 선택: Ctrl 또는 Cmd + 클릭)</FormLabel>
             <EditSelect
+                multiple // ADDED: 다중 선택 활성화
                 value={newTodo.assigneeId}
-                onChange={(e) => setNewTodo({...newTodo, assigneeId: e.target.value})}
+                // MODIFIED: 다중 선택된 값들을 배열로 변환하여 상태 업데이트
+                onChange={(e) => setNewTodo({
+                    ...newTodo, 
+                    assigneeId: Array.from(e.target.selectedOptions, option => option.value)
+                })}
             >
-                <option value="">담당자를 선택해주세요</option>
                 {workers.map(worker => (
                 <option key={worker} value={worker}>
                     {worker}
@@ -567,13 +565,12 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
             </ButtonGroup>
         </EditContainer>
         )}
-
-
         <TodoList>
           {filteredTodos
 .filter(todo => {
   if (!search || search.trim() === '') return true;
   const searchLower = search.toLowerCase();
+  // MODIFIED: 검색 기능이 담당자 배열을 순회하며 확인하도록 함 (기존 코드 유지)
   return todo.text?.toLowerCase().includes(searchLower) ||
     (
       Array.isArray(todo.user_id)
@@ -595,12 +592,13 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
                 {editingId === todo.id ? (
                 <EditContainer>
                     <div>
-                    <label>담당자:</label>
+                    <label>담당자 (다중 선택: Ctrl 또는 Cmd + 클릭):</label>
                     <EditSelect
+                        multiple // ADDED: 다중 선택 활성화
                         value={editedAssignee}
-                        onChange={(e) => setEditedAssignee(e.target.value)}
+                        // MODIFIED: 다중 선택된 값들을 배열로 변환하여 상태 업데이트
+                        onChange={(e) => setEditedAssignee(Array.from(e.target.selectedOptions, option => option.value))}
                     >
-                        <option value="">담당자 선택</option>
                         {workers.map(worker => (
                         <option key={worker} value={worker}>
                             {worker}
@@ -636,8 +634,9 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
                 ) : (
                 <CardContent>
                     <DateText>
+                    {/* MODIFIED: 담당자 ID가 배열일 경우 쉼표로 구분하여 표시 (기존 코드 유지) */}
                     담당자: {
-                      Array.isArray(todo.user_id)
+                      Array.isArray(todo.user_id) && todo.user_id.length > 0
                         ? todo.user_id.join(', ')
                         : (todo.user_id || "미할당")
                     }ㅤ|ㅤ

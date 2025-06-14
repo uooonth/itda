@@ -26,6 +26,7 @@ CREATE TABLE project_info (
 CREATE TABLE user_profiles (
     id SERIAL PRIMARY KEY,
     user_id TEXT UNIQUE REFERENCES users(id),
+    roles TEXT,
     profile_image TEXT,
     tech_stack TEXT,        
     tags TEXT,               
@@ -36,7 +37,8 @@ CREATE TABLE user_profiles (
     location TEXT,
     birth DATE,
     portfolio_url TEXT,
-    is_public BOOLEAN DEFAULT TRUE
+    is_public BOOLEAN DEFAULT TRUE,
+    pinned_projects TEXT,
 );
 
 CREATE TABLE participation_histories (
@@ -46,7 +48,9 @@ CREATE TABLE participation_histories (
     title TEXT,
     description TEXT,
     start_date DATE,
-    end_date DATE
+    end_date DATE,
+    attachment_url TEXT
+
 );
 
 CREATE TABLE project_participations (

@@ -19,6 +19,7 @@ python-jose[cryptography]
 redis
 boto3 
 python-multipart
+locust
 # npm install emoji-picker-react
 # npm install vis-timeline
 # npm install @lourenci/react-kanban --legacy-peer-deps
