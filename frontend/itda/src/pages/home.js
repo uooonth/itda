@@ -132,7 +132,7 @@ export default function Home() {
                                             <h3>{project.project.name}</h3>
                                             <h5>{project.proposer?.[0] || "작성자 없음"}</h5>
                                             <h4>
-                                                {(project.recruitNumber || 0)}명 모집중 |{" "}
+                                                {(project.recruit_number || 0)}명 모집중 |{" "}
                                                 {project.sign_deadline ? (() => {
                                                     const remainingDays = Math.ceil(
                                                         (new Date(project.sign_deadline) - new Date()) / (1000 * 60 * 60 * 24)
