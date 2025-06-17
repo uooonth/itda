@@ -317,11 +317,13 @@ const CalendarContent = () => {
         <div className="emptyFill"></div>
         <div className="projectFilterContainer">
           <div className="projectDropdown" ref={filterDropdownRef}>
-            <button className="projectDropdownButton">
+            <button 
+              className="projectDropdownButton"
+              onClick={() => setShowFilterDropdown(prev => !prev)}
+            >
               <span className="projectName">{getSelectedProjectName()}</span>
               <span className="dropdownArrow">▼</span>
             </button>
-
             {showFilterDropdown && (
               <div className="projectDropdownMenu">
                 <div 
@@ -370,7 +372,10 @@ const CalendarContent = () => {
               {/* 이벤트 프로젝트 선택 드롭다운 */}
               <label className="label">프로젝트</label>
               <div className="projectDropdown2" ref={eventDropdownRef}>
-                <button className="projectSelect2">
+                <button 
+                  className="projectSelect2"
+                  onClick={() => setShowEventProjectDropdown(prev => !prev)}  // ⭐ 드롭다운 열기 추가
+                >
                   <span className="projectName">{getSelectedEventProjectName()}</span>
                   <span className="dropdownArrow">▼</span>
                 </button>
