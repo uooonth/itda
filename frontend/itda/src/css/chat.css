@@ -261,8 +261,8 @@
     background-color: white;
     padding: 20px;
     border-radius: 10px;
-    width: 400px;
-    max-height: 600px;
+    width: 30vw;
+    max-height: 40vw;
     overflow: auto;
 }
 
@@ -327,4 +327,19 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.createBtn {
+  background-color: #4CAF50;  /* ✅ 요청한 색상 */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.createBtn:hover {
+  background-color: #45a049;  /* 살짝 hover 효과 추가해줌 */
 }
