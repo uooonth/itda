@@ -1016,9 +1016,18 @@ async def get_feedback(project_id: int, file_id: int):
 
 
 # ───────────── 플젝 페이지 라이브 채팅 저장 API ───────────── #
-# 프로젝트 id 받아오는 데서 오류가 나는 듯
 active_livechat_connections: dict[str, list[WebSocket]] = {}
-all_alarm_connections: list[WebSocket] = []  # 전체알림용 추가
+all_alarm_connections = []
+
+@app.websocket("/ws/livechat/notification")
+async def websocket_all_alarm(websocket: WebSocket):
+    await websocket.accept()
+    all_alarm_connections.append(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        all_alarm_connections.remove(websocket)
 
 # 프로젝트별 라이브채팅
 # main.py의 websocket_livechat 함수 수정
@@ -1071,20 +1080,6 @@ async def websocket_livechat(websocket: WebSocket, project_id: str):
 
     except WebSocketDisconnect:
         active_livechat_connections[project_id].remove(websocket)
-
-
-
-# Navigation 전용 전체 알림용 WebSocket
-@app.websocket("/ws/livechat/notification")
-async def websocket_all_alarm(websocket: WebSocket):
-    await websocket.accept()
-    all_alarm_connections.append(websocket)
-
-    try:
-        while True:
-            await websocket.receive_text()  # 단순 유지용 (ping-pong)
-    except WebSocketDisconnect:
-        all_alarm_connections.remove(websocket)
 
 
 @app.get("/livechat/{project_id}")
@@ -1199,7 +1194,7 @@ async def get_user_basic_info(user_id: str):
     return {
         "id": user.id,
         "name": user.name,
-        "email": user.email
+        "email": user.email,
     }
 
 # ---------- 채팅방 목록 조회 API 추가 ---------- #

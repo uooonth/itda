@@ -19,7 +19,7 @@ const CalendarContent = () => {
     title: '',
     start: '',
     end: '',
-    color: '#3174ad',
+    color: '#ff7676',
     project_id: '',
     created_at: null, // created_at 필드 추가
   });
@@ -151,7 +151,7 @@ const CalendarContent = () => {
         title: event.title,
         start: moment(event.start).format("YYYY-MM-DDTHH:mm"),
         end: moment(event.end).format("YYYY-MM-DDTHH:mm"),
-        color: event.color || '#3174ad',
+        color: event.color || '#ff7676',
         created_at: event.created_at, // created_at 설정
         project_id: event.project_id || '',
       });
@@ -200,7 +200,7 @@ const CalendarContent = () => {
     }
 
     setShowPopup(false);
-    setNewEvent({ title: '', start: '', end: '', color: '#3174ad', project_id: '', created_at: null });
+    setNewEvent({ title: '', start: '', end: '', color: '#ff7676', project_id: '', created_at: null });
   };
 
   const handleUpdateEvent = async () => {
@@ -246,7 +246,7 @@ const CalendarContent = () => {
 
     setShowPopup(false);
     setIsEditMode(false);
-    setNewEvent({ title: '', start: '', end: '', color: '#3174ad', project_id: '', created_at: null });
+    setNewEvent({ title: '', start: '', end: '', color: '#ff7676', project_id: '', created_at: null });
     setSelectedEventIndex(null);
   };
 
@@ -308,20 +308,20 @@ const CalendarContent = () => {
         onClick={() => {
           setShowPopup(true);
           setIsEditMode(false);
-          setNewEvent({ title: '', start: '', end: '', color: '#3174ad', project_id: '', created_at: null });
+          setNewEvent({ title: '', start: '', end: '', color: '#ff7676', project_id: '', created_at: null });
         }}
       />
 
       <div className="calendarContainer">
         {/* 프로젝트 필터 드롭다운 */}
+        <div className="emptyFill"></div>
         <div className="projectFilterContainer">
           <div className="projectDropdown" ref={filterDropdownRef}>
-            <button 
-              className="projectDropdownButton"
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-            >
-              {getSelectedProjectName()} ▼
+            <button className="projectDropdownButton">
+              <span className="projectName">{getSelectedProjectName()}</span>
+              <span className="dropdownArrow">▼</span>
             </button>
+
             {showFilterDropdown && (
               <div className="projectDropdownMenu">
                 <div 
@@ -370,11 +370,9 @@ const CalendarContent = () => {
               {/* 이벤트 프로젝트 선택 드롭다운 */}
               <label className="label">프로젝트</label>
               <div className="projectDropdown2" ref={eventDropdownRef}>
-                <button 
-                  className="projectSelect2"
-                  onClick={() => setShowEventProjectDropdown(!showEventProjectDropdown)}
-                >
-                  {getSelectedEventProjectName()} ▼
+                <button className="projectSelect2">
+                  <span className="projectName">{getSelectedEventProjectName()}</span>
+                  <span className="dropdownArrow">▼</span>
                 </button>
                 {showEventProjectDropdown && (
                   <div className="projectDropdownMenu">
@@ -424,12 +422,13 @@ const CalendarContent = () => {
                 value={newEvent.title}
                 onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
               />
-              <label>색상</label>
+              <text className='colorText'>색상</text>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="color"
                   value={newEvent.color}
                   onChange={(e) => setNewEvent({ ...newEvent, color: e.target.value })}
+                  style={{ border: 'none', outline: 'none', backgroundColor:'white'}}
                 />
                 <span style={{ fontFamily: 'Pretendard-Regular', fontSize: '0.9rem' }}>{newEvent.color}</span>
               </div>
@@ -437,7 +436,7 @@ const CalendarContent = () => {
                 {isEditMode ? (
                   <>
                     <button className="addBtn" onClick={handleUpdateEvent}>수정</button>
-                    <button className="deleteBtn" onClick={handleDeleteEvent}>삭제</button>
+                    <button className="editBtn" onClick={handleDeleteEvent}>삭제</button>
                   </>
                 ) : (
                   <button className="addBtn" onClick={handleAddEvent}>추가</button>
@@ -447,7 +446,7 @@ const CalendarContent = () => {
                   onClick={() => {
                     setShowPopup(false);
                     setIsEditMode(false);
-                    setNewEvent({ title: '', start: '', end: '', color: '#3174ad', project_id: '', created_at: null });
+                    setNewEvent({ title: '', start: '', end: '', color: '#ff7676', project_id: '', created_at: null });
                   }}
                 >X</button>
               </div>
