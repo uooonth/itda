@@ -69,22 +69,17 @@ const FeedbackPopup = ({ onClose, projectId, onUploadComplete, onUpdate }) => {
                 fetch(`http://localhost:8008/projects/${currentProjectId}/folders/tree`),
                 fetch(`http://localhost:8008/projects/${currentProjectId}/files?no_folder=true`)
             ]);
-            const [treeData, rootFilesData] = await Promise.all([
-                treeRes.json(),
-                rootFilesRes.json()
+            const [treeData, rootFilesData] = await Promise.all([treeRes.json(),rootFilesRes.json()
             ]);
-
+            //한국시간대 리렌더링
             const dateTimeOptions = {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
+                year: 'numeric',month: '2-digit', day: '2-digit', hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
                 hour12: false, 
                 timeZone: 'Asia/Seoul'
             };
-
+            //부모 파일가져오기
             const mappedRootFiles = (rootFilesData || [])
                 .filter(file => file.folder_id === null) 
                 .map(file => ({
@@ -99,7 +94,7 @@ const FeedbackPopup = ({ onClose, projectId, onUploadComplete, onUpdate }) => {
                     folder_id: file.folder_id,
                     uploader: file.uploader
                 }));
-
+            //가져온 폴더 정보 가졍오기
             const mapFolder = (folder) => {
                 const mappedFiles = (folder.files || []).map(f => ({
                     id: f.id,
@@ -128,11 +123,10 @@ const FeedbackPopup = ({ onClose, projectId, onUploadComplete, onUpdate }) => {
                     ]
                 };
             };
-
             const mappedFolders = treeData.map(mapFolder);
             setFolders([...mappedRootFiles, ...mappedFolders]);
         } catch (err) {
-            console.error("폴더/파일 로딩 실패:", err);
+            console.error("피드백제이에스 64오류",err);
         }
     }, [currentProjectId]);
 

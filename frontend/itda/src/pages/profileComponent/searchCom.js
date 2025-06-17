@@ -191,8 +191,13 @@ const SearchCom = ({username,isLoggedIn }) => {
             {/* ======================== 내프로필 =================== */}
             {isLoggedIn && (
                 <div className='profile_top'>
-                    <div className='img'>사진</div>
-                    <div className='info'>
+                            <div className='img'>
+                                {userProfileUrl ? (
+                                    <img src={userProfileUrl} alt="프로필" />
+                                ) : (
+                                    "사진"
+                                )}
+                            </div>                    <div className='info'>
                         <div className='name'>{userInfo?.name}</div>
                         <div className='role'>{userProfile?.roles}</div>
                         <div className='email'>💌{userInfo?.email}</div>

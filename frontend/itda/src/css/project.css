@@ -1,3 +1,4 @@
+
 @font-face {
     font-weight: 300;
     font-family: "Pretendard-Light";
@@ -99,7 +100,43 @@
     padding-bottom: 0.6vw;    /* 0.8vw * 0.75 */
 }
 
+.edit-form-Pc >input {padding: 5px;
+border-radius: 8px;
+border: 0.8px solid grey;
+font-family: 'pretendard-semiBold';
+width: 100%;
+height: 50px;
+margin-bottom: 20px;
+margin-right: 10px;}
+.edit-buttons-Pc{
+    display: flex;
+    position: relative;
+    width: 100%;
+    justify-content: end;
+    background: transparent;
+}
+
+
+.edit-form-Pc .save{
+    background: #1F9A00;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: 'Pretendard-Medium';
+    cursor: pointer;
+    margin-right: 10px;
+}
+.edit-form-Pc .cancle{
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: 'Pretendard-Medium';
+    cursor: pointer;
+    margin-right: 10px;
+}
 .tab .title {
+    all:unset;
     font-family: 'Pretendard-Medium';
     font-size: 0.94rem;       /* 1.25rem * 0.75 */
     color: #B1B1B1;
@@ -137,7 +174,7 @@
 
 .rightContent {   
     background-color: #F5F5F5;
-    opacity: 0.69;
+    opacity: 0.89;
     width: 100vw;
     height: 100vh;
     overflow-y: auto;
@@ -246,9 +283,18 @@
 }
 
 .projectList .title {
+    all:unset;
     font-family: 'Pretendard-Bold';
     font-size: 1.125rem;      /* 1.5rem * 0.75 */
     margin-bottom: 0.95vh;    /* 1.27vh * 0.75 */
+    
+}
+.projectList .maIntitle {
+    font-family: 'Pretendard-Bold';
+    font-size: 1.125rem;      /* 1.5rem * 0.75 */
+    margin-bottom: 0.95vh;    /* 1.27vh * 0.75 */
+    margin-top:2vh;
+    
 }
 
 .projectList .object {
@@ -309,6 +355,7 @@
     font-size: 0.71rem;       /* 약 0.813rem * 0.75 */
     display: flex;
     align-items: center;
+    height: 3.5vh;
 }
 
 .object .object_content .status .role {
@@ -637,6 +684,9 @@
     border-radius: 3.75px;
     overflow-y: auto;
     overflow-x: auto;
+
+    background: white;
+    border-radius: 16px;
 }
 .vis-item .vis-item-overflow {
     height: 100%;

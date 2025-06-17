@@ -31,7 +31,6 @@ function Navigation({ isLoggedIn, username }) {
     setSelectedEmoji(emojiObject);
     setShowEmojiPicker(false); // 이모지 선택 후 선택 창 닫기
   }
-
   const toggleProfilePopup = () => setShowProfilePopup(!showProfilePopup);
   const toggleAlarmPopup = () => setShowAlarmPopup(!showAlarmPopup);
 
@@ -74,7 +73,8 @@ function Navigation({ isLoggedIn, username }) {
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             text: `찜 목록에 있는 ‘${project.project.name}’의 모집 마감 기한이 하루 남았습니다!`
             };
-            setNotifications(prev => [notification, ...prev]);
+            set
+            (prev => [notification, ...prev]);
         });
 
         } catch (err) {
@@ -211,6 +211,7 @@ function Navigation({ isLoggedIn, username }) {
           console.error('user filtering fail');
           setUserProfile(null);
         }
+
 
         // 프로젝트 데이터 처리
         if (projectsResponse.ok) {

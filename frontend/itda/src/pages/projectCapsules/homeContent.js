@@ -55,15 +55,17 @@ const HomeContent = ({ username }) => {
             return;
         }
         //검색 입력값 searchTerm이 있다면 > 글자만 일치하면 되므로 글자 필터링 해준 후 모든 리스트
-        // projects에서 일치하는 값(프로젝트 이름, 설명, 작업자)이 있는 결과만 출력
+        // projects에서 일치하는 값(프로젝트 이름, 설명, 작업자)
         const filtered = projects.filter(project => {
             const projectName = project.project.name.toLowerCase();
             const projectExplain = project.explain.toLowerCase();
+            const proposers = project.proposer?.join(' ').toLowerCase() || '';
             const workers = project.worker?.join(' ').toLowerCase() || '';
             const searchLower = searchTerm.toLowerCase();
 
             return projectName.includes(searchLower) ||
                    projectExplain.includes(searchLower) ||
+                   proposers.includes(searchLower) ||
                    workers.includes(searchLower);
         });
 
@@ -266,7 +268,7 @@ const HomeContent = ({ username }) => {
             )}
 
             <div className="projectList">
-                <div className="title">
+                <div className="maIntitle">
                     {searchInput ? (
                         <>
                             "{searchInput}" 검색 결과: {filteredProjects.length}개
@@ -298,13 +300,18 @@ const HomeContent = ({ username }) => {
                                     backgroundColor: isPinned ? '#fffbf0' : 'white'
                                 }}
                             >
-                                <div className="object_icon">
-                                    <img 
-                                        src={project.thumbnail || "https://your-default-thumbnail.url"} 
-                                        alt="thumbnail" 
-                                        style={{ width: '60px', height: '60px' }} 
-                                    />
-                                </div>
+                                <div 
+                                className="object_icon"
+                                style={{
+                                    width: '200px',
+                                    height: '200px',
+                                    backgroundImage: `url(${project.thumbnail ? `http://localhost:8008${project.thumbnail}` : "/images/projectImage.png"})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat'
+                                }}
+                                />
+
                                 <div className="object_content">
                                     <div className="title">
                                         {isPinned && <span style={{ color: '#ffd700' }}></span>}
@@ -312,7 +319,7 @@ const HomeContent = ({ username }) => {
                                     </div>
                                     <div className="explain">{project.explain}</div>
                                     <div className="status">
-                                        <div className="publisher">● 게시자 {project.proposer?.join(', ')}</div>
+                                        <div className="publisher">●ㅤ관리자ㅤ:ㅤ{project.proposer?.[0]||''}</div>
                                         <div className="role">작업자 {project.worker?.join(', ')}</div>
                                     </div>
                                 </div>

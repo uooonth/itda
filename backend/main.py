@@ -8,7 +8,8 @@ import base64
 from backend.db import Calendar as CalendarModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage, UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete, AcceptRequest, RejectRequest
+from backend.schemas import UserCreate,ProjectOut,ProjectCreate,UserLogin, Token,UserResponse, CalendarCreate, ChatMessage,UploadedFileCreate,TodoResponse,TodoCreate,CalendarDelete, AcceptRequest, RejectRequest
+
 from fastapi import HTTPException
 from typing import List
 from fastapi import Path,HTTPException
@@ -467,14 +468,14 @@ async def get_project_detail(project_id: str = Path(...)):
 async def create_notice(project_id: str, notice: Notice):
     redis_key = f"project:공지:{project_id}"
     await r.set(redis_key, notice.content)
-    return {"message": f"{project_id}에 공지사항이 설정되었습니다."}
+    return project_id
 
 
 # 공지사항 가져오기 API
 @app.get("/project/{project_id}/notice")
 async def get_notice(project_id: str):
     redis_key = f"project:공지:{project_id}"
-    notice = await r.get(redis_key)  # ✅ await 추가
+    notice = await r.get(redis_key)
     if notice:
         return {"project_id": project_id, "content": notice}  
     else:
@@ -484,38 +485,6 @@ async def get_notice(project_id: str):
 # ───────────── 플젝-투두-postgreSQL,redis ───────────── #
 
 
-# 투두 생성 API
-@app.post("/todos", response_model=TodoResponse)
-async def create_todo(todo: TodoCreate):
-    todo_id = str(uuid.uuid4())
-
-    if todo.status not in VALID_STATUSES:
-        raise HTTPException(status_code=400, detail="Invalid status")
-
-    # user_id를 배열로 처리
-    user_ids = todo.user_id if isinstance(todo.user_id, list) else [todo.user_id] if todo.user_id else []
-
-    new_todo = await Todo.objects.create(
-        id=todo_id,
-        text=todo.text,
-        user={"id": user_ids},  # 배열로 저장
-        deadline=todo.deadline,
-        start_day=todo.start_day
-    )
-
-    await r.sadd(f"project:{todo.project_id}:todos", todo_id)
-    await r.set(f"todo_status:{todo_id}", todo.status)
-    await TodoProgressStore.set_progress(todo_id, 0)
-
-    return TodoResponse(
-        id=new_todo.id,
-        text=new_todo.text,
-        user_id=user_ids,  # 배열로 반환
-        deadline=todo.deadline,
-        start_day=todo.start_day,
-        project_id=todo.project_id,
-        status=todo.status
-    )
 @app.put("/todos/{todo_id}")
 async def update_todo(todo_id: str, update_data: dict):
     todo = await Todo.objects.get_or_none(id=todo_id)
@@ -554,71 +523,52 @@ async def get_all_todos():
     todos = await Todo.objects.all()
     return todos
 @app.get("/projects/{project_id}/todos/status/{status}")
-async def filltering_status_todo(project_id: str, status: str):
+async def get_todos_by_status_and_project(project_id: str, status: str):
     if status not in VALID_STATUSES:
-        raise HTTPException(status_code=400, detail="Invalid status")
-    
+        raise HTTPException(status_code=400, detail="유효하지 않은 status")
     result = []
-    keys = await r.keys("project:*:todos")  # ✅ await 추가
-    for key in keys:
-        if key == f"project:{project_id}:todos":
-            todo_ids = await r.smembers(key)  # 여기도 await 필요
-            for todo_id in todo_ids:
-                status_value = await r.get(f"todo_status:{todo_id}")
-                if status_value:
-                    status_str = status_value.decode("utf-8") if isinstance(status_value, bytes) else status_value
-                    if status_str == status:
-                        result.append(todo_id.decode("utf-8") if isinstance(todo_id, bytes) else todo_id)
+    todo_ids = await r.smembers(f"project:{project_id}:todos")
+    for todo_id in todo_ids:
+        status_value = await r.get(f"todo_status:{todo_id}")
+        if status_value and status_value == status:
+            result.append(todo_id)
+    return result
 
-    return {"status": status, "todos": result}
 
 # 투두 프로젝트 별 가져오기 api
 @app.get("/projects/{project_id}/todos")
 async def get_project_todos(project_id: str):
-    try:
-        # 프로젝트의 모든 할 일 ID 가져오기
-        todo_ids = await r.smembers(f"project:{project_id}:todos")
-        
-        todos = []
-        for todo_id in todo_ids:
-            # 기본 할 일 정보
-            todo = await Todo.objects.get_or_none(id=todo_id)
-            if not todo:
-                continue
-                
-            # Redis에서 담당자 정보 가져오기
-            participants = await TodoParticipantStore.get_participants(todo_id)
-            status = await r.get(f"todo_status:{todo_id}") or "in_progress"
-            
-            todos.append({
-                "id": todo.id,
-                "text": todo.text,
-                "user_id": participants,  # 다중 담당자 배열
-                "deadline": str(todo.deadline),
-                "start_day": str(todo.start_day),
-                "status": status
-            })
-            
-        return todos
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"조회 실패: {str(e)}")
+    todo_ids = await r.smembers(f"project:{project_id}:todos")
+    todos = []
+    for todo_id in todo_ids:
+        todo = await Todo.objects.get_or_none(id=todo_id)
+        if not todo:
+            continue
+        participants = await TodoParticipantStore.get_participants(todo_id)
+        status = await r.get(f"todo_status:{todo_id}") or "in_progress"
+        todos.append({
+            "id": todo.id,
+            "text": todo.text,
+            "user_id": participants,
+            "deadline": str(todo.deadline),
+            "start_day": str(todo.start_day),
+            "status": status
+        })
+    return todos
+
 
 # 투두 삭제 API
 @app.delete("/todos/{todo_id}")
 async def delete_todo(todo_id: str, project_id: str):
     todo = await Todo.objects.get_or_none(id=todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Todo not found")
-
+        raise HTTPException(status_code=404, detail="Todo를 찾을 수 없습니다")
     await todo.delete()
-
     await r.delete(f"todo_status:{todo_id}")
     await r.srem(f"project:{project_id}:todos", todo_id)
     await TodoProgressStore.delete_progress(todo_id)
+    return {"message": f"{todo_id} 삭제 완료"}
 
-
-    return {"message": f"{todo_id} deleted successfully"}
 
 
 
@@ -635,52 +585,35 @@ async def get_project_id_of_todo(todo_id: str) -> Optional[str]:
 @app.post("/todos", response_model=dict)
 async def create_todo(todo: TodoCreate):
     todo_id = str(uuid.uuid4())
-
     if todo.status not in VALID_STATUSES:
         raise HTTPException(status_code=400, detail="Invalid status")
-
-    try:
-        # 첫 번째 담당자를 기본 사용자로 설정 (DB 제약 조건 만족)
-        user_ids = todo.user_id if isinstance(todo.user_id, list) else [todo.user_id] if todo.user_id else []
-        primary_user_id = user_ids[0] if user_ids else None
-        
-        if not primary_user_id:
-            raise HTTPException(status_code=400, detail="최소 한 명의 담당자가 필요합니다.")
-        
-        # 기본 사용자 객체 가져오기
-        primary_user = await User.objects.get_or_none(id=primary_user_id)
-        if not primary_user:
-            raise HTTPException(status_code=400, detail="유효하지 않은 사용자 ID입니다.")
-
-        # Todo 생성 (단일 사용자로)
-        new_todo = await Todo.objects.create(
-            id=todo_id,
-            text=todo.text,
-            user=primary_user,  # 첫 번째 사용자만 DB에 저장
-            deadline=todo.deadline,
-            start_day=todo.start_day
-        )
-
-        # 모든 담당자를 Redis에 저장
-        await TodoParticipantStore.set_participants(todo_id, user_ids)
-        
-        # 기타 Redis 설정
-        await r.sadd(f"project:{todo.project_id}:todos", todo_id)
-        await r.set(f"todo_status:{todo_id}", todo.status)
-        await TodoProgressStore.set_progress(todo_id, 0)
-
-        return {
-            "id": new_todo.id,
-            "text": new_todo.text,
-            "user_id": user_ids,  # 전체 담당자 배열 반환
-            "deadline": str(todo.deadline),
-            "start_day": str(todo.start_day),
-            "project_id": todo.project_id,
-            "status": todo.status
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"생성 실패: {str(e)}")
+    user_ids = todo.user_id if isinstance(todo.user_id, list) else [todo.user_id] if todo.user_id else []
+    primary_user_id = user_ids[0] if user_ids else None
+    if not primary_user_id:
+        raise HTTPException(status_code=400, detail="최소 한 명의 담당자가 필요합니다.")
+    primary_user = await User.objects.get_or_none(id=primary_user_id)
+    if not primary_user:
+        raise HTTPException(status_code=400, detail="유효하지 않은 사용자 ID입니다.")
+    new_todo = await Todo.objects.create(
+        id=todo_id,
+        text=todo.text,
+        user=primary_user,  # 첫 번째 사용자만 DB에 저장
+        deadline=todo.deadline,
+        start_day=todo.start_day
+    )
+    await TodoParticipantStore.set_participants(todo_id, user_ids)
+    await r.sadd(f"project:{todo.project_id}:todos", todo_id)
+    await r.set(f"todo_status:{todo_id}", todo.status)
+    await TodoProgressStore.set_progress(todo_id, 0)
+    return {
+        "id": new_todo.id,
+        "text": new_todo.text,
+        "user_id": user_ids,
+        "deadline": str(todo.deadline),
+        "start_day": str(todo.start_day),
+        "project_id": todo.project_id,
+        "status": todo.status
+    }
 
 
 
@@ -727,19 +660,16 @@ async def get_todos_by_status_and_project(project_id: str, status: str):
 @app.post("/todos/{todo_id}/status")
 async def set_todo_status(todo_id: str, status: str = Query(...)):
     if status not in VALID_STATUSES:
-        raise HTTPException(status_code=400, detail="statusㅁㅈ")
-
+        raise HTTPException(status_code=400, detail="status 오류")
     todo = await Todo.objects.get_or_none(id=todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Todo 못ㅊ")
-
+        raise HTTPException(status_code=404, detail="Todo를 찾을 수 없습니다")
     await r.set(f"todo_status:{todo_id}", status)
-
     project_id = await get_project_id_of_todo(todo_id)
     if project_id:
         await r.sadd(f"project:{project_id}:todos", todo_id)
+    return {"message": "상태 변경 완료"}
 
-    return {"message": "ㅇㅇ"}
 
 
 @app.get("/todos/{todo_id}/status")
@@ -750,18 +680,6 @@ async def get_todo_status(todo_id: str):
     return {"todo_id": todo_id, "status": status}
 
 
-# ───────────── Todo 삭제 ───────────── #
-@app.delete("/todos/{todo_id}")
-async def delete_todo(todo_id: str, project_id: str):
-    todo = await Todo.objects.get_or_none(id=todo_id)
-    if not todo:
-        raise HTTPException(status_code=404, detail="투두못찾")
-
-    await todo.delete()
-    await r.delete(f"todo_status:{todo_id}")
-    await r.srem(f"project:{project_id}:todos", todo_id)
-
-    return {todo_id,"삭제완료"}
 
 
 
@@ -836,10 +754,7 @@ async def upload_s3(
     s3_key = f"uploads/{uuid.uuid4()}.{extension}"
 
     s3.put_object(
-        Bucket=BUCKET_NAME,
-        Key=s3_key,
-        Body=file_content,
-        ContentType=file.content_type
+        Bucket=BUCKET_NAME,Key=s3_key,Body=file_content,ContentType=file.content_type
     )
 
     s3_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
@@ -1435,16 +1350,12 @@ async def get_todo_progress(todo_id: str):
 
 @app.get("/todos/{todo_id}/details")
 async def get_todo_details(todo_id: str):
-    # DB에서 기본 정보 조회
     todo = await Todo.objects.get_or_none(id=todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Todo not found")
-    
-    # Redis에서 추가 정보 조회
+        raise HTTPException(status_code=404, detail="Todo를 찾을 수 없습니다")
     progress = await TodoProgressStore.get_progress(todo_id)
     participants = await TodoParticipantStore.get_participants(todo_id)
     background_color = await TodoStyleStore.get_background_color(todo_id)
-    
     return {
         "id": todo.id,
         "text": todo.text,
@@ -1455,33 +1366,26 @@ async def get_todo_details(todo_id: str):
         "background_color": background_color
     }
 
+
 #업데이트
 @app.put("/todos/{todo_id}")
 async def update_todo(todo_id: str, update_data: dict):
     todo = await Todo.objects.get_or_none(id=todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Todo not found")
-    
-    # DB 업데이트
+        raise HTTPException(status_code=404, detail="Todo를 찾을 수 없습니다")
     if "text" in update_data:
         todo.text = update_data["text"]
     if "deadline" in update_data:
         todo.deadline = update_data["deadline"]
     if "start_day" in update_data:
         todo.start_day = update_data["start_day"]
-    
     await todo.update()
-    
-    # Redis 업데이트
     if "progress" in update_data:
         await TodoProgressStore.set_progress(todo_id, update_data["progress"])
-    
     if "participants" in update_data:
         await TodoParticipantStore.set_participants(todo_id, update_data["participants"])
-    
     if "background_color" in update_data:
         await TodoStyleStore.set_background_color(todo_id, update_data["background_color"])
-    
     return {"message": "TODO 업데이트 완료"}
 
 # 프로젝트 참여자 목록 조회 (참여자 선택용)
