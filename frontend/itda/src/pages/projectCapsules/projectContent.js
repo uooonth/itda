@@ -1072,7 +1072,7 @@ const ProjectContent = () => {
 
 
    //=====================================================================//
-    // ------------------------   챗 WebSocket 안정화  ------------------------ //
+    // ------------------------   라이브 챗       ------------------------ //
     //=====================================================================//
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -1080,6 +1080,7 @@ const ProjectContent = () => {
     const messagesEndRef = useRef(null);
     const [loginUserId, setLoginUserId] = useState(null);
     const [loginUserName, setLoginUserName] = useState(null);
+
 
     // JWT 파싱 함수 (최초 1회 파싱)
     const decodeJWT = (token) => {
@@ -1160,10 +1161,6 @@ const ProjectContent = () => {
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             console.log("📢 알림 도착:", msg);
-
-            // 여기는 일단 콘솔 찍히는지만 확인할 것
-            // 이후 여기서 팝업 띄우는 로직 추가 가능
-            alert(`🔔 새 알림: ${msg.type === "chat" ? "새로운 채팅이 도착했습니다!" : "파일이 업로드 되었습니다!"}`);
         };
 
         ws.onclose = () => console.log("알림 WebSocket Closed");
@@ -1205,6 +1202,38 @@ const ProjectContent = () => {
             </div>
         );
     };
+
+    // 라이브챗 유저 프로필 관련
+    const [chatProfileMap, setChatProfileMap] = useState({});
+    useEffect(() => {
+        if (!messages.length) return;
+
+        const fetchProfiles = async () => {
+            const userIds = [...new Set(messages.map(msg => msg.sender_id))];
+            const map = {};
+
+            await Promise.all(userIds.map(async (userId) => {
+                try {
+                    const res = await fetch(`http://localhost:8008/users/${userId}/profile`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        map[userId] = data?.profile_image_url || '/default_profile.png';
+                    } else {
+                        map[userId] = '/default_profile.png';
+                    }
+                } catch {
+                    map[userId] = '/default_profile.png';
+                }
+            }));
+
+            setChatProfileMap(map);
+        };
+
+        fetchProfiles();
+    }, [messages]);
+
+    
+
 
 
     //플젝아이디없을때
@@ -1401,7 +1430,11 @@ const ProjectContent = () => {
                                 <div key={idx} className={`chatMessageWrapper ${msg.sender}`}>
                                     {msg.sender === 'other' && (
                                         <div className="chatRow">
-                                            <div className="chatProfileDot other" />
+                                            <img 
+                                                src={chatProfileMap[msg.sender_id] || '/default_profile.png'} 
+                                                alt="profile" 
+                                                className="chatProfileAvatarOther"
+                                            />
                                             <div>
                                                 <div className="chatMeta">
                                                     <span className="chatName">{msg.name}</span>
@@ -1410,22 +1443,24 @@ const ProjectContent = () => {
                                                 <div className="chatBubble other">{msg.text}</div>
                                             </div>
                                         </div>
-                                    )}
-                                    
+                                    )}                                    
                                     {msg.sender === 'me' && (
                                         <div className="chatRow me">
                                             <div className="chatBubbleTimeGroup">
                                                 <div className="chatBubble me">{msg.text}</div>
                                                 <div className="chatTimeRight">{msg.time}</div>
                                             </div>
-                                            <div className="chatProfileDot me" />
+                                            <img 
+                                                src={chatProfileMap[loginUserId] || '/default_profile.png'} 
+                                                alt="profile" 
+                                                className="chatProfileAvatarMe"
+                                            />
                                         </div>
                                     )}
                                 </div>
                             ))}
                             <div ref={messagesEndRef} />
                         </div>
-
                         <div className="chatInputArea">
                             <img src={pencilIcon} alt="입력" className="pencilIcon" />
                             <input 

@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import '../../css/chat.css';
 import pencilIcon from '../../icons/pencilIcon.png';
 import sendIcon from '../../icons/sendIcon.png';
+import normalProfile from '../../icons/normal.png';
 import { jwtDecode } from "jwt-decode";
+
 
 const ChatContent = () => {
     const [messages, setMessages] = useState([]);
@@ -86,7 +88,7 @@ const ChatContent = () => {
                 text: msg.text,
                 sender: msg.sender_id === userId ? "me" : "other",
                 name: msg.sender_name,
-                profile: "/smileSo.jpg",
+                profile: normalProfile,
                 time: new Date(msg.created_at).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -113,7 +115,7 @@ const ChatContent = () => {
                 text: msg.text,
                 sender: msg.sender_id === userId ? "me" : "other",
                 name: msg.sender_name,
-                profile: "/smileSo.jpg",
+                profile: normalProfile,
                 time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
             };
             setMessages(prev => [...prev, newMessage]);
@@ -128,26 +130,22 @@ const ChatContent = () => {
     }, [showCreateRoom]);
 
     const fetchProjectMembers = async () => {
-        const dummyMembers = [
-            { id: 'demo_user1', name: '데모 사용자 1', email: 'demo1@example.com' },
-            { id: 'demo_user2', name: '데모 사용자 2', email: 'demo2@example.com' }
-        ];
         try {
             const accessToken = localStorage.getItem("access_token");
             const res = await fetch('http://localhost:8008/users/all', {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            if (!res.ok) { setProjectMembers(dummyMembers); return; }
+            if (!res.ok) {
+                setProjectMembers([]);
+                return;
+            }
             const data = await res.json();
-            const realMembers = data.users || [];
-            const allMembers = [...dummyMembers, ...realMembers];
-            const uniqueMembers = allMembers.filter((member, index, self) =>
-                index === self.findIndex(m => m.id === member.id));
-            setProjectMembers(uniqueMembers);
+            setProjectMembers(data.users || []);
         } catch {
-            setProjectMembers(dummyMembers);
+            setProjectMembers([]);
         }
     };
+
 
     const sendMessage = async () => {
         if (!input.trim()) return;
@@ -156,8 +154,8 @@ const ChatContent = () => {
             id: messages.length + 1,
             text: messageText,
             sender: "me",
-            name: userName,  // ✅ 내 이름으로 수정됨
-            profile: "/smileSo.jpg",
+            name: userName,  
+            profile: normalProfile,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
         };
         setMessages(prev => [...prev, newMessage]);
@@ -167,7 +165,7 @@ const ChatContent = () => {
             if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                 const wsMessage = {
                     sender_id: userId,
-                    sender_name: userName,  // ✅ 내가 보낼때 이름도 제대로 보냄
+                    sender_name: userName,
                     text: messageText,
                     time: new Date().toISOString()
                 };

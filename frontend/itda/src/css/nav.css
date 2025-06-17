@@ -190,6 +190,8 @@
 .alarmPopup {
     width: 21.875vw; 
     min-height: 9.259vw; 
+    max-height: 75vh;
+    overflow-y: auto;
     padding: 3.79vw 2.083vw 1.54vw 2.083vw;
 }
 
