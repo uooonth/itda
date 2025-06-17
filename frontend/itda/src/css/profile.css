@@ -257,7 +257,6 @@ html, body {
 }
 
 .profile_explain .tags .tag {
-  width: 8vw;
   height: 4vh;
   background-color: #595959;
   border-radius: 40px;
@@ -461,9 +460,12 @@ html, body {
   grid-column: 1 / -1;
   text-align: center;
   padding: 40px 20px;
+  align-items: center;
   color: #666;
+  justify-content: center;
   font-family: 'pretendard-Regular';
 }
+.project_ 
 /* ========================================================= */
 /* =============    Tech Stack Components   ================ */
 /* ========================================================= */

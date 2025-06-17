@@ -1068,8 +1068,8 @@ const ProfileCom = ({ username, isOwnProfile = true, isLoggedIn = true, viewMode
                             })
                         ) : (
                             <div className="no-projects">
-                                등록된 기술 스택이 없습니다.
-                            </div>
+                                <p>등록된 기술스택이 없습니다.</p>
+                                <p>+ 버튼을 클릭해서 기술스택을 추가하세요!</p>                            </div>
                         )}
                     </div>
                 </div>
