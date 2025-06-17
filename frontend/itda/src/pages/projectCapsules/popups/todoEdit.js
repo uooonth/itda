@@ -1,5 +1,5 @@
 // TodoEditModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,location } from 'react';
 import '../../../css/todoEdit.css';
 
 const DONT_SHOW_EDIT_KEY = 'dontShowEditModal';
@@ -80,25 +80,53 @@ const TodoEditModal = ({ isOpen, onClose, todoId, onUpdate, projectId }) => {
         }
     };
 
-    // 실제 저장
     const handleSave = async () => {
         setLoading(true);
         try {
+            // 1. 텍스트, 날짜, 참여자 등 일반 정보 업데이트
             const response = await fetch(`http://localhost:8008/todos/${todoId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(todoData),
+                body: JSON.stringify({
+                    text: todoData.text,
+                    deadline: todoData.deadline,
+                    start_day: todoData.start_day,
+                    participants: todoData.participants,
+                    background_color: todoData.background_color
+                }),
             });
-            if (response.ok) {
-                onUpdate();
-                onClose();
+    
+            if (response.status !== 200 && response.status !== 204) {
+                alert('할일 정보 수정에 실패했습니다.');
+                return;
             }
+            
+    
+            // 2. 진행도 별도 업데이트
+            const progressResponse = await fetch(`http://localhost:8008/todos/${todoId}/progress?progress=${todoData.progress}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+            });
+    
+            if (!progressResponse.ok) {
+                const errMsg = await progressResponse.text();
+                console.error('진행도 업데이트 실패:', errMsg);
+                alert('진행도 수정에 실패했습니다.');
+                return;
+            }
+    
+            // 3. 성공 시
+            onClose();
+            window.location.reload(true);
+    
         } catch (error) {
-            console.error('TODO 업데이트 실패:', error);
+            console.error('저장 중 오류 발생:', error);
+            alert('서버 오류로 인해 저장에 실패했습니다.');
         } finally {
             setLoading(false);
         }
     };
+    
 
     const handleDelete = async () => {
         try {
@@ -106,11 +134,16 @@ const TodoEditModal = ({ isOpen, onClose, todoId, onUpdate, projectId }) => {
                 method: 'DELETE',
             });
             if (response.ok) {
-                onUpdate();
                 onClose();
+                window.location.reload(); // ✅ 삭제 후 새로고침
+            } else {
+                const errMsg = await response.text();
+                console.error('TODO 삭제 실패:', errMsg);
+                alert('삭제에 실패했습니다.');
             }
         } catch (error) {
-            console.error('TODO 삭제 실패:', error);
+            console.error('TODO 삭제 오류:', error);
+            alert('서버 오류로 인해 삭제에 실패했습니다.');
         }
     };
     

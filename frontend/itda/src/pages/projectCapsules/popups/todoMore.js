@@ -261,6 +261,7 @@ const EditContainer = styled.div`
   gap: 20px;
   margin-top: 16px;
   padding: 24px;
+  font-family:'pretendard-medium';
   background-color: #f8f9fa;
   border-radius: 12px;
   border: 1px solid #e9ecef;
@@ -348,8 +349,8 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
     switch (backendStatus) {
       case "in_progress":
         return "inProgress";
-      case "feedback_pending":
-        return "feedbackPending";
+      case "waiting_feedback":
+        return "waiting_feedback";
       case "completed":
         return "completed";
       default:
@@ -410,6 +411,7 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
         user_id: editedAssignee,
         deadline: editedDueDate,
         start_day: editedStartDate,
+        status: mapStatusToBackend(status), 
       });
       setEditingId(null);
       
@@ -441,13 +443,11 @@ const TodoMorePopup = ({ status, todos, projectId, onClose, onUpdate }) => {
     try {
         await axios.post(`http://localhost:8008/todos`, {
           text: newTodo.text,
-          // MODIFIED: 선택된 담당자 ID 배열을 전송
           user_id: newTodo.assigneeId,
           deadline: newTodo.dueDate,
           start_day: newTodo.startDate,
           project_id: projectId,
-          status: "in_progress",
-        });
+          status: mapStatusToBackend(status),          });
       // MODIFIED: 새 할 일 상태 초기화 시 담당자 ID를 빈 배열로 설정
       setNewTodo({ text: "", assigneeId: [], dueDate: "", startDate: "" });
       setIsAdding(false);
