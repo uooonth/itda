@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../css/nav.css';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'; 
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import smileIcon from '../icons/smile.svg';
 import bellIcon from '../icons/bell.svg';
 import loginIcon from '../icons/login.svg';
@@ -39,12 +39,12 @@ function Navigation({ isLoggedIn, username }) {
     window.location.href = "/";
   };
 
-    // 찜에 있는 거 하루 남았다 알람
-    useEffect(() => {
+  // 찜 마감 남았다 알람
+  useEffect(() => {
     const fetchPinnedProjects = async () => {
-        if (!username) return;
+      if (!username) return;
 
-        try {
+      try {
         // 찜한 프로젝트 ID 리스트 가져오기
         const pinnedRes = await fetch(`http://localhost:8008/users/${username}/pinned-projects`);
         const pinnedData = await pinnedRes.json();
@@ -52,71 +52,71 @@ function Navigation({ isLoggedIn, username }) {
 
         if (!pinnedIds || pinnedIds.length === 0) return;  // 찜한 프로젝트 없으면 종료
 
-        // 전체 프로젝트 목록 가져오기 (혹은 네가 쓰는 getProjects API)
+        // 전체 프로젝트 목록 가져오기
         const allProjectsRes = await fetch("http://localhost:8008/getProjects");
         const allProjectsData = await allProjectsRes.json();
 
         const today = new Date();
-        
+
         // 하루 남은 프로젝트 필터링
         const upcomingDeadlineProjects = allProjectsData.filter(project => {
-            const deadline = new Date(project.sign_deadline);
-            const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
-            return pinnedIds.includes(project.project.id) && diffDays === 1;
+          const deadline = new Date(project.sign_deadline);
+          const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+          return pinnedIds.includes(project.project.id) && diffDays === 1;
         });
 
         // 알림 추가
         upcomingDeadlineProjects.forEach(project => {
-            const notification = {
-            id: Date.now() + Math.random(),  // id 충돌 방지
+          const notification = {
+            id: Date.now() + Math.random(),
             type: "deadline",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             text: `찜 목록에 있는 ‘${project.project.name}’의 모집 마감 기한이 하루 남았습니다!`
-            };
-            set
-            (prev => [notification, ...prev]);
+          };
+          setNotifications(prev => [notification, ...prev]);
         });
 
-        } catch (err) {
+
+      } catch (err) {
         console.error("찜 프로젝트 알림 로드 실패", err);
-        }
+      }
     };
 
     fetchPinnedProjects();
-    }, [username]);
+  }, [username]);
 
 
   // 파일 업로드 알림
-    useEffect(() => {
+  useEffect(() => {
     const fileWs = new WebSocket("ws://localhost:8008/ws/fileupload");
 
     fileWs.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        console.log("파일 알림 도착:", msg);
+      const msg = JSON.parse(event.data);
+      console.log("파일 알림 도착:", msg);
 
-        let notification = {
+      let notification = {
         id: Date.now(),
         type: "upload",
-        time: new Date(msg.time).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        time: new Date(msg.time).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
         }),
         projectName: msg.project_name,
         uploaderName: msg.uploader,
         fileName: msg.file_name,
         text: `프로젝트에 ${msg.uploader}님이 파일을 올렸습니다.` //${msg.project_name} 이거 써야하는데
-        };
+      };
 
-        setNotifications(prev => [notification, ...prev]);
+      setNotifications(prev => [notification, ...prev]);
     };
 
     fileWs.onclose = () => console.log("파일 WebSocket 종료");
     fileWs.onerror = (error) => console.error("파일 WebSocket 오류:", error);
 
     return () => {
-        fileWs.close();
+      fileWs.close();
     };
-    }, []);
+  }, []);
 
 
   // 라이브챗 알림 WebSocket 연결
@@ -126,42 +126,42 @@ function Navigation({ isLoggedIn, username }) {
     wsAlarmRef.current = ws;
 
     ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    console.log("알림 도착:", msg);
+      const msg = JSON.parse(event.data);
+      console.log("알림 도착:", msg);
 
-    let notification;
+      let notification;
 
-    if (msg.type === "chat") {
+      if (msg.type === "chat") {
         notification = {
-        id: Date.now(),
-        type: "chat",
-        time: new Date(msg.time).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        }),
-        projectName: msg.project_name,
-        senderName: msg.sender_name,
-        text: `'${msg.project_name}' 에 새로운 채팅이 있습니다.`
+          id: Date.now(),
+          type: "chat",
+          time: new Date(msg.time).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          projectName: msg.project_name,
+          senderName: msg.sender_name,
+          text: `'${msg.project_name}' 에 새로운 채팅이 있습니다.`
         };
-    } 
-    else if (msg.type === "upload") {
+      }
+      else if (msg.type === "upload") {
         notification = {
-        id: Date.now(),
-        type: "upload",
-        time: new Date(msg.time).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        }),
-        projectName: msg.project_name,
-        uploaderName: msg.uploader,
-        fileName: msg.file_name,
-        text: `프로젝트에 ${msg.uploader}님이 작업물을 업로드했습니다.`
+          id: Date.now(),
+          type: "upload",
+          time: new Date(msg.time).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          projectName: msg.project_name,
+          uploaderName: msg.uploader,
+          fileName: msg.file_name,
+          text: `프로젝트에 ${msg.uploader}님이 작업물을 업로드했습니다.`
         };
-    }
+      }
 
-    if (notification) {
+      if (notification) {
         setNotifications(prev => [notification, ...prev]);
-    }
+      }
     };
 
 
@@ -192,10 +192,10 @@ function Navigation({ isLoggedIn, username }) {
   useEffect(() => {
     const fetchAllData = async () => {
       if (!username) return;
-      
+
       try {
         setLoadingProjects(true);
-        
+
         // 사용자 프로필 정보 가져오기
         const [usersResponse, projectsResponse] = await Promise.all([
           fetch(`http://localhost:8008/getUsers`),
@@ -204,7 +204,7 @@ function Navigation({ isLoggedIn, username }) {
 
         const usersData = await usersResponse.json();
         const filteringData = usersData.find(userData => userData.id === username);
-        
+
         if (filteringData) {
           setUserProfile(filteringData);
         } else {
@@ -232,7 +232,7 @@ function Navigation({ isLoggedIn, username }) {
 
     fetchAllData();
   }, [username]);
-  
+
   console.log("userProjects", userProjects);
   console.log("userProfile", userProfile);
   console.log("loadingProjects", loadingProjects);
@@ -250,7 +250,7 @@ function Navigation({ isLoggedIn, username }) {
           <div className="userName">{userProfile?.name}님</div>
           <img src={smileIcon} alt="Smile" className="icon" onClick={toggleProfilePopup} />
           <img src={bellIcon} alt="Bell" className="icon" onClick={toggleAlarmPopup} />
-          
+
           {showProfilePopup && (
             <div className="popup profilePopup">
               <span className="close">
@@ -262,7 +262,7 @@ function Navigation({ isLoggedIn, username }) {
                 </span>
                 {showEmojiPicker && <Picker onEmojiClick={handleEmojiSelect} />}
               </div>
-              
+
               <div className="section">
                 <div className="content-nav">
                   <span className="email">
@@ -271,9 +271,9 @@ function Navigation({ isLoggedIn, username }) {
                   <span className="profileSettings">설정</span>
                 </div>
               </div>
-              
+
               <div className="divider"></div>
-              
+
               <div className="section">
                 <div className="title">참여중인 프로젝트</div>
                 {loadingProjects ? (
@@ -283,16 +283,16 @@ function Navigation({ isLoggedIn, username }) {
                 ) : userProjects.length > 0 ? (
                   <div className="projects-list">
                     {userProjects.map((project, index) => (
-                      <div key={project.id || index} className="content" style={{ 
+                      <div key={project.id || index} className="content" style={{
                         marginBottom: '8px',
                         cursor: 'pointer',
                         padding: '4px 0',
                         borderRadius: '4px',
                         transition: 'background-color 0.2s'
                       }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                      onClick={() => goToProject(project.project.project.id)}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        onClick={() => goToProject(project.project.project.id)}
                       >
                         <span style={{ flex: 1 }}>
                           {project.project.project.name || '프로젝트 이름 없음'}
@@ -309,7 +309,7 @@ function Navigation({ isLoggedIn, username }) {
                   </div>
                 )}
               </div>
-              
+
               <div className="divider"></div>
               <div className="logout" onClick={handleLogout}>로그아웃</div>
             </div>
@@ -324,41 +324,41 @@ function Navigation({ isLoggedIn, username }) {
               <div className="section">
                 <span className="popupUserName userName">알림</span>
               </div>
-              
+
               {/* 알림 */}
               {notifications.map((notification, index) => (
                 <div key={notification.id}>
-                    <div className="notification">
+                  <div className="notification">
                     <div className="toptext">
-                        {notification.type === "chat" ? (
+                      {notification.type === "chat" ? (
                         <img src={chatIcon} alt="chat" className="icon" />
-                        ) : notification.type === "upload" ? (
+                      ) : notification.type === "upload" ? (
                         <img src={uploadIcon} alt="upload" className="icon" />
-                        ) : (
+                      ) : (
                         <img src={starIcon} alt="star" className="icon" />
-                        )}
-                        <div className="title">프로젝트 알림</div>
+                      )}
+                      <div className="title">프로젝트 알림</div>
                     </div>
                     <div className="time">{notification.time}</div>
-                    </div>
-                    <div className='bottomtext'>
+                  </div>
+                  <div className='bottomtext'>
                     <div className="content-alam">{notification.text}</div>
-                    </div>
-                    <div className="divider"></div>
+                  </div>
+                  <div className="divider"></div>
                 </div>
-                ))}
+              ))}
 
               <div className="notification">
                 <div className="toptext">
-                    <img src={starIcon} alt="star" className="icon" />
-                    <div className="title">프로젝트 알림</div>
+                  <img src={starIcon} alt="star" className="icon" />
+                  <div className="title">프로젝트 알림</div>
                 </div>
                 <div className="time">방금 전</div>
-                </div>
-                <div className='bottomtext'>
+              </div>
+              <div className='bottomtext'>
                 <div className="content-alam">찜 목록에 있는 ‘영상찍기전수정해주세요’의 모집 마감 기한이 하루 남았습니다!</div>
-                </div>
-                <div className="divider"></div>
+              </div>
+              <div className="divider"></div>
 
               {/* 알림이 없을 때 */}
               {notifications.length === 0 && (

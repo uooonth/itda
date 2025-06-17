@@ -1030,7 +1030,6 @@ async def websocket_all_alarm(websocket: WebSocket):
         all_alarm_connections.remove(websocket)
 
 # 프로젝트별 라이브채팅
-# main.py의 websocket_livechat 함수 수정
 @app.websocket("/ws/livechat/{project_id}")
 async def websocket_livechat(websocket: WebSocket, project_id: str):
     await websocket.accept()
