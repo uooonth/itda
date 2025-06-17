@@ -29,10 +29,6 @@ function Navigation({ isLoggedIn, username }) {
 
   const toggleProfilePopup = () => setShowProfilePopup(!showProfilePopup);
   const toggleAlarmPopup = () => setShowAlarmPopup(!showAlarmPopup);
-  const handleEmojiSelect = (emojiObject) => {
-    setSelectedEmoji(emojiObject);
-    setShowEmojiPicker(false);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
