@@ -24,10 +24,6 @@ function Navigation({ isLoggedIn, username }) {
 
     // 유저 아이디
   const [userProfile, setUserProfile] = useState(null);
-  function handleEmojiSelect(emojiObject) {
-      setSelectedEmoji(emojiObject);
-      setShowEmojiPicker(false); // 이모지 선택 후 선택 창 닫기
-  }
 
   const [notifications, setNotifications] = useState([]);
 
@@ -135,7 +131,7 @@ function Navigation({ isLoggedIn, username }) {
                 // 사용자 프로필 정보 가져오기
                 const [usersResponse, projectsResponse] = await Promise.all([
                     fetch(`http://localhost:8008/getUsers`),
-                    fetch(`http://localhost:8008/users/${username}/projects`) // 사용자의 프로젝트 목록
+                    fetch(`http://localhost:8008/users/${username}/worker-projects`) 
                 ]);
 
                 const usersData = await usersResponse.json();
@@ -147,11 +143,10 @@ function Navigation({ isLoggedIn, username }) {
                     console.error('user filtering fail');
                     setUserProfile(null);
                 }
-
                 // 프로젝트 데이터 처리
                 if (projectsResponse.ok) {
                     const projectsData = await projectsResponse.json();
-                    setUserProjects(projectsData);
+                    setUserProjects(projectsData.worker_projects);
                 } else {
                     console.error('프로젝트 데이터 가져오기 실패');
                     setUserProjects([]);
@@ -203,7 +198,6 @@ function Navigation({ isLoggedIn, username }) {
                                 <span className="email">
                                     {userProfile?.email || 'email@example.com'}
                                 </span>
-                                <span className="profileSettings">설정</span>
                             </div>
                         </div>
                         
@@ -216,25 +210,27 @@ function Navigation({ isLoggedIn, username }) {
                                     <span style={{ color: '#999', fontSize: '14px' }}>로딩 중...</span>
                                 </div>
                             ) : userProjects.length > 0 ? (
-                                <div className="projects-list">
+                                <div className="projects-list-nav">
                                     {userProjects.map((project, index) => (
-                                        <div key={project.id || index} className="content" style={{ 
-                                            marginBottom: '8px',
-                                            cursor: 'pointer',
-                                            padding: '4px 0',
-                                            borderRadius: '4px',
-                                            transition: 'background-color 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                                        onClick={() => goToProject(project.project.project.id)}
+                                        <div key={project.project_info_id || index} className="content"
+                                            style={{
+                                                marginBottom: '8px',
+                                                cursor: 'pointer',
+                                                padding: '4px 0',
+                                                borderRadius: '4px',
+                                                transition: 'background-color 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            onClick={() => goToProject(project.project_info_id)} // <- 여기 수정
                                         >
                                             <span style={{ flex: 1 }}>
-                                                {project.project.project.name || '프로젝트 이름 없음'}
+                                                {project.project_name || '프로젝트 이름 없음'}
                                             </span>
                                             <img src={goProjectIcon} alt="goProject" className="icon" />
                                         </div>
                                     ))}
+
                                 </div>
                             ) : (
                                 <div className="content">
