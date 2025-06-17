@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef ,location} from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import Picker from 'emoji-picker-react';
 import { Timeline, DataSet } from 'vis-timeline/standalone';
@@ -25,8 +25,7 @@ import FeedbackPopup from './popups/feedback';
 import pencilIcon from '../../icons/pencilIcon.png';
 import sendIcon from '../../icons/sendIcon.png';
 /* timeline */ 
-import { Timeline,DataSet } from 'vis-timeline/standalone'
-import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
+
 
 // CSS
 import '../../css/feedbackpopup.css';
@@ -100,6 +99,25 @@ const ProjectContent = () => {
         fetchProjectData();
         fetchTodos();
         updateTodoCounts();
+        setTimelineTodos([]);
+        setTodoProgress({});
+        setTimelineItems(new DataSet([]));
+        const initializeTimeline = async () => {
+            try {
+                await fetchTodos();
+                await fetchTimelineTodos();
+                
+                // 데이터 로딩 완료 후 자동으로 모든 그룹 표시
+                setTimeout(() => {
+                    handleShowAllGroups();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('타임라인 초기화 실패:', error);
+            }
+        };
+        
+        initializeTimeline();
     }, [Pg_id]);
     // 프로젝트 아이디가 없다면
 
@@ -112,7 +130,7 @@ const ProjectContent = () => {
     const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [tempContent, setTempContent] = useState('');
-
+    const [showGonjiModal, setshowGonjiModal] = useState(false);
     // 이모지 관리
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [selectedEmoji, setSelectedEmoji] = useState({ emoji: '🚩' });
@@ -129,7 +147,7 @@ const ProjectContent = () => {
                     const data = await response.json();
                     setNotice(data.content);
                 } else {
-                    setNotice('');
+                    setNotice('공지사항이 없습니다.');
                 }
                 setError(null);
             } catch (err) {
@@ -158,7 +176,7 @@ const ProjectContent = () => {
 
             if (response.ok) {
                 setNotice(tempContent);
-                setIsEditing(false);
+                setIsEditing(false);            setshowGonjiModal(false); 
                 alert("공지사항이 수정되었습니다.");
             } else {
                 throw new Error("공지사항 수정에 실패했습니다.");
@@ -170,7 +188,7 @@ const ProjectContent = () => {
     };
 
     const handleCancelClick = () => {
-        setIsEditing(false);
+        setshowGonjiModal(false); setIsEditing(false);
     };
 
     const handleEmojiSelect = (emojiObject) => {
@@ -239,24 +257,24 @@ const ProjectContent = () => {
 
     const updateTodoCounts = async () => {
         if (!Pg_id) return;
-
+    
         try {
             const [inProgressRes, completedRes, feedbackRes] = await Promise.all([
                 fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/in_progress`),
                 fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/completed`),
                 fetch(`http://127.0.0.1:8008/projects/${Pg_id}/todos/status/waiting_feedback`)
             ]);
-
+    
             const [inProgressData, completedData, feedbackData] = await Promise.all([
                 inProgressRes.json(),
                 completedRes.json(),
                 feedbackRes.json()
             ]);
-
-            const inProgressLen = inProgressData.todos.length;
-            const completedLen = completedData.todos.length;
-            const feedbackLen = feedbackData.todos.length;
-
+    
+            const inProgressLen = Array.isArray(inProgressData) ? inProgressData.length : 0;
+            const completedLen = Array.isArray(completedData) ? completedData.length : 0;
+            const feedbackLen = Array.isArray(feedbackData) ? feedbackData.length : 0;
+    
             setInProgressCount(inProgressLen);
             setCompletedCount(completedLen);
             setWaitingFeedbackCount(feedbackLen);
@@ -265,6 +283,7 @@ const ProjectContent = () => {
             console.error("Todo 카운트 조회 실패:", err);
         }
     };
+    
 
     /* ========================================================= */
     /* =================    Todo 칸반 관리    ================== */
@@ -382,15 +401,17 @@ const ProjectContent = () => {
 
     const saveEdit = async (id, status) => {
         if (!todos[status]) return;
-
+        const originalTodo = todos[status].find(todo => todo.id === id);
+        if (!originalTodo) return;
         const updatedData = {
             text: localEditContent,
             user_id: username,
             deadline: localEditDueDate.includes('.') 
                 ? localEditDueDate.replaceAll('.', '-') 
                 : localEditDueDate,
-            start_day: '2025-04-01',
             project_id: Pg_id,
+            start_day: originalTodo.start_day,  // ✅ 기존 값 그대로 반영
+
         };
 
         try {
@@ -408,6 +429,8 @@ const ProjectContent = () => {
                     ),
                 }));
                 setEditingId(null);
+                window.location.reload()
+
             }
         } catch (error) {
             console.error("Todo 수정 실패:", error);
@@ -424,6 +447,7 @@ const ProjectContent = () => {
             if (response.ok) {
                 await fetchTodos();
                 updateTodoCounts();
+                window.location.reload()
             }
         } catch (error) {
             console.error("Todo 삭제 실패:", error);
@@ -459,7 +483,7 @@ const ProjectContent = () => {
         return (
             <div ref={setNodeRef} style={style} className="todo-item">
                 {editingId === id ? (
-                    <div className="edit-form">
+                    <div className="edit-form edit-form-Pc">
                         <input
                             ref={inputRef}
                             type="text"
@@ -472,9 +496,9 @@ const ProjectContent = () => {
                             value={localEditDueDate}
                             onChange={(e) => setLocalEditDueDate(e.target.value)}
                         />
-                        <div className="edit-buttons">
-                            <button onClick={() => saveEdit(id, status)}>저장</button>
-                            <button onClick={() => setEditingId(null)}>취소</button>
+                        <div className="edit-buttons edit-buttons-Pc">
+                            <button className="save" onClick={() => saveEdit(id, status)}>저장</button>
+                            <button className="cancle" onClick={() => setEditingId(null)}>취소</button>
                         </div>
                     </div>
                 ) : (
@@ -580,7 +604,6 @@ const ProjectContent = () => {
         }));
         groups.update(updatedGroups);
     };
-
     // 컬러 설정 
     const colorClasses = [
         'color-white'
@@ -651,10 +674,7 @@ const ProjectContent = () => {
             );
 
             // 내가 포함된 할 일만 필터링
-            const myTodos = timelineTodos.filter(todo => {
-                const assignees = Array.isArray(todo.user_id) ? todo.user_id : [todo.user_id];
-                return assignees.includes(username);
-            });
+            const myTodos = timelineTodos;
 
             // 그룹 생성 (내가 포함된 할 일의 모든 담당자)
             const groupUsers = new Set();
@@ -812,11 +832,15 @@ const ProjectContent = () => {
                     ).join('');
                 }
                 
-                const html = '<div class="timeline-card">' +
-                    '<div class="timeline-divider" data-progress="' + progress + '"></div>' +
-                    '<div class="timeline-title">' + item.content + '</div>' +
-                    '<div class="timeline-avatars">' + profileImagesHtml + '</div>' +
-                    '</div>';
+                const html = `<div class="timeline-card">
+                    <div class="timeline-title">${item.content}</div>
+                    <div class="timeline-avatars">${profileImagesHtml}</div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div>${progress}%완료</div>
+                        </div>
+                    </div>
+                </div>`;
                 return html;
             },
 
@@ -938,19 +962,19 @@ const ProjectContent = () => {
                 };
             });
         }, 200);
+        handleShowAllGroups();
 
         timeline.on('ready', () => {
+            handleShowAllGroups();
             setTimeout(() => {
                 window.scrollTo(0, 0);
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
             }, 100);
         });
 
         return () => timeline.destroy();
     }, [timelineItems, groups, todoProgress, username]);
 
-
+    console.log(groups,"dddddddddddddddddd")
 
 
 //옮길때 경고 모달
@@ -974,7 +998,8 @@ const ProjectContent = () => {
         }
         if (!pendingMove) return;
         await handleMoveConfirm(pendingMove.item, pendingMove.callback);
-        setPendingMove(null);
+        setPendingMove(null);            window.location.reload();
+
     };
     const handleCancel = () => {
         setShowCancelModal(false);
@@ -1027,7 +1052,7 @@ const ProjectContent = () => {
         fetchTodos();
         fetchTimelineTodos();
     };
-
+    
     /* ========================================================= */
     /* =================    피드백 관리    ===================== */
     /* ========================================================= */
@@ -1079,12 +1104,6 @@ const ProjectContent = () => {
     const [input, setInput] = useState('');
     const wsRef = useRef(null);
     const messagesEndRef = useRef(null);
-
-    // 파일명 토글 표시 컴포넌트
-    const ToggleNameDisplay = ({ name }) => {
-        const [expanded, setExpanded] = useState(false);
-
-
     const [loginUserId, setLoginUserId] = useState(null);
     const [loginUserName, setLoginUserName] = useState(null);
 
@@ -1268,7 +1287,7 @@ const ProjectContent = () => {
                                 placeholder='현재 수정하는 공지는 모두가 볼 수 있습니다.'
                             />
                             <div>
-                            <button className="saveBtn" onClick={handleSaveClick}>저장</button>
+                            <button className="saveBtn" onClick={()=>setshowGonjiModal(true)}>저장</button>
                             <button className="cancelBtn" onClick={handleCancelClick}>취소</button></div>
                         </div>
                     ) : (
@@ -1363,8 +1382,22 @@ const ProjectContent = () => {
                         타임라인 
                         <img onClick={handleShowAllGroups} id="showAllGroup" src={rechange} alt="모두보기" />
                     </div>
-                    <div style={{ height: '475px', overflowY: 'auto' }}>
-                        <div ref={timelineRef} className="vis-timeline-container" />
+                    <div style={{ height: '475px', overflowY: 'auto', position: 'relative' }}>
+                    {/* 안내 문구 조건부 렌더링 */}
+                    {timelineItems.length === 0 && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: '#888',
+                            fontSize: '16px',
+                            textAlign: 'center'
+                        }}>
+                            현재 할 일이 없습니다.
+                        </div>
+                    )}                        
+                    <div ref={timelineRef} className="vis-timeline-container" />
                     </div>
                 </div>
 
@@ -1392,7 +1425,7 @@ const ProjectContent = () => {
                                     title="피드백 대기중" 
                                     items={todos.feedbackPending} 
                                     status="feedbackPending"
-                                    onDetail={() => setShowDetail({ open: true, status: "feedbackPending" })}
+                                    onDetail={() => setShowDetail({ open: true, status: "waiting_feedback" })}
                                 />
                             </div>
                         </DndContext>
@@ -1495,7 +1528,29 @@ const ProjectContent = () => {
                     </div>
                 </>
             )}
-
+            {showGonjiModal && (
+                <>
+                    <div className="modal_overlay"></div>
+                    <div className="modal_Pc">
+                        <div className="modal_emoji">😶</div>
+                        <div className="modal_realMsg">
+                            {modal_realMsg || '정말 공지를 수정하시겠습니까?'}
+                        </div>
+                        <div className="modal-buttons_Pc">
+                            <button onClick={handleCancelClick}>취소</button>
+                            <button onClick={handleSaveClick}>네</button>
+                        </div>
+                        <label className="modal_dontShow">
+                            <input
+                                type="checkbox"
+                                checked={dontShowAgain}
+                                onChange={handleDontShowAgainChange}
+                            />
+                            다시 보지 않기 (24시간)
+                        </label>
+                    </div>
+                </>
+            )}
             <TodoEditModal
                 isOpen={todoEditModal.isOpen}
                 onClose={handleTodoEditClose}
