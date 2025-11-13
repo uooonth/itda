@@ -37,6 +37,7 @@ services:
     env_file: .env
     volumes:
       - ./backend:/app/backend
+      - ~/.aws:/root/.aws:ro
       - ./static/uploads:/app/static/uploads
 
     depends_on:

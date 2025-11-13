@@ -237,7 +237,7 @@ const TodoEditModal = ({ isOpen, onClose, todoId, onUpdate, projectId }) => {
                     <div className="form-group">
                         <label>참여자</label>
                         <div className="participants-list">
-                            {projectMembers.map(member => (
+                            {projectMembers.map(member => ( console.log("멤버야!!!!!!!!!!!!!!!!!!!!!!!",member),
                                 <div
                                     key={member.id}
                                     className={`participant-item ${todoData.participants.includes(member.id) ? 'selected' : ''}`}
@@ -249,20 +249,7 @@ const TodoEditModal = ({ isOpen, onClose, todoId, onUpdate, projectId }) => {
                             ))}
                         </div>
                     </div>
-                    {/* 배경색 선택 */}
-                    <div className="form-group">
-                        <label>배경색</label>
-                        <div className="color-options">
-                            {colorOptions.map(color => (
-                                <div
-                                    key={color}
-                                    className={`color-option ${todoData.background_color === color ? 'selected' : ''}`}
-                                    style={{ backgroundColor: color }}
-                                    onClick={() => setTodoData(prev => ({ ...prev, background_color: color }))}
-                                />
-                            ))}
-                        </div>
-                    </div>
+
                 </div>
                 <div className="modal-footer">
                     <button className="delete-btn" onClick={handleDeleteClick}>삭제</button>
