@@ -241,7 +241,7 @@ const SearchCom = ({username,isLoggedIn }) => {
                 marginBottom: '20px',
                 padding: '12px',
                 border: '2px solid #e9ecef',
-                borderRadius: '25px',
+                borderRadius:'8px',
                 backgroundColor: 'white'
             }}>
                 <img 
@@ -264,7 +264,7 @@ const SearchCom = ({username,isLoggedIn }) => {
                         flex: 1,
                         border: 'none',
                         outline: 'none',
-                        fontSize: '16px',
+                        fontSize: '12px',
                         fontFamily: 'pretendard-Regular',
                         backgroundColor: 'transparent'
                     }}
@@ -311,7 +311,7 @@ const SearchCom = ({username,isLoggedIn }) => {
                                             }}
                                         />
                                     ) : (
-                                        "img"
+                                        ""
                                     )}
                                 </div>
                                 <div className="info">

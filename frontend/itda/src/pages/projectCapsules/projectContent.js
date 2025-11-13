@@ -594,7 +594,7 @@ const ProjectContent = () => {
     });
     const [selectedTodoId, setSelectedTodoId] = useState(null);
     const timelineRef = useRef(null);
-    const groupColors = {};
+ 
 
     // 그룹 모두보기 핸들러
     const handleShowAllGroups = () => {
@@ -606,16 +606,22 @@ const ProjectContent = () => {
     };
     // 컬러 설정 
     const colorClasses = [
-        'color-white'
+    'color-red',   // 빨강
+    'color-blue',  // 파랑
+    'color-green', // 초록  ,
+    'color-orange','color-gray' ,'color-purple','color-yellow','color-pink','color-cyan','color-teal','color-brouwn','color-navy'
     ];  
-    function getGroupColorClass(groupName) {
-        if (!groupColors[groupName]) {
-            groupColors[groupName] = colorClasses[colorIndex];
-            colorIndex = (colorIndex + 1) % colorClasses.length; 
-        }
-        return groupColors[groupName];
+    const groupColorMap = useRef({});  
+    const colorIndex = useRef(0);
+    function getGroupColorClass(groupId) {
+    if (!groupColorMap.current[groupId]) {
+        groupColorMap.current[groupId] = colorClasses[colorIndex.current];
+        colorIndex.current = (colorIndex.current + 1) % colorClasses.length;
     }
-    let colorIndex = 0;
+    return groupColorMap.current[groupId];
+    }
+
+
     //타임라인 리로드
     const fetchTimelineTodos = async () => {
         try {
@@ -694,38 +700,35 @@ const ProjectContent = () => {
             // MODIFIED: 각 담당자별로 별도의 타임라인 아이템 생성
             const mappedItems = [];
             myTodos
-                .filter(todo => todo.deadline)
-                .forEach(todo => {
-                    const start = new Date(todo.start_day || todo.deadline);
-                    const end = new Date(todo.deadline);
-                    end.setDate(end.getDate());
-                    
-                    // 담당자 배열 처리
-                    const assignees = Array.isArray(todo.user_id) ? todo.user_id : [todo.user_id];
-                    
-                    // 모든 담당자의 프로필 이미지 수집
-                    const assigneeProfiles = assignees.map(userId => ({
-                        userId,
-                        profileUrl: userProfileMap[userId] || '/default_profile.png'
-                    }));
+            .filter(todo => todo.deadline)
+            .forEach(todo => {
+                const start = new Date(todo.start_day || todo.deadline);
+                const end = new Date(todo.deadline);
+                end.setDate(end.getDate());
+                
+                const assignees = Array.isArray(todo.user_id) ? todo.user_id : [todo.user_id];
+                const assigneeProfiles = assignees.map(userId => ({
+                    userId,
+                    profileUrl: userProfileMap[userId] || '/default_profile.png'
+                }));
 
-                    // 각 담당자별로 별도의 아이템 생성
-                    assignees.forEach((assignee, index) => {
-                        mappedItems.push({
-                            id: `${todo.id}_${assignee}`, // 고유 ID 생성
-                            original_id: todo.id, // 원본 할 일 ID 보존
-                            start,
-                            end,
-                            group: assignee, // 각 담당자를 그룹으로 설정
-                            content: todo.text,
-                            className: `item-common ${getGroupColorClass(assignee)}`,
-                            editable: true,
-                            assignee_profiles: assigneeProfiles, // 모든 담당자 프로필 정보
-                            assignees: assignees, // 담당자 ID 목록
-                            todo_data: todo // 원본 할 일 데이터 보존
-                        });
-                    });
+                assignees.forEach((assignee, index) => {
+                mappedItems.push({
+                    id: `${todo.id}_${assignee}`,
+                    original_id: todo.id,
+                    start,
+                    end,
+                    group: assignee,
+                    content: todo.text,
+                    className: `item-common ${getGroupColorClass(assignee)}`,
+                    editable: true,
+                    assignee_profiles: assigneeProfiles,
+                    assignees: assignees,
+                    todo_data: todo
                 });
+                });
+            });
+
             
             setTimelineItems(new DataSet(mappedItems));
         };
@@ -755,7 +758,6 @@ const ProjectContent = () => {
             fetchProgress();
         }
     }, [timelineTodos]);
-
 // 4. 타임라인 옵션 렌더링 (수정된 부분)
     useEffect(() => {
         if (!timelineRef.current) return;
@@ -834,11 +836,9 @@ const ProjectContent = () => {
                 
                 const html = `<div class="timeline-card">
                     <div class="timeline-title">${item.content}</div>
-                    <div class="timeline-avatars">${profileImagesHtml}</div>
                     <div class="progress-container">
-                        <div class="progress-bar">
-                            <div>${progress}%완료</div>
-                        </div>
+                        <div class="timeline-avatars">${profileImagesHtml}</div>
+                        <div>${progress}%</div>
                     </div>
                 </div>`;
                 return html;
@@ -1063,29 +1063,46 @@ const ProjectContent = () => {
     useEffect(() => {
         if (!projectInfoId) return;
 
-        const fetchFiles = async () => {
+        const fetchFilesAndFolders = async () => {
             try {
-                const response = await fetch(`http://localhost:8008/projects/${projectInfoId}/files`);
-                if (response.ok) {
-                    const data = await response.json();
-                    const mappedFiles = data.map(file => ({
-                        name: file.name,
-                        createdAt: new Date(file.uploaded_at).toLocaleString(),
-                        type: 'file',
-                        image: 'fileIcon.png',
-                        s3Url: file.s3_url,
-                        size: file.size ?? 0
-                    }));
-                    setFolders(mappedFiles);
-                }
+                // 📁 폴더 트리 가져오기
+                const folderResponse = await fetch(`http://localhost:8008/projects/${projectInfoId}/folders/tree`);
+                const folderData = folderResponse.ok ? await folderResponse.json() : [];
+
+                // 📄 파일 목록 가져오기
+                const fileResponse = await fetch(`http://localhost:8008/projects/${projectInfoId}/files`);
+                const fileData = fileResponse.ok ? await fileResponse.json() : [];
+
+                // 폴더 매핑
+                const mappedFolders = folderData.map(folder => ({
+                    name: folder.name,
+                    createdAt: new Date(folder.createdAt).toLocaleString(),
+                    type: 'folder',
+                    image: 'folderIcon.png'
+                }));
+
+                // 파일 매핑
+                const mappedFiles = fileData.map(file => ({
+                    name: file.name,
+                    createdAt: new Date(file.uploaded_at).toLocaleString(),
+                    type: 'file',
+                    image: 'fileIcon.png',
+                    s3Url: file.s3_url,
+                    size: file.size ?? 0
+                }));
+
+                // 🧩 폴더 + 파일 합치기
+                setFolders([...mappedFolders, ...mappedFiles]);
+
             } catch (err) {
-                console.error("작업물 파일 불러오기 실패:", err);
+                console.error("작업물 데이터 불러오기 실패:", err);
             }
         };
 
-        fetchFiles();
+        fetchFilesAndFolders();
         setShouldRefresh(false);
     }, [projectInfoId, shouldRefresh]);
+
 
     const handleMoreClick = () => {
         setShowFeedbackPopup(true);
@@ -1213,7 +1230,10 @@ const ProjectContent = () => {
 
     //  스크롤 자동 내려가기
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesEndRef.current?.parentNode;
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
     }, [messages]);
 
     //  이름 토글
@@ -1520,7 +1540,7 @@ const ProjectContent = () => {
                 {/* 작업물 피드백 */}
                 <div className="feedback">
                     <div className="top">
-                        <div className="title">작업물 피드백</div>
+                        <div className="title_top">작업물 피드백</div>
                         <div className="more" onClick={handleMoreClick}>더보기</div>
                     </div>
                     <div className="content-feedback box1">
@@ -1529,7 +1549,11 @@ const ProjectContent = () => {
                                 <div key={index} className={`folderPreSee ${folder.type}PreSee`}>
                                     <div className="folderDate">{folder.createdAt}</div>
                                     <div className="fileItem">
-                                        <img src="/fileIcon.png" className="folderIcon" alt="File Icon" />
+                                        <img
+                                            src={folder.type === 'folder' ? '/folderIcon.png' : '/fileIcon.png'}
+                                            className="folderIcon"
+                                            alt={folder.type === 'folder' ? 'Folder Icon' : 'File Icon'}
+                                        />
                                         <ToggleNameDisplay name={folder.name} />
                                     </div>
                                 </div>

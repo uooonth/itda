@@ -231,159 +231,159 @@ const COMPANIES = [
 
 const EDUCATION_STATUS = ['재학', '휴학', '졸업', '수료', '중퇴', '졸업예정', '수료예정'];
 
-            // 자동완성 인라인 편집 컴포넌트
-            const InlineAutocompleteEdit = ({ value, onSave, suggestions, placeholder, canEdit, withStatus = false }) => 
-                {
-                    const [isEditing, setIsEditing] = useState(false);
-                    const [editValue, setEditValue] = useState(value || '');
-                    const [status, setStatus] = useState('');
-                    const [filteredSuggestions, setFilteredSuggestions] = useState([]);
-                    const [showSuggestions, setShowSuggestions] = useState(false);
+// 자동완성 인라인 편집 컴포넌트
+const InlineAutocompleteEdit = ({ value, onSave, suggestions, placeholder, canEdit, withStatus = false }) => 
+    {
+        const [isEditing, setIsEditing] = useState(false);
+        const [editValue, setEditValue] = useState(value || '');
+        const [status, setStatus] = useState('');
+        const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+        const [showSuggestions, setShowSuggestions] = useState(false);
 
-                    useEffect(() => {
-                        if (withStatus && value) {
-                            const parts = value.split(' - ');
-                            if (parts.length === 2) {
-                                setEditValue(parts[0]);
-                                setStatus(parts[1]);
-                            }
-                        }
-                    }, [value, withStatus]);
+        useEffect(() => {
+            if (withStatus && value) {
+                const parts = value.split(' - ');
+                if (parts.length === 2) {
+                    setEditValue(parts[0]);
+                    setStatus(parts[1]);
+                }
+            }
+        }, [value, withStatus]);
 
-                    const handleInputChange = (inputValue) => {
-                        setEditValue(inputValue);
-                        
-                        if (inputValue.length > 0) {
-                            const filtered = suggestions.filter(suggestion =>
-                                suggestion.toLowerCase().includes(inputValue.toLowerCase())
-                            ).slice(0, 8);
-                            setFilteredSuggestions(filtered);
-                            setShowSuggestions(true);
-                        } else {
-                            setShowSuggestions(false);
-                        }
-                    };
+        const handleInputChange = (inputValue) => {
+            setEditValue(inputValue);
+            
+            if (inputValue.length > 0) {
+                const filtered = suggestions.filter(suggestion =>
+                    suggestion.toLowerCase().includes(inputValue.toLowerCase())
+                ).slice(0, 8);
+                setFilteredSuggestions(filtered);
+                setShowSuggestions(true);
+            } else {
+                setShowSuggestions(false);
+            }
+        };
 
-                    const handleSave = () => {
-                        const finalValue = withStatus && status ? `${editValue} - ${status}` : editValue;
-                        onSave(finalValue);
-                        setIsEditing(false);
-                        setShowSuggestions(false);
-                    };
+        const handleSave = () => {
+            const finalValue = withStatus && status ? `${editValue} - ${status}` : editValue;
+            onSave(finalValue);
+            setIsEditing(false);
+            setShowSuggestions(false);
+        };
 
-                    const handleKeyDown = (e) => {
-                        if (e.key === 'Enter') {
-                            handleSave();
-                        } else if (e.key === 'Escape') {
-                            setIsEditing(false);
-                            setShowSuggestions(false);
-                        }
-                    };
+        const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                handleSave();
+            } else if (e.key === 'Escape') {
+                setIsEditing(false);
+                setShowSuggestions(false);
+            }
+        };
 
-                    const selectSuggestion = (suggestion) => {
-                        setEditValue(suggestion);
-                        setShowSuggestions(false);
-                    };
+        const selectSuggestion = (suggestion) => {
+            setEditValue(suggestion);
+            setShowSuggestions(false);
+        };
 
-                    if (!canEdit) {
-                        return <span>{value || placeholder}</span>;
-                    }
+        if (!canEdit) {
+            return <span>{value || placeholder}</span>;
+        }
 
-                    if (isEditing) {
-                        return (
-                            <div style={{ position: 'relative', display: 'inline-block' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <input
-                                        type="text"
-                                        value={editValue}
-                                        onChange={(e) => handleInputChange(e.target.value)}
-                                        onBlur={() => setTimeout(handleSave, 150)}
-                                        onKeyDown={handleKeyDown}
-                                        placeholder={placeholder}
-                                        autoFocus
-                                        style={{
-                                            border: '2px solid #667eea',
-                                            borderRadius: '4px',
-                                            padding: '4px 8px',
-                                            fontSize: 'inherit',
-                                            fontFamily: 'inherit',
-                                            minWidth: '200px'
-                                        }}
-                                    />
-                                    {withStatus && (
-                                        <select
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value)}
-                                            style={{
-                                                border: '2px solid #667eea',
-                                                borderRadius: '4px',
-                                                padding: '4px 8px',
-                                                fontSize: 'inherit',
-                                                fontFamily: 'inherit'
-                                            }}
-                                        >
-                                            <option value="">상태 선택</option>
-                                            {EDUCATION_STATUS.map(stat => (
-                                                <option key={stat} value={stat}>{stat}</option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-                                
-                                {showSuggestions && filteredSuggestions.length > 0 && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '100%',
-                                        left: 0,
-                                        right: 0,
-                                        background: 'white',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '4px',
-                                        maxHeight: '200px',
-                                        overflowY: 'auto',
-                                        zIndex: 1000,
-                                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                                    }}>
-                                        {filteredSuggestions.map((suggestion, index) => (
-                                            <div
-                                                key={index}
-                                                onClick={() => selectSuggestion(suggestion)}
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    cursor: 'pointer',
-                                                    borderBottom: index < filteredSuggestions.length - 1 ? '1px solid #f3f4f6' : 'none',
-                                                    fontSize: '14px',
-                                                    transition: 'background-color 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                                            >
-                                                {suggestion}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    }
-
-                    return (
-                        <span 
-                            onClick={() => setIsEditing(true)}
+        if (isEditing) {
+            return (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            onBlur={() => setTimeout(handleSave, 150)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={placeholder}
+                            autoFocus
                             style={{
-                                cursor: 'pointer',
-                                padding: '4px 8px',
+                                border: '2px solid #667eea',
                                 borderRadius: '4px',
-                                border: '2px solid transparent',
-                                transition: 'all 0.2s ease'
+                                padding: '4px 8px',
+                                fontSize: 'inherit',
+                                fontFamily: 'inherit',
+                                minWidth: '200px'
                             }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                        >
-                            {value || placeholder}
-                        </span>
-                    );
-                };
+                        />
+                        {withStatus && (
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                style={{
+                                    border: '2px solid #667eea',
+                                    borderRadius: '4px',
+                                    padding: '4px 8px',
+                                    fontSize: 'inherit',
+                                    fontFamily: 'inherit'
+                                }}
+                            >
+                                <option value="">상태 선택</option>
+                                {EDUCATION_STATUS.map(stat => (
+                                    <option key={stat} value={stat}>{stat}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                    
+                    {showSuggestions && filteredSuggestions.length > 0 && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            background: 'white',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            zIndex: 1000,
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            {filteredSuggestions.map((suggestion, index) => (
+                                <div
+                                    key={index}
+                                    onClick={() => selectSuggestion(suggestion)}
+                                    style={{
+                                        padding: '8px 12px',
+                                        cursor: 'pointer',
+                                        borderBottom: index < filteredSuggestions.length - 1 ? '1px solid #f3f4f6' : 'none',
+                                        fontSize: '14px',
+                                        transition: 'background-color 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f9fafb'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                >
+                                    {suggestion}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <span 
+                onClick={() => setIsEditing(true)}
+                style={{
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    border: '2px solid transparent',
+                    transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+                {value || placeholder}
+            </span>
+        );
+    };
 
 // 편집 가능한 프로필 이미지 컴포넌트
 const EditableProfileImage = ({ currentImage, onImageSelect, selectedImage }) => {
@@ -484,7 +484,7 @@ const ProfileCom = ({ username, isOwnProfile = true, isLoggedIn = true, viewMode
         try {
             const response = await fetch(`http://localhost:8008/users/${username}/personal-works`);
             const works = await response.json();
-            setPersonalWorks(works.slice(0, 3));
+            setPersonalWorks(works);
         } catch (error) {
             console.error('개인작업물 조회 실패:', error);
         }
@@ -940,10 +940,10 @@ const ProfileCom = ({ username, isOwnProfile = true, isLoggedIn = true, viewMode
                                     <div className='info'>
                                         <div className='datesDivider'>
                                             <div className='date startDate'>{project.joined_at}</div>
-                                            <div className='date lineProfile'>|</div>
+                                            <div className='date lineProfile'> - </div>
                                             <div className='date endDate'>{project.left_at}</div>
                                         </div>
-                                        <div className='cooper'>분류 : {project.project.project.classification}</div>
+                                        <div className='cooper'># {project.project.project.classification}</div>
                                     </div>
                                     <div className='project_name'>
                                         <div className='project-thumbnail'>
@@ -983,17 +983,17 @@ const ProfileCom = ({ username, isOwnProfile = true, isLoggedIn = true, viewMode
                         )}
                     </div>
                     <div className='project-container'>
-                        {personalWorks.length > 0 ? (
+                        {personalWorks.length >0 ? ( console.log("퍼스널워크",personalWorks),
                             personalWorks.map((work) => (
                                 <div key={work.id} className='project_'>
                                     <div className='name'>{work.title}</div>
                                     <div className='info'>
                                         <div className='datesDivider'>
                                             <div className='date startDate'>{work.start_date}</div>
-                                            <div className='date lineProfile'>|</div>
+                                            <div className='date lineProfile'> - </div>
                                             <div className='date endDate'>{work.end_date || '진행중'}</div>
                                         </div>
-                                        <div className='cooper'>@ 기업명 : {work.company}</div>
+                                        <div className='cooper'>@ {work.company}</div>
                                     </div>
                                     
                                     {work.file_info?.has_file && work.file_info?.has_s3_file ? (
@@ -1002,12 +1002,9 @@ const ProfileCom = ({ username, isOwnProfile = true, isLoggedIn = true, viewMode
                                             filename={work.file_info.filename}
                                             username={username}
                                         />
-                                    ) : (
-                                        <div className='project-thumbnail'>
-                                            <img src={chim} alt="개인작업물" className="project-thumb-img" />
-                                        </div>
+                                    )  : (
+                                        <div className="project-thumb-placeholder"></div>
                                     )}
-                                    
                                     <div className='project_name'>
                                         <div className='project-text'>
                                             <div className='role'>{work.description}</div>
