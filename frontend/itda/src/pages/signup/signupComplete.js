@@ -13,21 +13,21 @@ export default function SignupComplete() {
                 <h2 className="signup-title">회원가입</h2>
                 <div className="signup-step">
                     <div className="step">
-                        <div className="circle">
+                        <div className="circle now-circle">
                             <img src="/images/agreement.png" alt="약관 동의" />
                         </div>
                         <p>약관 동의</p>
                     </div>
                     <div className="step-line"></div>
                     <div className="step">
-                        <div className="circle">
+                        <div className="circle now-circle">
                             <img src="/images/form.png" alt="정보 입력" />
                         </div>
                         <p>정보 입력</p>
                     </div>
                     <div className="step-line"></div>
                     <div className="step">
-                        <div className="circle">
+                        <div className="circle now-circle">
                             <img src="/images/verification.png" alt="이메일 인증" />
                         </div>
                         <p>이메일 인증</p>

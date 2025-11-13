@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../css/home.css';
+import homeBanner from '../icons/home_banner.svg';
+import searchIcon from '../icons/Vector.png';
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +71,7 @@ export default function Home() {
             <div className="project-create">
                 <div className="main-banner-wrapper">
                     <div className="project-create-button">
-                        <img src="/images/mainButton.png" alt="로고" className="mainButtonImage" />
+                        <img src={homeBanner} alt="로고" className="mainButtonImage" />
                         <div className="main-overlay">
                             <div className="text-overlay">
                                 <p><span className='focus'>Collaborate</span> without limits.</p>
@@ -84,13 +86,16 @@ export default function Home() {
 
                     <div className="bottom-content">
                         <div className="left-panel">
-                            <input
-                                className="search-input"
-                                type="text"
-                                placeholder="검색할 프로젝트를 입력하세요"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                            <div className="search-container">
+                                <img src={searchIcon} alt="검색 아이콘" className="search-icon" />
+                                <input
+                                    className="search-input"
+                                    type="text"
+                                    placeholder="검색"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
 
                             {["인기", "찜한 프로젝트", "유튜브", "작곡", "틱톡", "그래픽", "애니메이션", "게임", "기타"].map(tab => (
                                 <button
@@ -129,17 +134,23 @@ export default function Home() {
                                             <div className="card-overlay">
                                                 <span className="overlay-text">정보 확인하기</span>
                                             </div>
-                                            <h3>{project.project.name}</h3>
-                                            <h5>{project.proposer?.[0] || "작성자 없음"}</h5>
-                                            <h4>
-                                                {(project.recruit_number || 0)}명 모집중 |{" "}
-                                                {project.sign_deadline ? (() => {
-                                                    const remainingDays = Math.ceil(
-                                                        (new Date(project.sign_deadline) - new Date()) / (1000 * 60 * 60 * 24)
-                                                    );
-                                                    return remainingDays < 0 ? "마감됨" : `${remainingDays}일 후 마감`;
-                                                })() : "마감일 없음"}
+                                            <h3>
+                                                <span>{project.project.name}</span>
+                                                <span className='proposer'>{project.proposer}</span>
+                                            </h3>
+                                            <h5>{project.explain}</h5>
+                                            <h4 className="recruit-info">
+                                                <span className="recruit-box">모집 {project.recruit_number || 0}명</span>
+                                                <span className="deadline-box">
+                                                    {project.sign_deadline ? (() => {
+                                                        const remainingDays = Math.ceil(
+                                                            (new Date(project.sign_deadline) - new Date()) / (1000 * 60 * 60 * 24)
+                                                        );
+                                                        return remainingDays < 0 ? "마감됨" : `마감 D-${remainingDays}`;
+                                                    })() : "마감일 없음"}
+                                                </span>
                                             </h4>
+
                                         </div>
                                     ))
                                 ) : (

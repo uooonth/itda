@@ -2,6 +2,8 @@ import { useState } from "react";
 import "../../css/signupAgreement.css";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from 'react-markdown';
+import downArrow from "../../icons/down-arrow.png";
+
 
 
 export default function SignupAgreement() {
@@ -255,7 +257,7 @@ export default function SignupAgreement() {
         if (activeModal === "marketing") content = marketingContent;
         return <ReactMarkdown>{content}</ReactMarkdown>;
     };
-    
+
     return (
         <div className="signupAgreement-container">
             <div className="navigation">
@@ -320,14 +322,23 @@ export default function SignupAgreement() {
                                     </span>
                                 </div>
                                 <button className="toggle-button" onClick={() => toggleSection(key)}>
-                                    {toggle[key] ? "▲" : "▼"}
+                                    <img
+                                        src={downArrow}
+                                        alt="toggle"
+                                        className={`arrow-icon ${toggle[key] ? "open" : ""}`}
+                                    />
                                 </button>
+
+
                             </div>
                             {toggle[key] && (
                                 <div className="agreement-detail">
-                                    <p>{key} 약관 내용입니다. ...</p>
+                                    {key === "terms" && <ReactMarkdown>{termsContent}</ReactMarkdown>}
+                                    {key === "privacy" && <ReactMarkdown>{privacyContent}</ReactMarkdown>}
+                                    {key === "marketing" && <ReactMarkdown>{marketingContent}</ReactMarkdown>}
                                 </div>
                             )}
+
                             <div className="agreement-line" />
                         </div>
 

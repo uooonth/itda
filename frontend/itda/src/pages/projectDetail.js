@@ -183,7 +183,7 @@ export default function ProjectDetail() {
             </header>
 
             <div className="detail-heading-wrapper">
-                <h2 className="detail-heading">상세 내용</h2>
+                <h2><span className="detail-heading">상세 내용</span> <span className="notice">해당 내용은 itda에서 제공하는 기본적인 계약 조건이며, 구체적인 사항은 계약 당사자인 계약자와 근로자가 협의하여 결정하시기 바랍니다.</span></h2>
             </div>
 
             <section className="project-details">
