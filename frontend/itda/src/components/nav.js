@@ -348,18 +348,6 @@ function Navigation({ isLoggedIn, username }) {
                 </div>
               ))}
 
-              <div className="notification">
-                <div className="toptext">
-                  <img src={starIcon} alt="star" className="icon" />
-                  <div className="title">프로젝트 알림</div>
-                </div>
-                <div className="time">방금 전</div>
-              </div>
-              <div className='bottomtext'>
-                <div className="content-alam">찜 목록에 있는 ‘영상찍기전수정해주세요’의 모집 마감 기한이 하루 남았습니다!</div>
-              </div>
-              <div className="divider"></div>
-
               {/* 알림이 없을 때 */}
               {notifications.length === 0 && (
                 <div>

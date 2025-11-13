@@ -12,6 +12,8 @@ const ChatContent = () => {
     const [search, setSearch] = useState("");
     const [rooms, setRooms] = useState([]);
     const [showCreateRoom, setShowCreateRoom] = useState(false);
+    const [showMemberSelect, setShowMemberSelect] = useState(false); // 인원 선택 모달 표시 여부
+    const [selectedImage, setSelectedImage] = useState(null); // 업로드한 방 이미지
     const [projectMembers, setProjectMembers] = useState([]);
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [newRoomName, setNewRoomName] = useState("");
@@ -20,6 +22,7 @@ const ChatContent = () => {
     const [userName, setUserName] = useState("");
     const messagesEndRef = useRef(null);
     const wsRef = useRef(null);
+    
 
     useEffect(() => {
         const token = localStorage.getItem("access_token");
@@ -182,7 +185,6 @@ const ChatContent = () => {
         try {
             const accessToken = localStorage.getItem("access_token");
 
-            // ✅ 새: 이름 자동 생성 로직
             let finalRoomName = newRoomName.trim();
             if (!finalRoomName) {
                 const names = selectedMembers.map(member => member.name);
@@ -243,48 +245,87 @@ const ChatContent = () => {
             </div>
 
             {showCreateRoom && (
-                <div className="createRoomModal">
+            <div className="createRoomModal">
+                <div className="modalContent">
+                <button className="closeBtn" onClick={() => setShowCreateRoom(false)}>×</button>
+                <h3 className="modalTitle">초대</h3>
+
+                {/* 방 이름 입력 */}
+                <div className="formGroup">
+                    <label>방 이름</label>
+                    <input
+                    type="text"
+                    placeholder="방 이름을 입력하세요."
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    className="roomNameInput"
+                    />
+                </div>
+
+                {/* 초대 인원 */}
+                <div className="formGroup">
+                    <label>초대 인원</label>
+                    <button className="selectBtn" onClick={() => setShowMemberSelect(true)}>인원 선택</button>
+                </div>
+
+                {/* 방 이미지 */}
+                <div className="formGroup">
+                    <label>방 이미지</label>
+                    <input
+                    type="file"
+                    accept="image/*"
+                    id="roomImageUpload"
+                    onChange={(e) => setSelectedImage(e.target.files[0])}
+                    style={{ display: 'none' }}
+                    />
+                    {selectedImage && <span className="fileName">{selectedImage.name}</span>}
+                    <label htmlFor="roomImageUpload" className="imageUploadBtn">
+                    이미지 등록/변경
+                    </label>
+                </div>
+
+                {/* 생성 버튼 */}
+                <button onClick={createChatRoom} className="createRoomButton">생성</button>
+                </div>
+            </div>
+            )}
+            {showMemberSelect && (
+                <div className="memberSelectModal">
                     <div className="modalContent">
-                        <h3>새 채팅방 만들기</h3>
-                        <input type="text" placeholder="채팅방 이름 (선택사항)" value={newRoomName}
-                            onChange={(e) => setNewRoomName(e.target.value)} className="roomNameInput" />
-                        <h4>참여자 선택:</h4>
-                        <div className="memberList">
-                            {projectMembers.length === 0 ? (
-                                <div className="noMembers">참여자를 불러오는 중...</div>
-                            ) : (
-                                projectMembers.map(member => (
-                                    <div key={member.id}
-                                        className={`memberItem ${selectedMembers.find(m => m.id === member.id) ? 'selected' : ''}`}
-                                        onClick={() => {
-                                            if (selectedMembers.find(m => m.id === member.id)) {
-                                                setSelectedMembers(prev => prev.filter(m => m.id !== member.id));
-                                            } else {
-                                                setSelectedMembers(prev => [...prev, member]);
-                                            }
-                                        }}>
-                                        <input type="checkbox"
-                                            checked={selectedMembers.find(m => m.id === member.id) ? true : false}
-                                            readOnly />
-                                        <span>{member.name} ({member.email})
-                                            {member.id.startsWith('demo_') && <span className="demoTag"> [데모]</span>}
-                                        </span>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <div className="modalButtons">
-                            <button onClick={createChatRoom} className="createBtn"
-                                disabled={selectedMembers.length === 0}>채팅방 만들기</button>
-                            <button onClick={() => {
-                                setShowCreateRoom(false);
-                                setSelectedMembers([]);
-                                setNewRoomName("");
-                            }} className="cancelBtn">취소</button>
-                        </div>
+                    <button className="backBtn" onClick={() => setShowMemberSelect(false)}>←</button>
+                    <h3 className="modalTitle">초대</h3>
+
+                    <input
+                        type="text"
+                        placeholder="검색할 사용자의 이름을 입력하세요."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="searchInput"
+                    />
+
+                    <div className="memberList">
+                        {projectMembers
+                        .filter(m => m.name.includes(search))
+                        .map(member => (
+                            <div key={member.id} className="memberItem">
+                            <img src={normalProfile} alt="프로필" className="memberProfile" />
+                            <div className="memberInfo">
+                                <span>{member.name}</span>
+                                <span className="memberEmail">{member.email}</span>
+                            </div>
+                            <button
+                                className="addBtn"
+                                onClick={() => setSelectedMembers(prev => [...prev, member])}
+                            >
+                                추가
+                            </button>
+                            </div>
+                        ))}
+                    </div>
                     </div>
                 </div>
-            )}
+                )}
+
 
             <div className="chatContent">
                 <div className="chatMessages">
