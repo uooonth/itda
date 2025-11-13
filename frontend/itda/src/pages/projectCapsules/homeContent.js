@@ -296,8 +296,7 @@ const HomeContent = ({ username }) => {
                                 onClick={() => handleProjectClick(project.project.id)} 
                                 style={{ 
                                     cursor: 'pointer',
-                                    border: isPinned ? '2px solid #ffd700' : '1px solid #e0e0e0',
-                                    backgroundColor: isPinned ? '#fffbf0' : 'white'
+                                    backgroundColor:'white'
                                 }}
                             >
                                 <div 
@@ -320,7 +319,7 @@ const HomeContent = ({ username }) => {
                                     <div className="explain">{project.explain}</div>
                                     <div className="status">
                                         <div className="publisher">●ㅤ관리자ㅤ:ㅤ{project.proposer?.[0]||''}</div>
-                                        <div className="role">작업자 {project.worker?.join(', ')}</div>
+                                        <div className="role">#ㅤ {project.roles?.[0]||''}</div>
                                     </div>
                                 </div>
                                 <div className="rightSide">
