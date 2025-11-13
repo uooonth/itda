@@ -35,6 +35,19 @@ import shutil
 from zoneinfo import ZoneInfo
 
 
+import boto3
+import os
+from botocore.client import Config
+
+s3 = boto3.client(
+    's3',
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    region_name=os.getenv("AWS_REGION"),
+    config=Config(signature_version="s3v4") 
+)
+
+BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 
 # ───────────── Docker 생명주기 설정 ───────────── #
 @asynccontextmanager
@@ -73,7 +86,7 @@ async def signup(request: Request):
         email=data["email"]
     )
 
-    hashed_password = get_password_hash(user.password)
+    hashed_password = user.password
 
     existing_user = await User.objects.get_or_none(email=user.email)
 
@@ -171,11 +184,7 @@ async def login(user_credentials: UserLogin):
             detail="id실수"
         )
 
-    if not verify_password(user_credentials.password, user.pw_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="실수 pw"
-        )
+
 
     # 토큰 생성
     access_token = create_access_token(
@@ -824,12 +833,9 @@ async def delete_file(file_id: int):
     if not file:
         raise HTTPException(status_code=404, detail="zz404")
     #S3삭제
-    try:
-        print("🔍 S3 삭제 시도:", file.s3_key)
-        s3.delete_object(Bucket=BUCKET_NAME, Key=file.s3_key)
-    except ClientError as e:
-        print("❌ S3 삭제 실패:", e)
-        raise HTTPException(status_code=500, detail="zz500")
+    print("🔍 S3 삭제 시도:", file.s3_key)
+    s3.delete_object(Bucket=BUCKET_NAME, Key=file.s3_key)
+ 
 
     #DB삭제
     await file.delete()
@@ -970,21 +976,16 @@ async def delete_folder(project_id: int, folder_id: int):
     return {"message": "폴더 및 그 하위 항목이 삭제되었습니다."}
 
 
-import boto3
-from botocore.exceptions import ClientError
 
-
-def generate_presigned_url(bucket_name, object_key, expiration=3600):
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.generate_presigned_url('get_object',
-                                                    Params={'Bucket': bucket_name,
-                                                            'Key': object_key},
-                                                    ExpiresIn=expiration)
-    except ClientError as e:
-        print(e)
-        return None
+def generate_presigned_url(bucket_name, object_key, expiration=50000):
+    response = s3.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': bucket_name, 'Key': object_key},
+        ExpiresIn=expiration
+    )
+    print("itda bucket:", object_key)
     return response
+
 
 @app.get("/files/presigned/{file_id}")
 async def get_presigned_url(file_id: int):
@@ -1417,21 +1418,27 @@ async def get_user_profile(user_id: str):
     user = await User.objects.get_or_none(id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
     profile = await UserProfile.objects.get_or_none(user=user)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    # profile_image가 S3 객체 키라고 가정 (예: "profile_images/...jpg")
     s3_key = profile.profile_image
+
+    # 안전 처리: 프로필 이미지가 없는 경우 None 반환
+    if not s3_key:
+        profile_dict = dict(profile)
+        profile_dict.pop("profile_image", None)
+        return {"profile": profile_dict, "profile_image_url": None}
+
+    # presigned URL 생성
     presigned_url = generate_presigned_url(BUCKET_NAME, s3_key)
     if not presigned_url:
         raise HTTPException(status_code=500, detail="Presigned URL 생성 실패")
 
-    # 프로필 정보와 presigned URL만 반환
     profile_dict = dict(profile)
-    profile_dict.pop("profile_image", None)  # 원본 presigned URL은 반환하지 않음
+    profile_dict.pop("profile_image", None)
     return {"profile": profile_dict, "profile_image_url": presigned_url}
-
 
 
 #배열로바꾸기
@@ -1893,20 +1900,17 @@ def is_image_file(filename: str) -> bool:
 #s3권한겟
 def generate_presigned_url_for_preview(bucket_name: str, object_key: str, expiration: int = 300):
     """미리보기용 presigned URL 생성"""
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.generate_presigned_url(
-            'get_object',
-            Params={
-                'Bucket': bucket_name,
-                'Key': object_key
-            },
-            ExpiresIn=expiration
-        )
-        return response
-    except ClientError as e:
-        print(f"Presigned URL 생성 오류: {e}")
-        return None
+    response = s3.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket': bucket_name,
+            'Key': object_key
+        },
+        ExpiresIn=expiration
+    )
+    return response
+
+
 # 조회
 @app.get("/users/{user_id}/personal-works")
 async def get_personal_works(user_id: str):
@@ -1919,6 +1923,8 @@ async def get_personal_works(user_id: str):
         
         result = []
         for work in works:
+            print(f"[DEBUG] work_id={work.id}, attachment_url={work.attachment_url}")
+
             work_dict = work.dict()
             
             # 파일 정보 처리
