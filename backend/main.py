@@ -33,6 +33,7 @@ from datetime import date
 from fastapi.staticfiles import StaticFiles
 import shutil
 from zoneinfo import ZoneInfo
+from pathlib import Path as FilePath
 
 
 import boto3
@@ -1139,7 +1140,7 @@ async def websocket_chat_room(websocket: WebSocket, room_id: str):
                     room_connections[room_id].remove(conn)
 
     except WebSocketDisconnect:
-        # ✅ 수정: 연결 해제 시 안전하게 제거
+        # 연결 해제 시 안전하게 제거
         if websocket in room_connections.get(room_id, []):
             room_connections[room_id].remove(websocket)
         # 빈 방의 연결 목록 정리
@@ -1154,7 +1155,7 @@ async def websocket_chat_room(websocket: WebSocket, room_id: str):
 @app.get("/chat-rooms/{room_id}/messages")
 async def get_chat_room_messages(room_id: str, current_user = Depends(get_current_user)):
     try:
-        # ✅ 수정: 채팅방 존재 및 권한 확인 강화
+        # 채팅방 존재 및 권한 확인
         room = await ChatRoom.objects.get_or_none(id=str(room_id))
         if not room:
             raise HTTPException(status_code=404, detail="채팅방을 찾을 수 없습니다.")
@@ -1162,10 +1163,12 @@ async def get_chat_room_messages(room_id: str, current_user = Depends(get_curren
         if current_user.id not in room.members:
             raise HTTPException(status_code=403, detail="채팅방 접근 권한이 없습니다.")
         
-        # ✅ 수정: ChatMessage → ChatRoomMessage 사용
         messages = await ChatRoomMessage.objects.filter(
             room_id=room_id
         ).order_by("created_at").all()
+
+        # 시스템 메시지 제거
+        messages = [m for m in messages if m.sender_id != "system"]
         
         return [
             {
@@ -1179,10 +1182,8 @@ async def get_chat_room_messages(room_id: str, current_user = Depends(get_curren
         ]
         
     except HTTPException:
-        # HTTPException은 그대로 전파
         raise
     except Exception as e:
-        # ✅ 수정: 로그 추가로 디버깅 개선
         print(f"메시지 조회 오류: {str(e)}")
         raise HTTPException(status_code=500, detail="메시지 조회에 실패했습니다.")
  #유저조회#   
@@ -1197,32 +1198,80 @@ async def get_user_basic_info(user_id: str):
         "email": user.email,
     }
 
-# ---------- 채팅방 목록 조회 API 추가 ---------- #
+# ----- 채팅방 헤더 이미지 파일 ----- #
+@app.post("/chat-rooms/{room_id}/image")
+async def upload_chat_room_image(
+    room_id: str = Path(..., description="채팅방 ID"),
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user),
+):
+    upload_dir = FilePath("static/chat_rooms")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    file_ext = (file.filename or "png").split(".")[-1]
+    file_name = f"{room_id}.{file_ext}"
+    file_path = upload_dir / file_name
+
+    contents = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    image_url = f"/static/chat_rooms/{file_name}"
+
+    room = await ChatRoom.objects.get(id=room_id)
+    room.image_url = image_url
+    await room.update()
+
+    return {"image_url": image_url}
+
+
+# ---------- 채팅방 목록 조회 API  ---------- #
 @app.get("/chat-rooms")
 async def get_user_chat_rooms(current_user = Depends(get_current_user)):
     try:
         rooms = await ChatRoom.objects.all()
-        rooms = [room for room in rooms if current_user.id in room.members]
+        # 현재 유저가 속한 방만 필터 (members가 None일 수도 있으니 방어적으로)
+        rooms = [room for room in rooms if current_user.id in (room.members or [])]
         
         room_list = []
         for room in rooms:
-            last_message = await ChatRoomMessage.objects.filter(
+            # 이 방의 모든 메시지 중 system 아닌 것만 가져와서 마지막 것 찾기
+            msgs = await ChatRoomMessage.objects.filter(
                 room_id=room.id
-            ).order_by("-created_at").first()
-            
+            ).order_by("-created_at").all()
+
+            msgs = [m for m in msgs if m.sender_id != "system"]
+            last_message = msgs[0] if msgs else None
+
+            # 마지막 활동 시각: 메시지가 있으면 그 created_at, 없으면 방 생성 시각, 그것도 없으면 지금 시간
+            last_dt = (
+                (last_message.created_at if last_message else None)
+                or getattr(room, "created_at", None)
+                or datetime.now()
+            )
+
             room_list.append({
                 "id": room.id,
                 "name": room.name,
-                "lastMessage": last_message.text if last_message else "메시지가 없습니다.",
-                "time": last_message.created_at.strftime("%m월 %d일") if last_message else room.created_at.strftime("%m월 %d일"),
-                "members": room.members
+                # image_url 필드가 없거나 None일 수도 있으니까 getattr 사용
+                "image_url": getattr(room, "image_url", None),
+                "lastMessage": (last_message.text if last_message else "메시지가 없습니다."),
+                "time": last_dt.strftime("%m월 %d일"),
+                "lastMessageTime": last_dt.isoformat(),
+                "members": room.members or [],
             })
-        
+
+        # 마지막 활동 시간이 최신인 방이 맨 위로 오도록 정렬
+        room_list.sort(key=lambda r: r["lastMessageTime"], reverse=True)
+
         return room_list
         
     except Exception as e:
-        print(f"채팅방 목록 조회 오류: {str(e)}")
+        # 어떤 에러인지 디버깅용으로 타입까지 출력
+        print("채팅방 목록 조회 오류 타입:", type(e))
+        print("채팅방 목록 조회 오류 메시지:", repr(e))
         raise HTTPException(status_code=500, detail="채팅방 목록 조회에 실패했습니다.")
+
     
 
 @app.get("/users/all")
