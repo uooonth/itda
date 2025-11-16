@@ -96,7 +96,11 @@
 
 .chatMessages {
     flex: 1;
+<<<<<<< HEAD
     padding: 16vh 6vw 0vh 6vw;
+=======
+    padding: 5vh 6vw 0vh 6vw;
+>>>>>>> main
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -271,6 +275,7 @@
   padding-bottom: 2vh;
 }
 
+<<<<<<< HEAD
 .closeBtn, .backBtn {
   position: absolute;
   top: 15px;
@@ -281,11 +286,17 @@
   cursor: pointer;
 }
 
+=======
+>>>>>>> main
 .formGroup {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6.5vh;
+<<<<<<< HEAD
+=======
+  margin-top: 3vh;
+>>>>>>> main
 }
 
 .roomNameInput {
@@ -363,3 +374,158 @@
   margin: 0 auto; 
   display: block; 
 }
+<<<<<<< HEAD
+=======
+
+/*채팅방 헤더*/
+/* 채팅 우측 상단 방 헤더 */
+.chatRoomHeader {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    padding: 11vh 6vw 4vh 6vw;
+    border-bottom: 1px solid #eee;
+}
+
+/* 방 프로필 이미지 */
+.chatRoomHeaderImage {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #ddd; /* 이미지 없을 때 회색 배경 */
+}
+
+/* 방 이름/설명 컨테이너 */
+.chatRoomHeaderInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 방 이름 텍스트 */
+.chatRoomHeaderName {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* 서브텍스트 (필요하면 사용) */
+.chatRoomHeaderSub {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* 초대 버튼*/
+.chatPersonAddBtn {
+    margin-left: auto; 
+    width: 5vw; 
+    display: inline-flex;
+    justify-content: center;
+    background-color: #000;        
+    color: #fff;               
+    border: none;
+    border-radius: 5px;        
+    padding: 6px 18px;            
+    cursor: pointer;       
+    white-space: nowrap; 
+    outline: none;
+    border:none;
+}
+
+/* 초대됨 상태 */
+.chatPersonAddBtn.invited {
+    background-color: #333;
+    color: #fff;
+    opacity: 0.9;
+}
+
+.userSearchContainer{
+    padding: 0vh 1vw;
+    position: relative;
+}
+
+.userSearchInput{
+    width: 100%;
+    padding: 2.5vh 1vw 2.5vh 4vw;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.8rem;
+    outline: none;
+    border:1px solid #c7c7c7;
+}
+
+.userSearchIcon{
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    left:2.5vw;
+    top:2.5vh;
+}
+
+
+/* 화살표 위치 */
+.chatInviteBackBtn{
+    left:40vw;
+    top:3vh;
+    position: absolute;
+    background: none;
+    border:none;
+    font-size: 1.5rem;
+    font-family: "Pretendard-ExtraBold";
+    cursor: pointer;
+}
+
+/* 초대 모달 안의 유저 리스트 전체 컨테이너 */
+.memberList {
+  display: flex;
+  flex-direction: column;  
+  gap: 5vh;              
+  margin-top: 20px;
+  padding: 0 1vw;
+  box-sizing: border-box;
+}
+
+/* 각 유저 한 행 */
+.memberItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* 왼쪽: 프로필+정보, 오른쪽: 버튼 */
+  width: 100%;
+}
+
+/* 프로필 이미지 */
+.memberProfileImg {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 이름 + 이메일 묶음 */
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+  flex: 1;                        /* 버튼을 오른쪽 끝으로 밀기 위해 */
+}
+
+/* 이름 */
+.memberInfo span:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 이메일 (작은 글자, 회색) */
+.memberEmail {
+  font-size: 0.85rem;
+  color: #777;
+  margin-top: 2px;
+}
+
+.dateLabel {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #000;
+  margin: 16px 0;
+}
+>>>>>>> main

@@ -157,10 +157,11 @@ class ChatRoom(ormar.Model):
         
     id: str = ormar.String(primary_key=True, max_length=36, default=lambda: str(uuid.uuid4()))
     name: str = ormar.String(max_length=255)
-    created_at = ormar.DateTime(default=lambda: datetime.now(ZoneInfo("Asia/Seoul")))
+
     created_at: datetime = ormar.DateTime(default=datetime.utcnow)
     is_group_chat: bool = ormar.Boolean(default=True)
     members: List[str] = ormar.JSON(default=[])
+    image_url: Optional[str] = ormar.String(max_length=255, nullable=True)
 
 class ChatRoomMessage(ormar.Model):
     class Meta:
@@ -169,8 +170,8 @@ class ChatRoomMessage(ormar.Model):
         database = database
 
     id: int = ormar.Integer(primary_key=True)
-    # ✅ max_length 추가
-    room_id: str = ormar.String(max_length=36)  # UUID와 일치
+
+    room_id: str = ormar.String(max_length=36)
     sender_id: str = ormar.String(max_length=100)
     sender_name: str = ormar.String(max_length=100)
     text: str = ormar.Text()

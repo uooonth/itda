@@ -5,6 +5,10 @@ html, body, #root {
 }
 
 .calendarPage {
+<<<<<<< HEAD
+=======
+    position: relative; 
+>>>>>>> main
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,6 +65,7 @@ html, body, #root {
 
 .calendarPage .popupOverlay {
   position: fixed;
+<<<<<<< HEAD
   top: 0;
   left: 0;
   width: 100%;
@@ -87,10 +92,49 @@ html, body, #root {
 
 .calendarPage .popup input[type="text"] {
   height:10vh;
+=======
+  inset: 0;                   
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;         
+  justify-content: center;      
+  z-index: 1000;
+  padding: 24px;  
+}
+
+.calendarPage .popup {
+  width: min(40vw, 640px);  
+  max-height: 80vh;            
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  box-sizing: border-box;      
+  position: relative;   
+}
+
+.calendarPage .popup .contentField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;  
+}
+
+.calendarPage .popup input[type="text"] {
+  width: 100%;         
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+>>>>>>> main
   padding: 0 6px;
   border: 1px solid #ccc;
   border-radius: 6px;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 .calendarPage .popup input[type="datetime-local"] {
   padding: 10px;
   border: 1px solid #ccc;
@@ -136,8 +180,13 @@ html, body, #root {
 
 .calendarPage .addEventButton {
   position: absolute;
+<<<<<<< HEAD
   bottom: 2vh;
   right: 4vw;
+=======
+  bottom: 1.5vh;
+  right: 3.5vw;
+>>>>>>> main
   width: 70px;
   height: 70px;
   cursor: pointer;
@@ -146,11 +195,19 @@ html, body, #root {
 }
 
 .calendarPage .addEventButton:hover {
+<<<<<<< HEAD
   transform: scale(1.1);   /* 호버 시 살짝 확대 */
 }
 
 .calendarPage .customEvent {
   background-color: var(--event-color, #ff7676); /* JS에서 설정한 색상은 적용되지 않음, 필요시 JS에서 inline으로 설정해야 함 */
+=======
+  transform: scale(1.1);
+}
+
+.calendarPage .customEvent {
+  background-color: var(--event-color, #ff7676);
+>>>>>>> main
   border-radius: 11px;
   width: 96%;
   padding: 0.7vh 2vh;
@@ -165,14 +222,24 @@ html, body, #root {
   font-family: 'Pretendard-Regular';
 }
 
+<<<<<<< HEAD
 .calendarPage .popupTitle{
   margin-top: 1vh;
+=======
+.calendarPage .calendarPopupTitle{
+  padding-bottom: 1.5vh;
+  border-bottom: 1px solid #ddd;
+  font-size: 1.4rem;
+  font-family: 'Pretendard-Bold', sans-serif;
+  text-align: left;  
+>>>>>>> main
 }
 
 .calendarPage .popupDivider {
   width: 100%;
   height: 0.7px;
   background-color: #ddd;
+<<<<<<< HEAD
   margin: 6vh 0;
 
 }
@@ -182,6 +249,16 @@ html, body, #root {
   height: 5vh;
   background-color: #4CAF50;
   border-radius: 10px;
+=======
+  margin: 5px 0 0 0;
+}
+
+.calendarPage .scheduleAddBtn{
+  width: 10vw;
+  height: 5vh;
+  background-color: #373737;
+  border-radius: 6px;
+>>>>>>> main
   color: #fff;
   box-shadow: none;
   font-family: 'Pretendard-Light';
@@ -189,6 +266,28 @@ html, body, #root {
   border:none;
 }
 
+<<<<<<< HEAD
+=======
+/* 색상 + 추가 버튼 한 줄 정렬 */
+.calendarPage .bottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; 
+  gap: 24px;
+}
+
+/* 색상 영역은 왼쪽 공간 꽉 채우기 */
+.calendarPage .colorField {
+  flex: 1;
+}
+
+/* 버튼들은 오른쪽에서 가로로 나란히 */
+.calendarPage .popupButtons {
+  display: flex;
+  gap: 10px;
+}
+
+>>>>>>> main
 /* 프로젝트 필터 컨테이너 */
 .projectFilterContainer {
   margin-bottom: 20px;
@@ -218,6 +317,12 @@ html, body, #root {
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
+<<<<<<< HEAD
+=======
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+>>>>>>> main
 }
 
 .projectDropdownButton:hover {
@@ -290,7 +395,10 @@ html, body, #root {
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -300,7 +408,11 @@ html, body, #root {
   width: 5vw;
   height: 5vh;
   background-color: #666;
+<<<<<<< HEAD
   border-radius: 10px;
+=======
+  border-radius: 8px;
+>>>>>>> main
   color: #fff;
   box-shadow: none;
   font-family: 'Pretendard-Light';
@@ -313,6 +425,7 @@ html, body, #root {
   font-family: 'Pretendard-Regular';
 }
 
+<<<<<<< HEAD
 .calendarPage .closeBtn{
   right:1vw;
   font-size: 1.2rem;
@@ -331,8 +444,100 @@ html, body, #root {
   text-align: left;
   transition: all 0.2s ease;
 
+=======
+/* 색상 드롭다운 레이아웃 */
+.colorField {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.colorDropdownWrapper {
+  position: relative;
+  width: 60%;
+}
+
+.colorDropdownButton {
+  width: 100%;
+  padding: 10px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+>>>>>>> main
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+<<<<<<< HEAD
+=======
+.colorButtonLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colorSquare {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.colorName {
+  font-size: 0.9rem;
+  font-family: 'Pretendard-Regular';
+}
+
+.colorDropdownMenu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 1001;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.colorDropdownItem {
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: 'Pretendard-Regular';
+}
+
+.colorDropdownItem:hover {
+  background-color: #f5f5f5;
+}
+
+.customColorRow {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customColorCode {
+  font-size: 0.85rem;
+  font-family: 'Pretendard-Regular';
+  color: #555;
+}
+
+.calendarPage .closeBtn{
+  position: absolute;
+  top: 4vh;
+  right: 2vw;
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+>>>>>>> main

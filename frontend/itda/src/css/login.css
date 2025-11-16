@@ -50,6 +50,7 @@
     font-family: 'Pretendard-Light';
     height: 6vh;
     /* margin-top: 5px; */
+
 }
 
 .login-input:focus {
@@ -67,6 +68,7 @@
     height: 6.5vh;
     font-family: 'Pretendard-Light';
     font-size: 0.8rem;
+
 }
 
 .signup-button {

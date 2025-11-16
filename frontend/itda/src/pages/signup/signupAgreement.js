@@ -322,6 +322,7 @@ export default function SignupAgreement() {
                                     </span>
                                 </div>
                                 <button className="toggle-button" onClick={() => toggleSection(key)}>
+
                                     <img
                                         src={downArrow}
                                         alt="toggle"
@@ -338,6 +339,7 @@ export default function SignupAgreement() {
                                     {key === "marketing" && <ReactMarkdown>{marketingContent}</ReactMarkdown>}
                                 </div>
                             )}
+
 
                             <div className="agreement-line" />
                         </div>
