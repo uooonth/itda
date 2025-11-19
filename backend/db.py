@@ -157,6 +157,7 @@ class ChatRoom(ormar.Model):
         
     id: str = ormar.String(primary_key=True, max_length=36, default=lambda: str(uuid.uuid4()))
     name: str = ormar.String(max_length=255)
+
     created_at: datetime = ormar.DateTime(default=datetime.utcnow)
     is_group_chat: bool = ormar.Boolean(default=True)
     members: List[str] = ormar.JSON(default=[])
@@ -169,6 +170,7 @@ class ChatRoomMessage(ormar.Model):
         database = database
 
     id: int = ormar.Integer(primary_key=True)
+
     room_id: str = ormar.String(max_length=36)
     sender_id: str = ormar.String(max_length=100)
     sender_name: str = ormar.String(max_length=100)

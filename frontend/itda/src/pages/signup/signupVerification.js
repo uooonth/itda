@@ -179,14 +179,14 @@ const verifyCode = () => {
 
                 <div className="signup-step">
                     <div className="step">
-                        <div className="circle">
+                        <div className="circle now-circle">
                             <img src="/images/agreement.png" alt="" />
                         </div>
                         <p>약관 동의</p>
                     </div>
                     <div className="step-line"></div>
                     <div className="step">
-                        <div className="circle">
+                        <div className="circle now-circle">
                             <img src="/images/form.png" alt="" />
                         </div>
                         <p>정보 입력</p>

@@ -172,7 +172,11 @@
     border: none;
     cursor: pointer;
     font-size: 16px;
+<<<<<<< HEAD
+    border-radius: 10px;
+=======
     border-radius: 30px;
+>>>>>>> main
     margin-bottom: 100px;
 }
 

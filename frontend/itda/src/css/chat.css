@@ -96,7 +96,11 @@
 
 .chatMessages {
     flex: 1;
+<<<<<<< HEAD
+    padding: 16vh 6vw 0vh 6vw;
+=======
     padding: 5vh 6vw 0vh 6vw;
+>>>>>>> main
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -271,12 +275,28 @@
   padding-bottom: 2vh;
 }
 
+<<<<<<< HEAD
+.closeBtn, .backBtn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+=======
+>>>>>>> main
 .formGroup {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6.5vh;
+<<<<<<< HEAD
+=======
   margin-top: 3vh;
+>>>>>>> main
 }
 
 .roomNameInput {
@@ -354,6 +374,8 @@
   margin: 0 auto; 
   display: block; 
 }
+<<<<<<< HEAD
+=======
 
 /*채팅방 헤더*/
 /* 채팅 우측 상단 방 헤더 */
@@ -506,3 +528,4 @@
   color: #000;
   margin: 16px 0;
 }
+>>>>>>> main

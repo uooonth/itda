@@ -3,10 +3,15 @@ import '../../css/chat.css';
 import pencilIcon from '../../icons/pencilIcon.png';
 import sendIcon from '../../icons/sendIcon.png';
 import normalProfile from '../../icons/normal.png';
+<<<<<<< HEAD
+import { jwtDecode } from "jwt-decode";
+
+=======
 import defaultRoomImage from '../../icons/normal.png';
 import { jwtDecode } from "jwt-decode";
 
 const API_BASE = "http://localhost:8008";
+>>>>>>> main
 
 const ChatContent = () => {
     const [messages, setMessages] = useState([]);
@@ -16,13 +21,21 @@ const ChatContent = () => {
     const [showCreateRoom, setShowCreateRoom] = useState(false);
     const [showMemberSelect, setShowMemberSelect] = useState(false); // 인원 선택 모달 표시 여부
     const [selectedImage, setSelectedImage] = useState(null); // 업로드한 방 이미지
+<<<<<<< HEAD
+=======
     const [memberSearch, setMemberSearch] = useState("");
+>>>>>>> main
     const [projectMembers, setProjectMembers] = useState([]);
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [newRoomName, setNewRoomName] = useState("");
     const [currentRoomId, setCurrentRoomId] = useState(null);
     const [userId, setUserId] = useState("");
     const [userName, setUserName] = useState("");
+<<<<<<< HEAD
+    const messagesEndRef = useRef(null);
+    const wsRef = useRef(null);
+    
+=======
 
     const currentRoom = rooms.find((room) => room.id === currentRoomId) || null;
     const roomImageSrc = currentRoom?.image_url
@@ -33,6 +46,7 @@ const ChatContent = () => {
 
     const messagesEndRef = useRef(null);
     const wsRef = useRef(null);
+>>>>>>> main
 
     useEffect(() => {
         const token = localStorage.getItem("access_token");
@@ -96,6 +110,20 @@ const ChatContent = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             const data = await res.json();
+<<<<<<< HEAD
+            const formatted = data.map((msg, idx) => ({
+                id: msg.id || idx + 1,
+                text: msg.text,
+                sender: msg.sender_id === userId ? "me" : "other",
+                name: msg.sender_name,
+                profile: normalProfile,
+                time: new Date(msg.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }),
+            }));
+=======
 
             // 🔹 시스템 메시지(방 생성 알림 등)는 보여주지 않기 위해 필터
             const filtered = data.filter((msg) => msg.sender_id !== "system");
@@ -135,6 +163,7 @@ const ChatContent = () => {
                 };
             });
 
+>>>>>>> main
             setMessages(formatted);
         } catch (err) {
             console.error('메시지 불러오기 실패:', err);
@@ -150,6 +179,8 @@ const ChatContent = () => {
 
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
+<<<<<<< HEAD
+=======
 
             const createdAt = new Date(msg.time);
             const dateKey = `${createdAt.getFullYear()}-${createdAt.getMonth() + 1}-${createdAt.getDate()}`;
@@ -162,12 +193,18 @@ const ChatContent = () => {
             });
 
             // 1) 오른쪽 채팅창 메시지 추가
+>>>>>>> main
             const newMessage = {
                 id: Date.now() + Math.random(),
                 text: msg.text,
                 sender: msg.sender_id === userId ? "me" : "other",
                 name: msg.sender_name,
                 profile: normalProfile,
+<<<<<<< HEAD
+                time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+            };
+            setMessages(prev => [...prev, newMessage]);
+=======
                 time: displayTime,
                 createdAt,
                 dateKey,
@@ -189,6 +226,7 @@ const ChatContent = () => {
                         : room
                 )
             );
+>>>>>>> main
         };
 
         ws.onclose = () => console.log("WebSocket Closed");
@@ -216,6 +254,8 @@ const ChatContent = () => {
         }
     };
 
+<<<<<<< HEAD
+=======
     // 날짜 라벨 텍스트 (오늘 / 어제 / N일 전)
     const getDateLabel = (dateObj) => {
         if (!dateObj) return "";
@@ -242,23 +282,33 @@ const ChatContent = () => {
         // 미래 날짜면 그냥 오늘 취급
         return "오늘";
     };
+>>>>>>> main
 
     const sendMessage = async () => {
         if (!input.trim()) return;
         const messageText = input;
+<<<<<<< HEAD
+=======
 
         const now = new Date();
         const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
 
+>>>>>>> main
         const newMessage = {
             id: messages.length + 1,
             text: messageText,
             sender: "me",
+<<<<<<< HEAD
+            name: userName,  
+            profile: normalProfile,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+=======
             name: userName,
             profile: normalProfile,
             time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
             createdAt: now,
             dateKey,
+>>>>>>> main
         };
         setMessages(prev => [...prev, newMessage]);
         setInput("");
@@ -290,7 +340,10 @@ const ChatContent = () => {
                 finalRoomName = names.join(", ");
             }
 
+<<<<<<< HEAD
+=======
             // 방 생성
+>>>>>>> main
             const res = await fetch('http://localhost:8008/chat-rooms', {
                 method: 'POST',
                 headers: {
@@ -303,6 +356,18 @@ const ChatContent = () => {
                 })
             });
 
+<<<<<<< HEAD
+            if (res.ok) {
+                await fetchRooms();
+                setShowCreateRoom(false);
+                setSelectedMembers([]);
+                setNewRoomName("");
+                alert('채팅방이 생성되었습니다!');
+            } else {
+                const errorData = await res.json();
+                alert(`채팅방 생성 실패: ${errorData.detail || '알 수 없는 오류'}`);
+            }
+=======
             if (!res.ok) {
                 const errorData = await res.json();
                 alert(`채팅방 생성 실패: ${errorData.detail || '알 수 없는 오류'}`);
@@ -332,12 +397,15 @@ const ChatContent = () => {
             setNewRoomName("");
             setSelectedImage(null);
             alert('채팅방이 생성되었습니다!');
+>>>>>>> main
         } catch {
             alert('네트워크 오류가 발생했습니다.');
         }
     };
 
 
+<<<<<<< HEAD
+=======
     // 🔹 채팅 메시지 + 날짜 라벨 렌더링
     const renderMessagesWithDateLabel = () => {
         const result = [];
@@ -371,6 +439,7 @@ const ChatContent = () => {
     };
 
 
+>>>>>>> main
     return (
         <div className="chatPage">
             <div className="chatList">
@@ -397,6 +466,51 @@ const ChatContent = () => {
             </div>
 
             {showCreateRoom && (
+<<<<<<< HEAD
+            <div className="createRoomModal">
+                <div className="modalContent">
+                <button className="closeBtn" onClick={() => setShowCreateRoom(false)}>×</button>
+                <h3 className="modalTitle">초대</h3>
+
+                {/* 방 이름 입력 */}
+                <div className="formGroup">
+                    <label>방 이름</label>
+                    <input
+                    type="text"
+                    placeholder="방 이름을 입력하세요."
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    className="roomNameInput"
+                    />
+                </div>
+
+                {/* 초대 인원 */}
+                <div className="formGroup">
+                    <label>초대 인원</label>
+                    <button className="selectBtn" onClick={() => setShowMemberSelect(true)}>인원 선택</button>
+                </div>
+
+                {/* 방 이미지 */}
+                <div className="formGroup">
+                    <label>방 이미지</label>
+                    <input
+                    type="file"
+                    accept="image/*"
+                    id="roomImageUpload"
+                    onChange={(e) => setSelectedImage(e.target.files[0])}
+                    style={{ display: 'none' }}
+                    />
+                    {selectedImage && <span className="fileName">{selectedImage.name}</span>}
+                    <label htmlFor="roomImageUpload" className="imageUploadBtn">
+                    이미지 등록/변경
+                    </label>
+                </div>
+
+                {/* 생성 버튼 */}
+                <button onClick={createChatRoom} className="createRoomButton">생성</button>
+                </div>
+            </div>
+=======
                 <div className="createRoomModal">
                     <div className="modalContent">
                         <button className="closeBtn" onClick={() => setShowCreateRoom(false)}>×</button>
@@ -440,10 +554,60 @@ const ChatContent = () => {
                         <button onClick={createChatRoom} className="createRoomButton">생성</button>
                     </div>
                 </div>
+>>>>>>> main
             )}
             {showMemberSelect && (
                 <div className="memberSelectModal">
                     <div className="modalContent">
+<<<<<<< HEAD
+                    <button className="backBtn" onClick={() => setShowMemberSelect(false)}>←</button>
+                    <h3 className="modalTitle">초대</h3>
+
+                    <input
+                        type="text"
+                        placeholder="검색할 사용자의 이름을 입력하세요."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="searchInput"
+                    />
+
+                    <div className="memberList">
+                        {projectMembers
+                        .filter(m => m.name.includes(search))
+                        .map(member => (
+                            <div key={member.id} className="memberItem">
+                            <img src={normalProfile} alt="프로필" className="memberProfile" />
+                            <div className="memberInfo">
+                                <span>{member.name}</span>
+                                <span className="memberEmail">{member.email}</span>
+                            </div>
+                            <button
+                                className="addBtn"
+                                onClick={() => setSelectedMembers(prev => [...prev, member])}
+                            >
+                                추가
+                            </button>
+                            </div>
+                        ))}
+                    </div>
+                    </div>
+                </div>
+                )}
+
+
+            <div className="chatContent">
+                <div className="chatMessages">
+                    {messages.map(({ id, text, sender, name, profile, time }) => (
+                        <div key={id} className={`chatMessage ${sender}`}>
+                            {sender === "other" && <img src={profile} alt="프로필" className="profileImg" />}
+                            <div className="chatTextContainer">
+                                <span className="chatName">{name}</span>
+                                <div className={`chatBubble ${sender}`}>{text}</div>
+                                <span className="chatTime">{time}</span>
+                            </div>
+                        </div>
+                    ))}
+=======
                         <button className="chatInviteBackBtn" onClick={() => setShowMemberSelect(false)}>←</button>
                         <h3 className="modalTitle">초대</h3>
 
@@ -512,6 +676,7 @@ const ChatContent = () => {
                 </div>
                 <div className="chatMessages">
                     {renderMessagesWithDateLabel()}
+>>>>>>> main
                     <div ref={messagesEndRef} />
                 </div>
 
@@ -526,4 +691,8 @@ const ChatContent = () => {
     );
 };
 
+<<<<<<< HEAD
 export default ChatContent;
+=======
+export default ChatContent;
+>>>>>>> main

@@ -33,6 +33,7 @@ from datetime import date
 from fastapi.staticfiles import StaticFiles
 import shutil
 from zoneinfo import ZoneInfo
+
 from pathlib import Path as FilePath
 
 
@@ -1140,7 +1141,7 @@ async def websocket_chat_room(websocket: WebSocket, room_id: str):
                     room_connections[room_id].remove(conn)
 
     except WebSocketDisconnect:
-        # 연결 해제 시 안전하게 제거
+
         if websocket in room_connections.get(room_id, []):
             room_connections[room_id].remove(websocket)
         # 빈 방의 연결 목록 정리
@@ -1155,6 +1156,7 @@ async def websocket_chat_room(websocket: WebSocket, room_id: str):
 @app.get("/chat-rooms/{room_id}/messages")
 async def get_chat_room_messages(room_id: str, current_user = Depends(get_current_user)):
     try:
+
         # 채팅방 존재 및 권한 확인
         room = await ChatRoom.objects.get_or_none(id=str(room_id))
         if not room:
@@ -1182,6 +1184,7 @@ async def get_chat_room_messages(room_id: str, current_user = Depends(get_curren
         ]
         
     except HTTPException:
+
         raise
     except Exception as e:
         print(f"메시지 조회 오류: {str(e)}")
@@ -1197,6 +1200,7 @@ async def get_user_basic_info(user_id: str):
         "name": user.name,
         "email": user.email,
     }
+
 
 # ----- 채팅방 헤더 이미지 파일 ----- #
 @app.post("/chat-rooms/{room_id}/image")

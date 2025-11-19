@@ -45,11 +45,12 @@
     padding: 8px;
     font-size: 0.8rem;
     border: 1px solid #ccc;
-    border-radius: 9px;
+    border-radius: 3px;
     text-align: left;
     font-family: 'Pretendard-Light';
     height: 6vh;
-    margin-top: 8px;
+    /* margin-top: 5px; */
+
 }
 
 .login-input:focus {
@@ -63,16 +64,18 @@
     background-color: black;
     color: white;
     border: none;
-    border-radius: 9px;
+    border-radius: 3px;
     height: 6.5vh;
     font-family: 'Pretendard-Light';
+    font-size: 0.8rem;
+
 }
 
 .signup-button {
     background: none;
     border: none;
     color: gray;
-    font-size: 1rem;
+    font-size: 0.8rem;
     cursor: pointer;
     font-family: 'Pretendard-Medium';
     margin-top: 6px;

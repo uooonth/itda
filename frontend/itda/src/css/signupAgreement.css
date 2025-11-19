@@ -93,6 +93,16 @@
 .agreement-item-label {
     display: flex;
     align-items: center;
+<<<<<<< HEAD
+    justify-content: first baseline;
+    font-size: 15px;
+    gap: 10px;
+    width: 100%;
+    font-family: 'Pretendard-Thin';
+}
+
+
+=======
     justify-content: space-between; /* 텍스트 왼쪽, 토글 오른쪽 */
     font-size: 17px;
     gap: 10px;
@@ -100,6 +110,7 @@
     font-family: 'Pretendard-Medium';
 }
 
+>>>>>>> main
 .agreement-item-label-left {
     display: flex;
     align-items: center;
@@ -141,11 +152,19 @@
     transform: translate(-50%, -50%);
 }
 
+<<<<<<< HEAD
+.agreement-line { 
+    /* width: 50vw; */
+    height: 1px;
+    background-color: #ccc;
+    margin: 15px;
+=======
 .agreement-line {
     width: 50vw;
     height: 1px;
     background-color: #ccc;
     margin: 15px 0;
+>>>>>>> main
 }
 
 .toggle-button {
@@ -153,7 +172,11 @@
     border: none;
     font-size: 20px;
     cursor: pointer;
+<<<<<<< HEAD
+    padding-right: 10%;
+=======
     padding-right: 5px;
+>>>>>>> main
 }
 
 .agreement-detail {
@@ -181,8 +204,13 @@
     height: 60px;
     border: none;
     cursor: pointer;
+<<<<<<< HEAD
+    font-size: 1rem;
+    border-radius: 10px;
+=======
     font-size: 16px;
     border-radius: 30px;
+>>>>>>> main
 }
 
 .cancel-button {
@@ -261,8 +289,23 @@
     width: 50vw;
     height: 1px;
     background-color: #ccc;
+<<<<<<< HEAD
+    /* margin: 15px 0; */
+}
+.arrow-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.1s ease;
+}
+
+.arrow-icon.open {
+    transform: rotate(90deg); /* 위로 뒤집힘 */
+}
+
+=======
     margin: 15px 0;
 }
+>>>>>>> main
 
 .signupAgreement-content .popup1 {
     position: fixed;
