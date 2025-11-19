@@ -299,52 +299,69 @@ export default function SignupAgreement() {
 
                 <h4>* 필수 약관에 동의하셔야 회원가입이 가능합니다.</h4>
 
-                <div className="agreement">
-                    <div className="agreement-line" />
-                    <div className="agreement-item">
-                        <div className="agreement-item-label">
-                            <label>
-                                <input type="checkbox" checked={agreements.all} onChange={handleAllCheck} />
-                                전체 약관 동의
-                            </label>
-                        </div>
+<div className="agreement">
+
+    {/* 전체 동의 */}
+    <div className="agreement-item">
+        <div className="agreement-item-label">
+            <div className="agreement-item-label-left">
+                <input
+                    type="checkbox"
+                    checked={agreements.all}
+                    onChange={handleAllCheck}
+                />
+                <span>전체 약관 동의</span>
+            </div>
+        </div>
+    </div>
+
+    <div className="agreement-line" />
+
+    {/* 개별 약관 */}
+    {["terms", "privacy", "marketing"].map((key) => (
+        <>
+            <div className="agreement-item" key={key}>
+                <div className="agreement-item-label">
+                    <div className="agreement-item-label-left">
+                        <input
+                            type="checkbox"
+                            checked={agreements[key]}
+                            onChange={() => handleSingleCheck(key)}
+                        />
+                        <span>
+                            {key === "terms" && "회원 서비스 이용약관 (필수)"}
+                            {key === "privacy" && "개인정보 수집 및 이용 동의 (필수)"}
+                            {key === "marketing" && "마케팅 수신 동의 (필수)"}
+                        </span>
                     </div>
-                    <div className="agreement-line" />
-                    {["terms", "privacy", "marketing"].map((key) => (
-                        <div className="agreement-item" key={key}>
-                            <div className="agreement-item-label">
-                                <div className="agreement-item-label-left">
-                                    <input type="checkbox" checked={agreements[key]} onChange={() => handleSingleCheck(key)} />
-                                    <span>
-                                        {key === "terms" && "회원 서비스 이용약관 (필수)"}
-                                        {key === "privacy" && "개인정보 수집 및 이용 동의 (필수)"}
-                                        {key === "marketing" && "마케팅 수신 동의 (필수)"}
-                                    </span>
-                                </div>
-                                <button className="toggle-button" onClick={() => toggleSection(key)}>
 
-                                    <img
-                                        src={downArrow}
-                                        alt="toggle"
-                                        className={`arrow-icon ${toggle[key] ? "open" : ""}`}
-                                    />
-                                </button>
+                    <button
+                        className="toggle-button"
+                        onClick={() => toggleSection(key)}
+                    >
+                        <img
+                            src={downArrow}
+                            alt="toggle"
+                            className={`arrow-icon ${toggle[key] ? "open" : ""}`}
+                        />
+                    </button>
+                </div>
 
+                {toggle[key] && (
+                    <div className="agreement-detail">
+                        {key === "terms" && <ReactMarkdown>{termsContent}</ReactMarkdown>}
+                        {key === "privacy" && <ReactMarkdown>{privacyContent}</ReactMarkdown>}
+                        {key === "marketing" && <ReactMarkdown>{marketingContent}</ReactMarkdown>}
+                    </div>
+                )}
+            </div>
 
-                            </div>
-                            {toggle[key] && (
-                                <div className="agreement-detail">
-                                    {key === "terms" && <ReactMarkdown>{termsContent}</ReactMarkdown>}
-                                    {key === "privacy" && <ReactMarkdown>{privacyContent}</ReactMarkdown>}
-                                    {key === "marketing" && <ReactMarkdown>{marketingContent}</ReactMarkdown>}
-                                </div>
-                            )}
+            {/* ★ item 바깥으로 빠진 line */}
+            <div className="agreement-line" />
+        </>
+    ))}
 
 
-                            <div className="agreement-line" />
-                        </div>
-
-                    ))}
                     <div className="button-group">
                         <button className="cancel-button" onClick={() => setShowCancelModal(true)}>취소</button>
                         <button className="next-button" disabled={!isNextEnabled} onClick={() => navigate("/signupForm")}>다음</button>

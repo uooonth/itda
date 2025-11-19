@@ -192,6 +192,17 @@ const HomeContent = ({ username }) => {
     });
 
 
+// 프로젝트 카테고리별 아이콘 경로 매핑
+const categoryIcons = {
+    "인기": "/images/fire.png",
+    "찜한 프로젝트": "/images/heart.png",
+    "작곡": "/images/headphone.png",
+    "틱톡": "/images/thumbUp.png",
+    "그래픽": "/images/brush.png",
+    "애니메이션": "/images/paint.png",
+    "게임": "/images/rocket.png",
+    "기타": "/images/hash.png"
+};
 
 
 
@@ -288,7 +299,12 @@ const HomeContent = ({ username }) => {
                     sortedProjects.map((project) => {
                         const isPinned = pinnedProjects.includes(project.project.id);
                         const lastAccess = lastAccessTimes[project.project.id]; 
-                        
+                        // 🔥 여기에서 카테고리 추출
+                        const category = project.project.classification|| "기타";
+
+                        // 🔥 여기에서 아이콘 매핑
+                        const icon = categoryIcons[category] || categoryIcons["기타"];
+
                         return (
                             <div 
                                 className={`object ${isPinned ? 'pinned-project' : ''}`}
@@ -299,17 +315,20 @@ const HomeContent = ({ username }) => {
                                     backgroundColor:'white'
                                 }}
                             >
-                                <div 
-                                className="object_icon"
-                                style={{
-                                    width: '200px',
-                                    height: '200px',
-                                    backgroundImage: `url(${project.thumbnail ? `http://localhost:8008${project.thumbnail}` : "/images/projectImage.png"})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                    backgroundRepeat: 'no-repeat'
-                                }}
-                                />
+<div className="object_icon" style={{ width: '200px', height: '200px' }}>
+    <img
+        src={icon}
+        alt="project icon"
+        style={{
+            width: '50%',
+            height: '50%',
+            objectFit: 'cover',
+            borderRadius: 'inherit'
+        }}
+    />
+</div>
+
+
 
                                 <div className="object_content">
                                     <div className="title">

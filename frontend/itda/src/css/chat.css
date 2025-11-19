@@ -29,7 +29,7 @@
 }
 
 .chatSearchContainer {
-    padding: 5vh 1vw;
+    padding:2vh 0vw;
     border-bottom: 1px solid #ddd;
     position: relative;
 }
@@ -38,16 +38,17 @@
     width: 18px;
     height: 18px;
     position: absolute;
-    left:2.5vw;
-    top:7.2vh;
+    left:1.5vw;
+    top:4.5vh;
 }
 
 .chatSearchInput {
     width: 100%;
     padding: 2.5vh 1vw 2.5vh 4vw;
     border-radius: 20px;
+    font-family: 'pretendard-regular';
     border: none;
-    font-size: 0.9rem;
+    font-size: 1rem;
     outline: none;
 }
 
@@ -96,11 +97,7 @@
 
 .chatMessages {
     flex: 1;
-<<<<<<< HEAD
-    padding: 16vh 6vw 0vh 6vw;
-=======
     padding: 5vh 6vw 0vh 6vw;
->>>>>>> main
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -188,7 +185,7 @@
     background-color: #f0f0f0;
     border-top: 1px solid #eee;
     width: 80%; 
-    height: 10%;
+    height: 6%;
     margin: 0 auto;  /* 가운데 정렬 */
     margin-bottom: 5vh;
 }
@@ -198,8 +195,8 @@
     flex: 1;
     padding: 6px 12px;  /* 내부 패딩 축소 */
     border: none;
-    font-size: 1rem;
     outline: none;
+    font-family: 'Pretendard-Regular';
     background-color: #eee;
 }
 
@@ -275,28 +272,12 @@
   padding-bottom: 2vh;
 }
 
-<<<<<<< HEAD
-.closeBtn, .backBtn {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-=======
->>>>>>> main
 .formGroup {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6.5vh;
-<<<<<<< HEAD
-=======
   margin-top: 3vh;
->>>>>>> main
 }
 
 .roomNameInput {
@@ -374,8 +355,6 @@
   margin: 0 auto; 
   display: block; 
 }
-<<<<<<< HEAD
-=======
 
 /*채팅방 헤더*/
 /* 채팅 우측 상단 방 헤더 */
@@ -405,6 +384,7 @@
 /* 방 이름 텍스트 */
 .chatRoomHeaderName {
     font-size: 1rem;
+    font-family: 'pretendard-semibold';
     font-weight: 600;
 }
 
@@ -525,7 +505,7 @@
 .dateLabel {
   text-align: center;
   font-size: 0.9rem;
+  font-family: 'pretendard-medium';
   color: #000;
   margin: 16px 0;
 }
->>>>>>> main
