@@ -109,6 +109,10 @@
 
 ---
 
+## 🧱 Model ERD
+
+<img width="8192" height="6704" alt="Untitled diagram-2026-01-28-044705" src="https://github.com/user-attachments/assets/07a99ce1-cb77-4a23-b081-eb629c2b3ac3" />
+
 ## 🎥 Demo
 https://youtube.com/channel/UCJLJiTf9MXYvy5Q44FV3TfA?feature=shared
 
